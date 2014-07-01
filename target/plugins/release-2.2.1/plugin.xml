@@ -1,0 +1,30 @@
+<plugin name='release' version='2.2.1' grailsVersion='2.0 &gt; *'>
+  <author>Graeme Rocher</author>
+  <authorEmail>grocher@vmware.com</authorEmail>
+  <title>Release Plugin</title>
+  <description>Allows you to publish Grails plugins, either to a public or private repository. It also supports deploying Grails applications and plugins to Maven repositories without the need to use Maven directly.</description>
+  <documentation>http://grails-plugins.github.com/grails-release/</documentation>
+  <type>ReleaseGrailsPlugin</type>
+  <resources />
+  <repositories>
+    <repository name='grailsCentral' url='http://grails.org/plugins' />
+    <repository name='http://repo.grails.org/grails/core' url='http://repo.grails.org/grails/core/' />
+    <repository name='mavenCentral' url='http://repo1.maven.org/maven2/' />
+  </repositories>
+  <dependencies>
+    <test>
+      <dependency group='org.gmock' name='gmock' version='0.8.0' />
+    </test>
+    <compile>
+      <dependency group='org.apache.ivy' name='ivy' version='2.2.0' />
+      <dependency group='org.apache.maven' name='maven-ant-tasks' version='2.1.3' />
+    </compile>
+  </dependencies>
+  <plugins>
+    <compile>
+      <plugin group='org.grails.plugins' name='rest-client-builder' version='1.0.3' />
+    </compile>
+  </plugins>
+  <runtimePluginRequirements />
+  <behavior />
+</plugin>

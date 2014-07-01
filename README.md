@@ -54,3 +54,19 @@ Refer to jssh-test project on github and look at views/testjssh/index.gsp
 <g:actionSubmit value="process"/>
 </g:form>
 ``` 	
+### Hitting default controller
+http://localhost:8080/YOUR_APP/connectSsh/
+![index served by](https://raw.github.com/vahidhedayati/jssh-test/master/jssh-doc/1.jpg)
+![example script](https://raw.github.com/vahidhedayati/jssh-test/master/jssh-doc/2.jpg)
+![dynamic output](https://raw.github.com/vahidhedayati/jssh-test/master/jssh-doc/3.jpg)
+
+This plugin requires and hacks in jquery on the sample _process.gsp template which simply polls controller for any updates sent to ssh connection. You may wish to tweek this slow down/speed up the millisecond configuration.
+
+The close connection button at the top of the process page is specifically for scripts that may for example hang on to connection i.e. running a tail -f on a log file. This button closes ssh connection and disconnects from remote host.
+
+The whole reason for this plugin was because I had been looking for a way of polling ssh connection through my grails app and my existing remote-ssh plugin was not doing it for me. Found the j2ssh libraries and this got put together in a very short period of time.
+
+TODO: - there is a qAndA in ConnectSsh.groovy which I wish to put to use and allow users to dynamically either link scripts or for an easy way to pass expect style input to back end : i.e. send command expect this send this back, which can be plugged in to existing connection process.
+
+
+ 
