@@ -1,7 +1,7 @@
 jssh
 =========
 
-Grails jssh Plugin based on j2ssh library : Provides ( RemoteSSH + exec command ) 
+Grails jssh Plugin based on j2ssh library, provides ssh connection with features/facilities to execute remote shell commands.
 
 
 Dependency :
