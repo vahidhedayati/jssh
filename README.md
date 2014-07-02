@@ -6,7 +6,7 @@ Grails jssh Plugin based on j2ssh library, provides ssh connection with features
 
 Dependency :
 
-	compile ":jssh:0.1" 
+	compile ":jssh:0.2" 
 
 This plugin provides  basic functionality to allow you to call your end host either via a taglib or via a call to provided controller. These are just examples and you could either use out of the package or create your own from given examples.
 
@@ -16,26 +16,50 @@ This plugin provides  basic functionality to allow you to call your end host eit
 
 Configure SSH and SCP by adding properties to grails-app/conf/Config.groovy under the "remotessh" key:
 
+```groovy
+/*
+* Option set a global username to access ssh through to remote host
+* If you are going to define user from above commands then 
+* leave it with empty speech marks
+*/
+jssh.USER = "USER"
 
-    # 	Option set a global username to access ssh through to remote host
-    # 	If you are going to define user from above commands then leave it with empty 
-    	speech marks
-    jssh.USER = "USER"
 
-    # 	The password leave blank if you are about to use SSH Keys, otherwise provide 
-    	password to ssh auth
-    jssh.PASS=""
+/*
+* The password leave blank if you are about to use SSH Keys, 
+* otherwise provide password to ssh auth
+*/
+jssh.PASS=""
 
-    # 	The ssh key is your id_rsa or id_dsa - please note your tomcat will need 
-    	access/permissions to file/location
-    jssh.KEY="/home/youruser/.ssh/id_rsa"
 
-    # 	If you use a key pass for your key connections then provide it below
-    jssh.KEYPASS=""
+/* 
+* The ssh key is your id_rsa or id_dsa - please note your 
+* tomcat will need access/permissions to file/location
+*/
+jssh.KEY="/home/youruser/.ssh/id_rsa"
 
-    # 	The ssh port to connect through if not given will default to 22
-    jssh.PORT="22"
-	
+
+/*
+* If you use a key pass for your key connections then provide it below
+*
+/
+jssh.KEYPASS=""
+
+
+/*
+*The ssh port to connect through if not given will default to 22
+*/
+jssh.PORT="22"
+
+
+/*
+*The output buffersize - this is what is returned 
+*to your view by default it is set to 1800 if no 
+* configuration is provided
+*/
+jssh.BUFFFERSIZE="1800"
+
+```	
 	
 # Taglib call:
 Refer to ConnectSshTagLib.groovy within plugin
@@ -54,7 +78,7 @@ Refer to jssh-test project on github and look at views/testjssh/index.gsp
 <g:actionSubmit value="process"/>
 </g:form>
 ``` 	
-### Hitting default controller
+## Hitting default controller
 http://localhost:8080/YOUR_APP/connectSsh/
 ![index served by](https://raw.github.com/vahidhedayati/jssh-test/master/jssh-doc/1.jpg)
 ![example script](https://raw.github.com/vahidhedayati/jssh-test/master/jssh-doc/2.jpg)
@@ -69,4 +93,52 @@ The whole reason for this plugin was because I had been looking for a way of pol
 TODO: - there is a qAndA in ConnectSsh.groovy which I wish to put to use and allow users to dynamically either link scripts or for an easy way to pass expect style input to back end : i.e. send command expect this send this back, which can be plugged in to existing connection process.
 
 
- 
+### Easy scrolling log test:
+Bash one liner to log whilst you execute a command to tail -f /tmp/test.log
+
+```bash
+for i in $(echo {0..1000000}); do sleep 3s; echo $i >> /tmp/test.log; done
+```
+
+##### Bootstrap/jquery switch method
+If you are using jquery slider or bootstrap switch, using fontsawesome you could do thumbs up/down for stopping logs. Current default method provided by plugin is a checkbox.
+  
+```gsp
+<input type="checkbox" name="pauseLog"  id="pauseLog" data-size="small" data-label-text="Pause" data-on-text="<span class='fa fa-thumbs-up'></span>" data-off-text="<span class='fa fa-thumbs-down'></span>">
+<g:javascript>
+	$('#pauseLog').bootstrapSwitch();
+	var t;
+    function getOnline() {
+        <g:remoteFunction action="inspection" update="inspect"/>
+    }
+   	function refPage() {
+   		var elem = document.getElementById('inspect');
+  		elem.scrollTop = elem.scrollHeight; 
+    }
+    function pollPage() {
+        getOnline();
+         t = setTimeout('pollPage()', 5000);
+         r= setTimeout('refPage()', 1000);
+    }
+    function stopPage() {
+        clearTimeout(t);
+        clearTimeout(r);
+    }
+    pollPage();
+    $('#pauseLog').on('switchChange', function (e, data) {
+		if (new String(data.value).valueOf() == new String("true").valueOf()) {
+    		stopPage();
+    	}	else{
+    		pollPage();
+    	}
+    });
+</g:javascript>
+```
+
+# Change information:
+```
+ 0.2 :	added auto scrolling to terminal window, fixed close connection to work 
+ 		regardless of connection or not. Added friendly messages for bad login, 
+ 		host connection issues. Added bootstrap css + buttons.
+ 		BUFFFERSIZE added as a config option to ease on browser slowing down.
+```

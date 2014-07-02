@@ -21,22 +21,37 @@ class ConnectSsh {
 	private StringBuilder output=new StringBuilder()
 	private SshClient ssh = new SshClient()
 	SessionChannelClient session
-	public String ssh(JsshConfig ac)  throws IOException,InterruptedException {
+	private boolean isAuthenticated=false
+	public String ssh(JsshConfig ac)  {
+		try {
+		processit(ac)
+		} catch (InterruptedException ex) {
+			output.append("Connection to host refused")
+		}catch (IOException ex) {
+			output.append("Connection to host refused IOException")
+		}
+		return
+	}
+	private void processit(JsshConfig ac)  throws IOException,InterruptedException {
 		Object sshuser=ac.getConfig("USER")
 		Object sshpass=ac.getConfig("PASS")
 		Object sshkey=ac.getConfig("KEY")
 		Object sshkeypass=ac.getConfig("KEYPASS")
 		Object sshport=ac.getConfig("PORT")	
+		Object buffersize=ac.getConfig("BUFFERSIZE")
+		int bsize = buffersize ?: '1800' as int 
 		String username = user ?: sshuser.toString()
 		String password = userpass ?: sshpass.toString()
-		//File keyfile = new File(sshkey.toString())
 		String keyfilePass=''
 		output=new StringBuilder()
+		if (isAuthenticated) {
+			session.close()
+			ssh.disconnect()
+		}	
 		ssh.connect(host, new IgnoreHostKeyVerification())
-		PublicKeyAuthenticationClient pk = new PublicKeyAuthenticationClient()
-		boolean isAuthenticated=false
 		int result=0
 		if (!password) {
+			PublicKeyAuthenticationClient pk = new PublicKeyAuthenticationClient()
 			pk.setUsername(username)
 			SshPrivateKeyFile file = SshPrivateKeyFile.parse(new File(sshkey.toString()))
 			if (file.isPassphraseProtected()) {
@@ -69,7 +84,11 @@ class ConnectSsh {
 					InputStream input =session.getInputStream()
 					byte[] buffer=new byte[255]
 					int read;
+					int i=0
 					while((read = input.read(buffer)) > 0)  {
+						if (output.size() > bsize) { 
+							output=new StringBuilder()
+						}
 						String out1 = new String(buffer, 0, read)
 						output.append(out1)
 					}
@@ -77,11 +96,13 @@ class ConnectSsh {
 					ssh.disconnect()
 				}
 			}
-
+		}else{
+			def authType="using key file ${sshkey} "
+			if (password) { authType="using password" }
+			output.append("Authentication has failed for user: ${username} on ${host} ${authType}")
 		}
-		return ""
-	}
-	
+	} 
+
 	// TODO: part of next release - allow expect type of executions
 	def qAndA(String command, String question,String reply, ChannelOutputStream out,SessionOutputReader sor) {
 		out.write(command.getBytes())
@@ -98,10 +119,9 @@ class ConnectSsh {
 	}
 	
 	def closeConnection() {
-		if (ssh.openSessionChannel()) {
-		session?.close()
-		
-		ssh?.disconnect()
+		if (isAuthenticated) {
+			session.close()
+			ssh.disconnect()
 		}
 		
 	}
