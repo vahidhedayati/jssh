@@ -10,7 +10,7 @@ class ConnectSshTagLib {
 		def username=attrs.remove('username')?.toString()
 		def userCommand=attrs.remove('userCommand')?.toString()
 		def password=attrs.remove('password')?.toString()
-		
+		def template=attrs.remove('password')?.toString()
 		if (!userCommand) {
 			throwTagError("Tag [connect] is missing required attribute [userCommand]")
 		}
@@ -32,6 +32,11 @@ class ConnectSshTagLib {
 		def asyncProcess = new Thread({	connectSsh.ssh(jsshConfig)  } as Runnable )
 		asyncProcess.start()
 		def input=connectSsh.output
-		out << g.render(contextPath: pluginContextPath,template:'/connectSsh/process', model: [input:input,hostname:hostname,userCommand:userCommand])
+		
+		if (template) { 
+			out << g.render(template:template, model: [input:input,hostname:hostname,userCommand:userCommand])
+		}else{
+			out << g.render(contextPath: pluginContextPath,template:'/connectSsh/process', model: [input:input,hostname:hostname,userCommand:userCommand])
+		}
 	}
 }

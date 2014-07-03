@@ -6,7 +6,7 @@ Grails jssh Plugin based on j2ssh library, provides ssh connection with features
 
 Dependency :
 
-	compile ":jssh:0.2" 
+	compile ":jssh:0.3" 
 
 This plugin provides  basic functionality to allow you to call your end host either via a taglib or via a call to provided controller. These are just examples and you could either use out of the package or create your own from given examples.
 
@@ -54,17 +54,23 @@ jssh.PORT="22"
 
 /*
 *The output buffersize - this is what is returned 
-*to your view by default it is set to 1800 if no 
+*to your view by default it is set to 10000 if no 
 * configuration is provided
+* set to 0 for unlimited buffer size -
+* issue being browser slow down with vast data throughput
 */
-jssh.BUFFFERSIZE="1800"
+jssh.BUFFFERSIZE="0"
 
 ```	
 	
 # Taglib call:
 Refer to ConnectSshTagLib.groovy within plugin
+Define a template= if you wish to override default _process.gsp template from loading
 ```gsp
-<jssh:connect hostname="localhost" username="myuser" password="mypass" userComand="sudo tail -f /var/log/syslog"/>
+<jssh:connect hostname="localhost" username="myuser" 
+template="/optional/file"
+password="mypass" userComand="sudo tail -f /var/log/syslog"
+/>
 ```
 
 # gsp call:
@@ -84,11 +90,15 @@ http://localhost:8080/YOUR_APP/connectSsh/
 ![example script](https://raw.github.com/vahidhedayati/jssh-test/master/jssh-doc/2.jpg)
 ![dynamic output](https://raw.github.com/vahidhedayati/jssh-test/master/jssh-doc/3.jpg)
 
-This plugin requires and hacks in jquery on the sample _process.gsp template which simply polls controller for any updates sent to ssh connection. You may wish to tweek this slow down/speed up the millisecond configuration.
+This plugin requires jquery which has been manually loaded in _process.gsp template which simply polls controller for any updates sent to ssh connection. You may wish to tweak this slow down/speed up the millisecond configuration.
 
 The close connection button at the top of the process page is specifically for scripts that may for example hang on to connection i.e. running a tail -f on a log file. This button closes ssh connection and disconnects from remote host.
 
 The whole reason for this plugin was because I had been looking for a way of polling ssh connection through my grails app and my existing remote-ssh plugin was not doing it for me. Found the j2ssh libraries and this got put together in a very short period of time.
+
+#### Extendable css div box
+You should find the box that displays output is resizable, hold bottom right hand corner and drag up or down to expand retract..
+
 
 TODO: - there is a qAndA in ConnectSsh.groovy which I wish to put to use and allow users to dynamically either link scripts or for an easy way to pass expect style input to back end : i.e. send command expect this send this back, which can be plugged in to existing connection process.
 
@@ -137,6 +147,10 @@ If you are using jquery slider or bootstrap switch, using fontsawesome you could
 
 # Change information:
 ```
+ 0.3 : 	Unlimited buffersize added by setting value as 0, _process template override feature provided.
+ 		by either posting a form which has new template value or in taglib adding template="/path/to/my/template"
+ 		buffersize connection input type added to process page on mouseout will set the value as what user defines on process page
+ 
  0.2 :	added auto scrolling to terminal window, fixed close connection to work 
  		regardless of connection or not. Added friendly messages for bad login, 
  		host connection issues. Added bootstrap css + buttons.

@@ -51,31 +51,40 @@
   	overflow:auto;
 	resize:both;
 }	
-.tbutton {
-border: 1px solid rgba(0,0,0,0.2);
-box-sizing: content-box !important;
-color: #FFF;
-width: auto;
-display: inline-block;
-*zoom: 1;
-*display: inline;
-padding: 0.01em 0.02em;
-text-align: center;
-text-decoration: none;
-white-space: normal;
-outline: none;
--moz-transition: all 200ms ease 0ms !important;
--o-transition: all 200ms ease 0ms !important;
--webkit-transition: all 200ms ease 0ms !important;
-background: none repeat scroll 0 0 rgba(255,255,255,0.04);
-border-radius: 3px;
--moz-border-radius: 3px;
--webkit-border-radius: 3px;
--moz-background-clip: padding;
--webkit-background-clip: padding;
-background-clip: padding-box;
-box-shadow: 0 0 3px rgba(255,255,255,0.25) inset, 0 0 1px rgba(255,255,255,0.2), 0 10px 10px rgba(255,255,255,0.08) inset;
--moz-box-shadow: 0 0 3px rgba(255,255,255,0.25) inset, 0 0 1px rgba(255,255,255,0.2), 0 10px 10px rgba(255,255,255,0.08) inset;
--webkit-box-shadow: 0 0 3px rgba(255,255,255,0.25) inset, 0 0 1px rgba(255,255,255,0.2), 0 10x 10px rgba(255,255,255,0.08) inset;
-box-shadow: 0 0 3px rgba(255,255,255,0.25) inset, 0 0 1px rgba(255,255,255,0.2), 0 10px 10px rgba(255,255,255,0.08) inset;
+div[class*="tbutton"] {
+	border: 1px solid rgba(0,0,0,0.2);
+	box-sizing: content-box !important;
+	width: auto;
+	display: inline-block;
+	*zoom: 1;
+	*display: inline;
+	padding: 0.01em 0.02em;
+	text-align: center;
+	text-decoration: none;
+	white-space: normal;
+	outline: none;
+	-moz-transition: all 200ms ease 0ms !important;
+	-o-transition: all 200ms ease 0ms !important;
+	-webkit-transition: all 200ms ease 0ms !important;
+	background: none repeat scroll 0 0 rgba(255,255,255,0.04);
+	border-radius: 3px;
+	-moz-border-radius: 3px;
+	-webkit-border-radius: 3px;
+	-moz-background-clip: padding;
+	-webkit-background-clip: padding;
+	background-clip: padding-box;
+	box-shadow: 0 0 3px rgba(255,255,255,0.25) inset, 0 0 1px rgba(255,255,255,0.2), 0 10px 10px rgba(255,255,255,0.08) inset;
+	-moz-box-shadow: 0 0 3px rgba(255,255,255,0.25) inset, 0 0 1px rgba(255,255,255,0.2), 0 10px 10px rgba(255,255,255,0.08) inset;
+	-webkit-box-shadow: 0 0 3px rgba(255,255,255,0.25) inset, 0 0 1px rgba(255,255,255,0.2), 0 10x 10px rgba(255,255,255,0.08) inset;
+	box-shadow: 0 0 3px rgba(255,255,255,0.25) inset, 0 0 1px rgba(255,255,255,0.2), 0 10px 10px rgba(255,255,255,0.08) inset;
+}
+.msg {
+            color: #000;
+            font-weight: normal;
+}	
+.tbutton1 {
+	color: #FFF;
+}
+.tbutton2 {
+	color: #000;
 }

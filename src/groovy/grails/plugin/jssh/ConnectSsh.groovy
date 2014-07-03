@@ -18,10 +18,12 @@ class ConnectSsh {
 	Integer port=0
 	String userpass=""
 	String usercommand = ""
+	String bz=""
 	private StringBuilder output=new StringBuilder()
 	private SshClient ssh = new SshClient()
 	SessionChannelClient session
 	private boolean isAuthenticated=false
+	
 	public String ssh(JsshConfig ac)  {
 		try {
 		processit(ac)
@@ -32,6 +34,7 @@ class ConnectSsh {
 		}
 		return
 	}
+	
 	private void processit(JsshConfig ac)  throws IOException,InterruptedException {
 		Object sshuser=ac.getConfig("USER")
 		Object sshpass=ac.getConfig("PASS")
@@ -39,7 +42,8 @@ class ConnectSsh {
 		Object sshkeypass=ac.getConfig("KEYPASS")
 		Object sshport=ac.getConfig("PORT")	
 		Object buffersize=ac.getConfig("BUFFERSIZE")
-		int bsize = buffersize ?: '1800' as int 
+		int bsize=rbsize(buffersize,bz)
+
 		String username = user ?: sshuser.toString()
 		String password = userpass ?: sshpass.toString()
 		String keyfilePass=''
@@ -86,10 +90,13 @@ class ConnectSsh {
 					int read;
 					int i=0
 					while((read = input.read(buffer)) > 0)  {
-						if (output.size() > bsize) { 
+						bsize=rbsize(buffersize,bz)
+						if ((bsize > 0)&&(output.size() > bsize)) { 
 							output=new StringBuilder()
 						}
 						String out1 = new String(buffer, 0, read)
+						out1=out1.replaceAll('<','&lt;')
+						out1=out1.replaceAll('>','&gt;')
 						output.append(out1)
 					}
 					session.close()
@@ -102,6 +109,18 @@ class ConnectSsh {
 			output.append("Authentication has failed for user: ${username} on ${host} ${authType}")
 		}
 	} 
+	
+	private int rbsize(String buffersize,String bufferSize) {
+		int bsize=10000
+		if (buffersize) {
+			bsize=buffersize as int
+			
+		}else if ((bufferSize)&&(bufferSize.isInteger())) {
+			
+			 bsize=bufferSize as int
+		}
+		return bsize
+	}
 
 	// TODO: part of next release - allow expect type of executions
 	def qAndA(String command, String question,String reply, ChannelOutputStream out,SessionOutputReader sor) {

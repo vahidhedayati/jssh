@@ -1,0 +1,1 @@
+	<g:render template="${template }", model="[input:input,hostname:hostname,userCommand:userCommand]"/>

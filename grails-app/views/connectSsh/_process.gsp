@@ -5,7 +5,7 @@
 		<title><g:message code="default.list.label" args="[entityName]" /></title>
 		<link rel="stylesheet" href="${createLink(uri: '/css/bootstrap.min.css')}" type="text/css">
 		<link rel="stylesheet" href="${createLink(uri: '/css/jssh.css')}" type="text/css">
-		<script src="${createLink(uri: '/js/jquery.js')}" type="text/javascript"></script>
+		<script src="${createLink(uri: '/js/jquery.min.js')}" type="text/javascript"></script>
 
 	</head>
 	<body>
@@ -13,7 +13,8 @@
 	<div class="logconsolebar">	
 		<div class="btn btn-primary"><b>${hostname }: running command</b></div>	
 		<g:link  class="btn btn-danger" controller="connectSsh" action="closeConnection">Close connection</g:link>
-		<div class="tbutton"><input type="checkbox" name="pauseLog"  id="pauseLog" onChange="TriggerFilter(this)"> Pause logs</div>
+		<div class="tbutton1"><input type="checkbox" name="pauseLog"  id="pauseLog" onChange="TriggerFilter(this)"> Pause logs</div>
+		<div class="tbutton1">Buffer Size</div><div class="tbutton2"><input type="text" class="msg" name="bufferSize" onChange="AppendbufferSize(this)" value="10000"> </div>
 	</div>
 
 			
@@ -24,6 +25,11 @@
 <script type="text/javascript">
 	var t;
 	var r;
+	function AppendbufferSize(event) {
+		$.get('${createLink(controller:"connectSsh", action: "increaseBuffer")}?nsize=' + event.value + '',function(data){
+						alert(data);
+		});	
+	}
     function getOnline() {
     	 <g:remoteFunction action="inspection" update="inspect"/>
     }

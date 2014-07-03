@@ -18,15 +18,25 @@ class ConnectSshController {
 		if (password) {
 			connectSsh.setUserpass(password)
 		}
+		String template=params.template
+		
 		connectSsh.setHost(hostname)
 		connectSsh.setUsercommand(userCommand)
 		session.referrer=request.getHeader('referer')
 		def asyncProcess = new Thread({	connectSsh.ssh(jsshConfig)  } as Runnable )
 		asyncProcess.start()
 		def input=connectSsh.output
-		render (template: 'process', model: [input:input,hostname:hostname,userCommand:userCommand])
+		if (template) {
+			render (view: 'getTemplate', model: [input:input,hostname:hostname,userCommand:userCommand,template:template])
+		}else{
+			render (template: 'process', model: [input:input,hostname:hostname,userCommand:userCommand])
+		}
 	}
 
+	def increaseBuffer(String nsize) { 
+		connectSsh.setBz(nsize)
+		render nsize
+	}
 	def closeConnection() {
 		connectSsh?.closeConnection()
 		log.info "Connection closed"
