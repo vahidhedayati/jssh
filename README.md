@@ -62,6 +62,12 @@ jssh.PORT="22"
 jssh.BUFFFERSIZE="0"
 
 ```	
+
+
+# Using plugin within existing application
+[wiki](https://github.com/vahidhedayati/jssh/wiki/using-jssh-within-existing-application)
+
+
 	
 # Taglib call:
 Refer to ConnectSshTagLib.groovy within plugin
