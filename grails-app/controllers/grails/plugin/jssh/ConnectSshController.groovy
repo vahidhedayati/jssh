@@ -19,7 +19,6 @@ class ConnectSshController {
 			connectSsh.setUserpass(password)
 		}
 		String template=params.template
-		
 		connectSsh.setHost(hostname)
 		connectSsh.setUsercommand(userCommand)
 		session.referrer=request.getHeader('referer')
@@ -33,10 +32,10 @@ class ConnectSshController {
 		}
 	}
 
-	def increaseBuffer(String nsize) { 
-		connectSsh.setBz(nsize)
-		render nsize
+	def resetOutput() { 
+		connectSsh.setOutput(new StringBuilder())
 	}
+
 	def closeConnection() {
 		connectSsh?.closeConnection()
 		log.info "Connection closed"
@@ -45,7 +44,7 @@ class ConnectSshController {
 
 	def inspection() {
 		def input=connectSsh.output
-		render "${input ?: 'Please be patient - console output will appear shortly'}"
+		render "${input}"
 	}
 
 	def inspect() {

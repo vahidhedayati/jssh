@@ -14,24 +14,25 @@
 		<div class="btn btn-primary"><b>${hostname }: running command</b></div>	
 		<g:link  class="btn btn-danger" controller="connectSsh" action="closeConnection">Close connection</g:link>
 		<div class="tbutton1"><input type="checkbox" name="pauseLog"  id="pauseLog" onChange="TriggerFilter(this)"> Pause logs</div>
-		<div class="tbutton1">Buffer Size</div><div class="tbutton2"><input type="text" class="msg" name="bufferSize" onChange="AppendbufferSize(this)" value="10000"> </div>
-	</div>
+		</div>
 
 			
-<div id="inspect" class="logconsole">
+<pre id="inspect" class="logconsole">
 	${input ?: 'Please be patient - logging will start shortly' }		
-</div>
+</pre>
 	
 <script type="text/javascript">
 	var t;
 	var r;
-	function AppendbufferSize(event) {
-		$.get('${createLink(controller:"connectSsh", action: "increaseBuffer")}?nsize=' + event.value + '',function(data){
-						alert(data);
-		});	
-	}
     function getOnline() {
-    	 <g:remoteFunction action="inspection" update="inspect"/>
+    	 $.get('${createLink(controller:"connectSsh", action: "inspection")}',function(data){
+    			$('#inspect').append(data);
+    			 resetOutput();
+ 		});
+    }
+    function resetOutput() { 
+    	$.get('${createLink(controller:"connectSsh", action: "resetOutput")}',function(data){
+		});	
     }
     function refPage() {
    		var elem = document.getElementById('inspect');
@@ -39,6 +40,7 @@
     }
     function pollPage() {
         getOnline();
+       
          t = setTimeout('pollPage()', 5000);
          r= setTimeout('refPage()', 1000);
     }
@@ -46,9 +48,7 @@
         clearTimeout(t);
         clearTimeout(r);
     }
-    
  	pollPage();
- 	
  	function TriggerFilter(e) {
 		if (e.checked==true) {
     		stopPage();

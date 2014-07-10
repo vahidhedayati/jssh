@@ -1,4 +1,4 @@
-jssh
+jssh 0.4
 =========
 
 Grails jssh Plugin based on j2ssh library, provides ssh connection with features/facilities to execute remote shell commands.
@@ -6,7 +6,7 @@ Grails jssh Plugin based on j2ssh library, provides ssh connection with features
 
 Dependency :
 
-	compile ":jssh:0.3" 
+	compile ":jssh:0.4" 
 
 This plugin provides  basic functionality to allow you to call your end host either via a taglib or via a call to provided controller. These are just examples and you could either use out of the package or create your own from given examples.
 
@@ -53,13 +53,10 @@ jssh.PORT="22"
 
 
 /*
-*The output buffersize - this is what is returned 
-*to your view by default it is set to 10000 if no 
-* configuration is provided
-* set to 0 for unlimited buffer size -
-* issue being browser slow down with vast data throughput
+* your ssh port - by default if not defined it will attempt port 22
+*
 */
-jssh.BUFFFERSIZE="0"
+jssh.PORT=22
 
 ```	
 
@@ -124,8 +121,16 @@ If you are using jquery slider or bootstrap switch, using fontsawesome you could
 <g:javascript>
 	$('#pauseLog').bootstrapSwitch();
 	var t;
-    function getOnline() {
-        <g:remoteFunction action="inspection" update="inspect"/>
+	var r;
+   function getOnline() {
+    	 $.get('${createLink(controller:"connectSsh", action: "inspection")}',function(data){
+    			$('#inspect').append(data);
+    			 resetOutput();
+ 		});
+    }
+    function resetOutput() { 
+    	$.get('${createLink(controller:"connectSsh", action: "resetOutput")}',function(data){
+		});	
     }
    	function refPage() {
    		var elem = document.getElementById('inspect');
@@ -153,12 +158,18 @@ If you are using jquery slider or bootstrap switch, using fontsawesome you could
 
 # Change information:
 ```
- 0.3 : 	Unlimited buffersize added by setting value as 0, _process template override feature provided.
- 		by either posting a form which has new template value or in taglib adding template="/path/to/my/template"
- 		buffersize connection input type added to process page on mouseout will set the value as what user defines on process page
+ 0.4 :	content passed from j2ssh to view is now changed to return appended value rather than entire replacement 
+ 		of content. As a result a few things changed, buffer sizing removed from _process.gsp - 
+ 		content is now ongoing rolling content from back end appended to HTML view.
+ 		SSH port configuration enabled
+ 		
+ 0.3 : 	Unlimited BufferSize added by setting value as 0, _process template override feature provided.
+ 		by either posting a form which has new template value or in TAGlib adding template="/path/to/my/template"
+ 		BufferSize connection input type added to process page on mouseOut will set the value as what user defines 
+ 		on process page
  
  0.2 :	added auto scrolling to terminal window, fixed close connection to work 
  		regardless of connection or not. Added friendly messages for bad login, 
- 		host connection issues. Added bootstrap css + buttons.
- 		BUFFFERSIZE added as a config option to ease on browser slowing down.
+ 		host connection issues. Added bootstrap CSS + buttons.
+ 		BUFFFERSIZE added as a configuration option to ease on browser slowing down.
 ```

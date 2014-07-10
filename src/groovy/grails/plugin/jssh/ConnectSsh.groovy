@@ -4,6 +4,7 @@ import com.sshtools.j2ssh.SshClient
 import com.sshtools.j2ssh.authentication.AuthenticationProtocolState
 import com.sshtools.j2ssh.authentication.PasswordAuthenticationClient
 import com.sshtools.j2ssh.authentication.PublicKeyAuthenticationClient
+import com.sshtools.j2ssh.configuration.SshConnectionProperties
 import com.sshtools.j2ssh.connection.ChannelOutputStream
 import com.sshtools.j2ssh.session.SessionChannelClient
 import com.sshtools.j2ssh.session.SessionOutputReader
@@ -14,14 +15,13 @@ import com.sshtools.j2ssh.transport.publickey.SshPrivateKeyFile
 class ConnectSsh {
 	String host = ""
 	String user = ""
-	String sudo = ""
-	Integer port=0
+	Integer port=22
 	String userpass=""
 	String usercommand = ""
-	String bz=""
-	private StringBuilder output=new StringBuilder()
+	StringBuilder output=new StringBuilder()
 	private SshClient ssh = new SshClient()
 	SessionChannelClient session
+	SshConnectionProperties properties = null
 	private boolean isAuthenticated=false
 	
 	public String ssh(JsshConfig ac)  {
@@ -34,29 +34,33 @@ class ConnectSsh {
 		}
 		return
 	}
-	
+
 	private void processit(JsshConfig ac)  throws IOException,InterruptedException {
 		Object sshuser=ac.getConfig("USER")
 		Object sshpass=ac.getConfig("PASS")
 		Object sshkey=ac.getConfig("KEY")
 		Object sshkeypass=ac.getConfig("KEYPASS")
 		Object sshport=ac.getConfig("PORT")	
-		Object buffersize=ac.getConfig("BUFFERSIZE")
-		int bsize=rbsize(buffersize,bz)
 
 		String username = user ?: sshuser.toString()
 		String password = userpass ?: sshpass.toString()
+		int sshPort=port ?: sshport as Integer
 		String keyfilePass=''
 		output=new StringBuilder()
 		if (isAuthenticated) {
 			session.close()
 			ssh.disconnect()
 		}	
-		ssh.connect(host, new IgnoreHostKeyVerification())
+		
+		properties = new SshConnectionProperties();
+		properties.setHost(host)
+		properties.setPort(sshPort)
+		ssh.connect(properties, new IgnoreHostKeyVerification())
 		int result=0
 		if (!password) {
 			PublicKeyAuthenticationClient pk = new PublicKeyAuthenticationClient()
 			pk.setUsername(username)
+			
 			SshPrivateKeyFile file = SshPrivateKeyFile.parse(new File(sshkey.toString()))
 			if (file.isPassphraseProtected()) {
 				keyfilePass = sshkeypass.toString()
@@ -90,13 +94,9 @@ class ConnectSsh {
 					int read;
 					int i=0
 					while((read = input.read(buffer)) > 0)  {
-						bsize=rbsize(buffersize,bz)
-						if ((bsize > 0)&&(output.size() > bsize)) { 
-							output=new StringBuilder()
-						}
 						String out1 = new String(buffer, 0, read)
-						out1=out1.replaceAll('<','&lt;')
-						out1=out1.replaceAll('>','&gt;')
+						//out1=out1.replaceAll('<','&lt;')
+						//out1=out1.replaceAll('>','&gt;')
 						output.append(out1)
 					}
 					session.close()
@@ -110,17 +110,6 @@ class ConnectSsh {
 		}
 	} 
 	
-	private int rbsize(String buffersize,String bufferSize) {
-		int bsize=10000
-		if (buffersize) {
-			bsize=buffersize as int
-			
-		}else if ((bufferSize)&&(bufferSize.isInteger())) {
-			
-			 bsize=bufferSize as int
-		}
-		return bsize
-	}
 
 	// TODO: part of next release - allow expect type of executions
 	def qAndA(String command, String question,String reply, ChannelOutputStream out,SessionOutputReader sor) {
