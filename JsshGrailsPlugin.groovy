@@ -1,5 +1,6 @@
 import grails.plugin.jssh.ConnectSsh
 import grails.plugin.jssh.JsshConfig
+import grails.plugin.jssh.JsshEndpoint
 
 class JsshGrailsPlugin {
     def version = "0.4"
@@ -17,6 +18,9 @@ class JsshGrailsPlugin {
 		jsshConfig(JsshConfig) {
 			grailsApplication = ref('grailsApplication')
 		}
+		jsshEndpoint(JsshEndpoint){
+			
+		} 
 		connectSsh(ConnectSsh) {
 			
 		}

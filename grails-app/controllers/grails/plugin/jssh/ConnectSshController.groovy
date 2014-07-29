@@ -4,9 +4,34 @@ class ConnectSshController {
 
 	def connectSsh
 	def jsshConfig
-
+	
+	def socket() {}
+	def socketprocess2()  { 
+		String hostname=params.hostname ?: 'localhost'
+		String username=params.username
+		String userCommand=params.command
+		String password=params.password
+		String template=params.template
+		[username:username,password:password,hostname:hostname,userCommand:userCommand]
+	}
+	def socketprocess() {
+		String hostname=params.hostname ?: 'localhost'
+		String username=params.username
+		String userCommand=params.command
+		String password=params.password
+		String template=params.template
+		
+		if (template) {
+			render (view: 'getTemplate', model: [username:username,password:password,hostname:hostname,userCommand:userCommand])
+		}else{
+			render (template: 'socketprocess', model:[username:username,password:password,hostname:hostname,userCommand:userCommand])
+		}
+	}
+	
+	
 	def index() {}
-
+	
+	
 	def process() {
 		String hostname=params.hostname ?: 'localhost'
 		String username=params.username
@@ -31,6 +56,7 @@ class ConnectSshController {
 			render (template: 'process', model: [input:input,hostname:hostname,userCommand:userCommand])
 		}
 	}
+
 
 	def resetOutput() { 
 		connectSsh.setOutput(new StringBuilder())

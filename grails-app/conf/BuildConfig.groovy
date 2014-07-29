@@ -13,6 +13,7 @@ grails.project.dependency.resolution = {
 
 	dependencies {
 		compile 'sshtools:j2ssh-core:0.2.9'
+		compile 'javax.websocket:javax.websocket-api:1.0'
 	}
 
 	plugins {
