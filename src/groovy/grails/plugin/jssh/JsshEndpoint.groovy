@@ -62,6 +62,8 @@ class JsshEndpoint implements ServletContextListener {
 	private SessionChannelClient session
 	private SshConnectionProperties properties = null
 	private boolean isAuthenticated=false
+	private boolean pauseLog=false
+	private boolean resumed=false
 	//private InputStream input
 
 
@@ -92,8 +94,12 @@ class JsshEndpoint implements ServletContextListener {
 			if  (message.equals('DISCO:-')) {
 				//session.close()
 				ssh.disconnect()
-			}   else{
-				
+			} else if  (message.equals('PAUSE:-')) {
+				pauseLog=true
+			} else if  (message.equals('RESUME:-')) {
+				pauseLog=false
+				resumed=true
+			} else {
 				def asyncProcess = new Thread({sshControl(message,usersession)  } as Runnable )
 				asyncProcess.start()
 			}
@@ -116,13 +122,13 @@ class JsshEndpoint implements ServletContextListener {
 		ssh.disconnect()
 	}
 	private void sshControl(String usercommand,Session usersession) {
+		StringBuilder catchup=new StringBuilder()
 		session = ssh.openSessionChannel()
 		SessionOutputReader sor = new SessionOutputReader(session)
 		if (session.requestPseudoTerminal("gogrid",80,24, 0 , 0, "")) {
 			if (session.startShell()) {
 				ChannelOutputStream out = session.getOutputStream()
 				session.getOutputStream().write("${usercommand} \n".getBytes())
-				//usersession.getBasicRemote().sendText("---------:"+usercommand+"")
 				InputStream input=session.getInputStream()
 				byte[] buffer=new byte[255]
 				int read;
@@ -132,7 +138,16 @@ class JsshEndpoint implements ServletContextListener {
 					String out1 = new String(buffer, 0, read)
 					//def m=pattern.matcher(out1).matches()
 					//if (m==false) {
+					if (pauseLog) {
+						catchup.append(out1)
+					}else{
+						if (resumed) {
+							resumed=false
+							usersession.getBasicRemote().sendText(catchup as String)
+							catchup=new StringBuilder()
+						}	
 						usersession.getBasicRemote().sendText(out1)
+					}	
 					//}
 				}
 			}

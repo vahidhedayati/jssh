@@ -1,0 +1,1 @@
+<jssh:chooseLayout file="index" loadtemplate="ajaxpollpage" pageid="ajax" pagetitle="Ajax poll method"/>

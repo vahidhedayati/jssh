@@ -1,5 +1,5 @@
 
-			
+
 	<div class="logconsolebar">	
 		<div class="btn btn-primary"><b>${hostname }: running command</b></div>	
 		<g:link  class="btn btn-danger" controller="connectSsh" action="closeConnection">Close connection</g:link>

@@ -88,3 +88,19 @@ div[class*="tbutton"] {
 .tbutton2 {
 	color: #000;
 }
+.page-header{padding-bottom:9px;margin:20px 0 30px;border-bottom:1px solid #eeeeee;}
+#contact-area input, #contact-area textarea {
+padding: 5px;
+width: 40em;
+font-size: 1.1em;
+margin: 0px 0px 10px 0px;
+border: 2px solid #ccc;
+}
+
+#contact-area textarea {
+height: 3em;
+}
+
+#contact-area textarea:focus, #contact-area input:focus {
+border: 2px solid #900;
+}

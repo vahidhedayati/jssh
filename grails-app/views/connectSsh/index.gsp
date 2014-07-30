@@ -1,1 +1,1 @@
-<jssh:chooseLayout file="index" loadtemplate="indexpage"/>
+<jssh:chooseLayout file="index" loadtemplate="socketpage" pageid="websocket" pagetitle="Websocket live connection"/>

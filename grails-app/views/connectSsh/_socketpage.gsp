@@ -1,5 +1,5 @@
 <div class="container">
-	<div class="btn btn-danger"><g:link action="index">Ajax poll</g:link></div>
+	<div class="btn btn-danger"><g:link action="ajaxpoll">Ajax poll</g:link></div>
 	<g:form method="post" action="socketprocess">
 	<g:textField name="username" placeholder="Username?"/>
 	<g:passwordField name="password" placeholder="password?"/>

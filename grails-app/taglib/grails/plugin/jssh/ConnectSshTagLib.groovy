@@ -50,6 +50,7 @@ class ConnectSshTagLib {
 		def password=attrs.remove('password')?.toString()
 		def template=attrs.remove('password')?.toString()
 		def port=attrs.remove('port')?.toString()
+
 		if (template) {
 			out << g.render(template:template, model: [hostname:hostname,port:port,password:password,username:username,userCommand:userCommand])
 		}else{
@@ -64,15 +65,23 @@ class ConnectSshTagLib {
 		def username=attrs.remove('username')?.toString()
 		def userCommand=attrs.remove('userCommand')?.toString()
 		def password=attrs.remove('password')?.toString()
-		def template=attrs.remove('password')?.toString()
+		def template=attrs.remove('template')?.toString()
 		def port=attrs.remove('port')?.toString()
 		def input=attrs.remove('input')?.toString()
+		def pageid=attrs.remove('pageid')?.toString() 
+		def pagetitle=attrs.remove('pagetitle')?.toString()
+		if (!pageid) { 
+			pageid="jssh"
+		}
+		if (!pagetitle) {
+			pagetitle="jssh J2SSH Websocket/Ajax plugin"
+		}
 		double verify=grailsVersionService.getGrailsVersion()
 		
 		def gfolder="resources"
 		if (verify >= 2.4 ) {
 			gfolder="assets"
 		}
-		out << g.render(contextPath: pluginContextPath, template: "/connectSsh/${gfolder}/${file}", model: [attrs:attrs,loadtemplate:loadtemplate,input:input,port:port,username:username,password:password,hostname:hostname,userCommand:userCommand])
+		out << g.render(contextPath: pluginContextPath, template: "/connectSsh/${gfolder}/${file}", model: [attrs:attrs,loadtemplate:loadtemplate,input:input,port:port,username:username,password:password,hostname:hostname,userCommand:userCommand,pageid:pageid,pagetitle:pagetitle])
 	}
 }

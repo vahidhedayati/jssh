@@ -7,5 +7,7 @@
 	hostname="${hostname}"
 	input="${input }"
 	userCommand="${userCommand}"
+	pageid="${pageid }"
+	pagetitle="${pagetitle }"
 	 />
 

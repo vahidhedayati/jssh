@@ -1,14 +1,26 @@
-jssh 0.4
+jssh 0.5
 =========
 
-Grails jssh Plugin based on j2ssh library, provides ssh connection with features/facilities to execute remote shell commands.
+Grails jssh Plugin based on j2ssh library, provides ssh connection with features/facilities to execute remote shell commands. Provides connection via websockets as well as ajax/polling.
 
 
 Dependency :
 
-	compile ":jssh:0.4" 
+	compile ":jssh:0.5" 
 
 This plugin provides  basic functionality to allow you to call your end host either via a taglib or via a call to provided controller. These are just examples and you could either use out of the package or create your own from given examples.
+
+
+# 0.5 release : websocket live ssh interaction:
+Using default tomcat websockets to interact with j2ssh libraries. It is really very powerful/amazing stuff.
+
+I have found whilst tailing a file if I execute a command it actually executes the new command then output resumes back to original tailing.. so in some ways even better than using a console. Downsides, no ctrl c special keys etc. If you are connected and wish to stop such features simply click the big disconnect button or close browser.
+
+Websockets will detect such actions and attempt to close ssh connection down..
+On the bright side, there are pause and resume buttons provided on websockets which pauses output and on resume pumps back StringBuffer that was preserving the output whilst you had it on pause.
+
+New taglibs added (check under tag lib)
+
 
 
 	 	
@@ -53,10 +65,17 @@ jssh.PORT="22"
 
 
 /*
-* your ssh port - by default if not defined it will attempt port 22
+* This is the most important configuration required for websocket calls
+* in my current version the hostname is being defined by tomcat start up setenv.sh
+* In my tomcat setenv.sh I have
+* HOSTNAME=$(hostname)
+* JAVA_OPTS="$JAVA_OPTS -DSERVERURL=$HOSTNAME"
+*
+* Now as per below the hostname is getting set to this value
+* if not defined wschat will default it localhost:8080
 *
 */
-jssh.PORT=22
+jssh.wshostname=System.getProperty('SERVERURL')+":8080"
 
 ```	
 
@@ -68,13 +87,31 @@ jssh.PORT=22
 	
 # Taglib call:
 Refer to ConnectSshTagLib.groovy within plugin
+
 Define a template= if you wish to override default _process.gsp template from loading
+
 ```gsp
-<jssh:connect hostname="localhost" username="myuser" 
+
+<!-- New websockets connector tag lib -->
+<jssh:socketconnect hostname="localhost" username="myuser" 
 template="/optional/file"
+port="{optional : your ssh port}"
 password="mypass" userComand="sudo tail -f /var/log/syslog"
 />
+
+<!-- To use old method (ajax/polling) -->
+<jssh:connect hostname="localhost" username="myuser" 
+template="/optional/file"
+port="{optional : your ssh port}"
+password="mypass" userComand="sudo tail -f /var/log/syslog"
+/>
+
 ```
+
+Rememeber if you have defined usernames,passwords,keys etc in your config.groovy then there is no need to define those values in any of the calls above..
+
+
+
 
 # gsp call:
 Refer to jssh-test project on github and look at views/testjssh/index.gsp
@@ -159,14 +196,22 @@ If you are using jquery slider or bootstrap switch, using fontsawesome you could
 
 # Change information:
 ```
- 0.4 :	content passed from j2ssh to view is now changed to return appended value rather than entire replacement 
- 		of content. As a result a few things changed, buffer sizing removed from _process.gsp - 
+ 0.5 : 	Websockets added to j2ssh - and we are rocking !
+  		Old ajax calls left alone.
+  		
+ 0.4 :	content passed from j2ssh to view is now changed to return appended value 
+ 		rather than entire replacement
+ 		of content. As a result a few things changed, buffer sizing removed from 
+ 		_process.gsp - 
  		content is now ongoing rolling content from back end appended to HTML view.
  		SSH port configuration enabled
  		
- 0.3 : 	Unlimited BufferSize added by setting value as 0, _process template override feature provided.
- 		by either posting a form which has new template value or in TAGlib adding template="/path/to/my/template"
- 		BufferSize connection input type added to process page on mouseOut will set the value as what user defines 
+ 0.3 : 	Unlimited BufferSize added by setting value as 0, _process template override 
+ 		feature provided.
+ 		by either posting a form which has new template value or in TAGlib adding 
+ 		template="/path/to/my/template"
+ 		BufferSize connection input type added to process page on mouseOut will set 
+ 		the value as what user defines 
  		on process page
  
  0.2 :	added auto scrolling to terminal window, fixed close connection to work 

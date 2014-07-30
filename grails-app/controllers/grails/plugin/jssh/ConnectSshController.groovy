@@ -4,8 +4,10 @@ class ConnectSshController {
 
 	def connectSsh
 	def jsshConfig
-	def socket() {}
+	def grailsApplication
+	def index() {}
 
+	
 	def socketprocess() {
 		String hostname=params.hostname ?: 'localhost'
 		String username=params.username
@@ -13,15 +15,20 @@ class ConnectSshController {
 		String password=params.password
 		String template=params.template
 		String port=params.port
+		
+		def wshostname=grailsApplication.config.jssh.wshostname ?: 'localhost:8080'
 		if (template) {
-			render (view: 'getTemplate', model: [username:username,port:port,password:password,hostname:hostname,userCommand:userCommand,template:template])
+			render (view: 'getTemplate', model: [username:username,port:port,password:password,hostname:hostname,userCommand:userCommand,template:template,wshostname:wshostname])
 		}else{
-			render (view: "/connectSsh/choose", model:[loadtemplate: 'socketprocess', username:username,port:port,password:password,hostname:hostname,userCommand:userCommand])
+			render (view: "/connectSsh/choose", model:[loadtemplate: 'socketprocess', username:username,port:port,password:password,hostname:hostname,userCommand:userCommand,wshostname:wshostname])
 		}
 	}
 	
 	
-	def index() {}
+
+	def ajaxpoll() { 
+		
+	}
 	
 	
 	def process() {

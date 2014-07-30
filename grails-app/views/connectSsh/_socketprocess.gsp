@@ -1,21 +1,34 @@
 
-	
-	<div id="pageHeader"></div>
-	<form><div id="mySshBox">
-		<input id="textMessage" type="text">
-		<input type="button" value="send" onClick="sendMessage();">
-	</div></form>
 
+
+<div id="mySshBox">
+   <div  class="form-group">
+    <label for="execute" class="col-sm-1 control-label">Execute:</label>
+   	<div class="col-sm-10">
+	<div id="contact-area">
+		<textarea cols="20" rows="3" id="textMessage" name="message"></textarea>
+
+        <button  id="sender" class="btn btn-primary" onclick="sendMessage();">Send</button>
+
+   </div>		
+</div></div>
+</div>
+<div style="clear:both"></div>
+
+		
+<div  class="logconsolebar">
+	<div class="btn btn-primary">
+		<b>${hostname }: running <span id="whatCommand"></span></b>
+	</div>	
+	<btn  class="btn btn-danger" onclick="closeConnection()">Close connection</btn>
+	<btn  class="btn btn-warning" onclick="Pause()">Pause</btn>
+	<btn  class="btn btn-success" onclick="Resume()">Resume</btn>
+</div>
 	
-	<div  class="logconsolebar">	
-		<div class="btn btn-primary"><b>${hostname }: running command</b></div>	
-			<btn  class="btn btn-danger" onClick="closeConnection()">Close connection</btn>
-		</div>
-	</div>
-	<div id="mySshOut">
-		<pre  id="messagesTextarea" class="logconsole">
-		</pre>
-	</div>
+<div id="mySshOut">
+	<pre  id="messagesTextarea" class="logconsole">
+	</pre>
+</div>
 
 
 <g:javascript>
@@ -27,7 +40,7 @@
 		$("#mySshOut").html('');
 	}
 	
-	var webSocket=new WebSocket("ws://localhost:8080/${meta(name:'app.name')}/j2ssh");
+	var webSocket=new WebSocket("ws://${wshostname}/${meta(name:'app.name')}/j2ssh");
 	var THRESHOLD = 10240;
 	var chr=0;
 		
@@ -35,10 +48,11 @@
 	webSocket.onmessage=function(message) {processMessage(message);};
 	webSocket.onclose=function(message) {processClose(message);};
 	webSocket.onerror=function(message) {processError(message);};
-	
+	var textMessage=document.getElementById("textMessage");
 	function processOpen(message) {
 		$('#messagesTextarea').append('Server Connect....\n');
-		webSocket.send(JSON.stringify({'user':"${username }",'password':"${password }", 'hostname':"${hostname }",  'port': "${port }", 'usercommand': "${userCommand }"})) 
+		webSocket.send(JSON.stringify({'user':"${username }",'password':"${password }", 'hostname':"${hostname }",  'port': "${port }", 'usercommand': "${userCommand }"}))
+		$('#whatCommand').html("${userCommand }"); 
 	}
 	
 	function processMessage(message) {
@@ -46,6 +60,14 @@
 	    scrollToBottom();
 	}
 	
+	
+	function Pause() {
+		webSocket.send("PAUSE:-");
+    }
+    
+	function Resume() {
+		webSocket.send("RESUME:-");
+    }
 	function closeConnection() {
 		webSocket.send("DISCO:-");
 		webSocket.onclose = function() { }
@@ -56,6 +78,7 @@
 	function sendMessage() {
 		if (textMessage.value!="close") {
 			webSocket.send(textMessage.value);
+			$('#whatCommand').html(textMessage.value);
 			textMessage.value="";
 		}else {
 			websocket.close();
@@ -75,6 +98,18 @@
     	$('#messagesTextarea').scrollTop($('#messagesTextarea')[0].scrollHeight);
 	}
 	
+	$('#textMessage').keypress(function(e){
+  		if (e.keyCode == 13 && !e.shiftKey) {
+     		e.preventDefault();
+		}
+		if(e.which == 13){
+       		var tmb=textMessage.value.replace(/^\s*[\r\n]/gm, "");
+       		if (tmb!="") {
+       			sendMessage();
+        	}
+       }
+     });
+     
 	window.onbeforeunload = function() {
     	webSocket.send("DISCO:-");
         webSocket.onclose = function() { }
