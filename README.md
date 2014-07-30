@@ -13,8 +13,10 @@ This plugin provides  basic functionality to allow you to call your end host eit
 
 # 0.5 release : websocket live ssh interaction:
 Using default tomcat websockets to interact with j2ssh libraries. It is really very powerful/amazing stuff.
+![websocket connection](https://raw.github.com/vahidhedayati/jssh-test/master/jssh-doc/4.jpg)
 
 I have found whilst tailing a file if I execute a command it actually executes the new command then output resumes back to original tailing.. so in some ways even better than using a console. Downsides, no ctrl c special keys etc. If you are connected and wish to stop such features simply click the big disconnect button or close browser.
+![send remote command even whilst tailing !](https://raw.github.com/vahidhedayati/jssh-test/master/jssh-doc/5.jpg)
 
 Websockets will detect such actions and attempt to close ssh connection down..
 On the bright side, there are pause and resume buttons provided on websockets which pauses output and on resume pumps back StringBuffer that was preserving the output whilst you had it on pause.
@@ -126,8 +128,13 @@ Remember if you have defined usernames,passwords,keys etc in your config.groovy 
 ### divId="logs2"
 To call websocket connections multiple times on page, you need to set divId within taglib call as above.. this then means you could tail logs from multiple servers using the socketconnect taglib call.
 
+![multiple websocket taglib calls on default grails site](https://raw.github.com/vahidhedayati/jssh-test/master/jssh-doc/6.jpg)
 
+#### Taglib example on resources based grails app
+[resources based called](https://github.com/vahidhedayati/jssh-test/blob/master/grails-app/views/testjssh/using-resources.gsp)
 
+#### Taglib example on assets based grails app
+[resources based called](https://github.com/vahidhedayati/jssh-test/blob/master/grails-app/views/testjssh/using-assets.gsp)
 
 # gsp call:
 Refer to jssh-test project on github and look at views/testjssh/index.gsp

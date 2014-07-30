@@ -29,7 +29,49 @@
   	padding: 12px 12px 12px 12px;
    font-weight: bold;
 }
-
+.logconsole-lg {
+	 width: 95%;
+    height: 500px;
+    border: 3px groove #ccc;
+  	color: #FFF; 
+  	background: #000;
+  	white-space: pre;
+  	border-style: solid;
+  	border-width: thin;
+  	border-color: black;
+  	font-size: 1em;
+  	font-family: monospace;
+  	display: inline-block;
+  	*display:inline;
+  	*zoom:1;
+  	position: relative;
+  	margin: 6px 6px 6px 6px;
+  	padding: 12px 12px 12px 12px;
+  	overflow:auto;
+	resize:both;
+   
+}	
+.logconsole-sm {
+	 width: 95%;
+    height: 200px;
+    border: 3px groove #ccc;
+  	color: #FFF; 
+  	background: #000;
+  	white-space: pre;
+  	border-style: solid;
+  	border-width: thin;
+  	border-color: black;
+  	font-size: 1em;
+  	font-family: monospace;
+  	display: inline-block;
+  	*display:inline;
+  	*zoom:1;
+  	position: relative;
+  	margin: 6px 6px 6px 6px;
+  	padding: 12px 12px 12px 12px;
+  	overflow:auto;
+	resize:both;
+}
 div[class*="tbutton"] {
 	border: 1px solid rgba(0,0,0,0.2);
 	box-sizing: content-box !important;

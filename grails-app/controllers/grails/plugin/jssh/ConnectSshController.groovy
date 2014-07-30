@@ -15,12 +15,12 @@ class ConnectSshController {
 		String password=params.password
 		String template=params.template
 		String port=params.port
-		
+		String divId=params.divId ?: 'Basic'
 		def wshostname=grailsApplication.config.jssh.wshostname ?: 'localhost:8080'
 		if (template) {
-			render (view: 'getTemplate', model: [username:username,port:port,password:password,hostname:hostname,userCommand:userCommand,template:template,wshostname:wshostname])
+			render (view: 'getTemplate', model: [divId:divId,username:username,port:port,password:password,hostname:hostname,userCommand:userCommand,template:template,wshostname:wshostname])
 		}else{
-			render (view: "/connectSsh/choose", model:[loadtemplate: 'socketprocess', username:username,port:port,password:password,hostname:hostname,userCommand:userCommand,wshostname:wshostname])
+			render (view: "/connectSsh/choose", model:[divId:divId,loadtemplate: 'socketprocess', username:username,port:port,password:password,hostname:hostname,userCommand:userCommand,wshostname:wshostname])
 		}
 	}
 	
