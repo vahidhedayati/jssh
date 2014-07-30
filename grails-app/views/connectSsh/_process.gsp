@@ -1,14 +1,4 @@
-<!DOCTYPE html>
-<html>
-	<head>
-		<g:set var="entityName" value="${message(code: 'jssh.process.label', default: 'SSH Output')}" />
-		<title><g:message code="default.list.label" args="[entityName]" /></title>
-		<link rel="stylesheet" href="${createLink(uri: '/css/bootstrap.min.css')}" type="text/css">
-		<link rel="stylesheet" href="${createLink(uri: '/css/jssh.css')}" type="text/css">
-		<script src="${createLink(uri: '/js/jquery.min.js')}" type="text/javascript"></script>
 
-	</head>
-	<body>
 			
 	<div class="logconsolebar">	
 		<div class="btn btn-primary"><b>${hostname }: running command</b></div>	
@@ -57,6 +47,3 @@
     	}
     };
 </script>
-
-</body>
-</html>

@@ -110,7 +110,8 @@ TODO: - there is a qAndA in ConnectSsh.groovy which I wish to put to use and all
 Bash one liner to log whilst you execute a command to tail -f /tmp/test.log
 
 ```bash
-for i in $(echo {0..1000000}); do sleep 3s; echo $i >> /tmp/test.log; done
+for i in {0..1000000}; do sleep 3s; echo "$(date +%d-%M-%y-%H:%m:%S) $i" >> /tmp/test.log; done
+
 ```
 
 ##### Bootstrap/jquery switch method

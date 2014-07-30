@@ -34,7 +34,7 @@
 	border: 3px groove #ccc;
   	color: #FFF; 
   	background: #000;
-  	white-space: pre;
+  	white-space: pre-line;
   	border-style: solid;
   	border-width: thin;
   	border-color: black;

@@ -33,51 +33,51 @@ import com.sshtools.j2ssh.transport.publickey.SshPrivateKeyFile
 @WebListener
 @ServerEndpoint("/j2ssh")
 class JsshEndpoint implements ServletContextListener {
-	
-    @Override
-    public void contextInitialized(ServletContextEvent servletContextEvent) {
-        final ServerContainer serverContainer = (ServerContainer) servletContextEvent.getServletContext()
-                                                    .getAttribute("javax.websocket.server.ServerContainer")
 
-        try {
-            serverContainer.addEndpoint(JsshEndpoint.class)
-        } catch (DeploymentException e) {
-            e.printStackTrace()
-        }
-    }
+	@Override
+	public void contextInitialized(ServletContextEvent servletContextEvent) {
+		final ServerContainer serverContainer = (ServerContainer) servletContextEvent.getServletContext()
+				.getAttribute("javax.websocket.server.ServerContainer")
 
-    @Override
-    public void contextDestroyed(ServletContextEvent servletContextEvent) {
-    }
-	
+		try {
+			serverContainer.addEndpoint(JsshEndpoint.class)
+		} catch (DeploymentException e) {
+			e.printStackTrace()
+		}
+	}
+
+	@Override
+	public void contextDestroyed(ServletContextEvent servletContextEvent) {
+	}
+
 	String host = ""
 	String user = ""
 	Integer port=22
 	String userpass=""
 	String usercommand = ""
 	StringBuilder output=new StringBuilder()
-	
-	
+
+
 	private SshClient ssh = new SshClient()
 	private SessionChannelClient session
 	private SshConnectionProperties properties = null
 	private boolean isAuthenticated=false
 	//private InputStream input
 
-	
-		
-    @OnOpen
-	public String handleOpen(Session usersession) { 
+
+
+	@OnOpen
+	public String handleOpen(Session usersession) {
 		usersession.getBasicRemote().sendText('Attempting SSH Connection')
 	}
-	
-	
+
+
 	@OnMessage
 	public void handleMessage(String message, Session usersession) {
 		def data=JSON.parse(message)
 		// authentication stuff - system calls
 		if (data) {
-			host=data.hostname			
+			host=data.hostname
 			user=data.user
 			userpass=data.password
 			usercommand=data.usercommand
@@ -85,68 +85,75 @@ class JsshEndpoint implements ServletContextListener {
 				port=data.port
 			}
 			// Initial call lets connect
-			sshConnect(user,userpass,host,usercommand,port as int,usersession)
+			def asyncProcess = new Thread({	sshConnect(user,userpass,host,usercommand,port as int,usersession)  } as Runnable )
+			asyncProcess.start()
+			
 		} else{
-	   		if (message.equals('_internal_process')) {
-				   usersession.getBasicRemote().sendText('Attempting to pull stream....')
-				   InputStream input=session.getInputStream()
-					   byte[] buffer=new byte[255]
-					   int read;
-					   int i=0
-					   def pattern = ~/^\s+$/
-					   while((read = input.read(buffer)) > 0)  {
-						   String out1 = new String(buffer, 0, read)
-						   def m=pattern.matcher(out1).matches()
-						   if (m==false) {
-							   usersession.getBasicRemote().sendText(out1)
-						   }
-					   }
-		   		}else if  (message.equals('DISCO:-')) {
-				   session.close()
-				   ssh.disconnect()
-		   		}   else{
-				   if (message) {
-					   sshControl(message,usersession)
-					} else {
-					}
-		   		}
+			if  (message.equals('DISCO:-')) {
+				//session.close()
+				ssh.disconnect()
+			}   else{
+				sshControl(message,usersession)
+			}
 
 		}
-	}	
-	
+		
+	}
+
 	@OnClose
-	public void handeClose() { 
-		log.debug "Client is now disconnected."
-		session.close()
+	public void handeClose() {
+		//log.debug "Client is now disconnected."
+		//session.close()
 		ssh.disconnect()
 	}
+	
 	@OnError
 	public void handleError(Throwable t) {
 		t.printStackTrace()
-		session.close()
+		//session.close()
 		ssh.disconnect()
 	}
-	
 	private void sshControl(String usercommand,Session usersession) {
-		session.getOutputStream().write("${usercommand} \n".getBytes())
-	}
-	
-	private void execCmd(String cmd,Session usersession) {
-	  try {
-		session = ssh.openSessionChannel();
-		if ( session.executeCommand(cmd) )	{
-		  IOStreamConnector output = new IOStreamConnector();
-		  java.io.ByteArrayOutputStream bos =  new
-		  java.io.ByteArrayOutputStream();
-		  output.connect(session.getInputStream(), bos );
-		  session.getState().waitForState(ChannelState.CHANNEL_CLOSED);
-		  usersession.getBasicRemote().sendText(bos.toString())
+		session = ssh.openSessionChannel()
+		SessionOutputReader sor = new SessionOutputReader(session)
+		if (session.requestPseudoTerminal("gogrid",80,24, 0 , 0, "")) {
+			if (session.startShell()) {
+				ChannelOutputStream out = session.getOutputStream()
+				session.getOutputStream().write("${usercommand} \n".getBytes())
+				usersession.getBasicRemote().sendText("---------:"+usercommand+"")
+				InputStream input=session.getInputStream()
+				byte[] buffer=new byte[255]
+				int read;
+				int i=0
+				//def pattern = ~/^\s+$/
+				while((read = input.read(buffer)) > 0)  {
+					String out1 = new String(buffer, 0, read)
+					//def m=pattern.matcher(out1).matches()
+					//if (m==false) {
+						usersession.getBasicRemote().sendText(out1)
+					//}
+				}
+			}
 		}
-	  }	  catch(Exception e)  {
-		log.debug "Exception : " + e.getMessage()
-	  }
+		session.close()
 	}
-  
+
+	private void execCmd(String cmd,Session usersession) {
+		try {
+			session = ssh.openSessionChannel();
+			if ( session.executeCommand(cmd) )	{
+				IOStreamConnector output = new IOStreamConnector();
+				java.io.ByteArrayOutputStream bos =  new
+						java.io.ByteArrayOutputStream();
+				output.connect(session.getInputStream(), bos );
+				session.getState().waitForState(ChannelState.CHANNEL_CLOSED);
+				usersession.getBasicRemote().sendText(bos.toString())
+			}
+		}	  catch(Exception e)  {
+			log.debug "Exception : " + e.getMessage()
+		}
+	}
+
 	private void sshConnect(String user,String userpass,String host,String usercommand, int port,Session usersession)  {
 		def config= Holders.config
 		String sshuser=config.jssh.USER
@@ -154,23 +161,23 @@ class JsshEndpoint implements ServletContextListener {
 		String sshkey=config.jssh.KEY
 		String sshkeypass=config.jssh.KEYPASS
 		String sshport=config.jssh.PORT
-		
+
 		String username = user ?: sshuser
 		String password = userpass ?: sshpass
 		int sshPort=port ?: sshport as Integer
-		
+
 		String keyfilePass=''
 		int result=0
-		
+
 		properties = new SshConnectionProperties();
 		properties.setHost(host)
 		properties.setPort(sshPort)
 		ssh.connect(properties, new IgnoreHostKeyVerification())
-		
+
 		if (!password) {
 			PublicKeyAuthenticationClient pk = new PublicKeyAuthenticationClient()
 			pk.setUsername(username)
-			
+
 			SshPrivateKeyFile file = SshPrivateKeyFile.parse(new File(sshkey.toString()))
 			if (file.isPassphraseProtected()) {
 				keyfilePass = sshkeypass.toString()
@@ -191,22 +198,14 @@ class JsshEndpoint implements ServletContextListener {
 				isAuthenticated=true
 			}
 		}
-		
+
 		// Evaluate the result
 		if (isAuthenticated) {
-			usersession.getBasicRemote().sendText("SSH_SUCCESS")
-			session = ssh.openSessionChannel()
-			SessionOutputReader sor = new SessionOutputReader(session)
-			if (session.requestPseudoTerminal("gogrid",80,24, 0 , 0, "")) {
-				if (session.startShell()) {
-					ChannelOutputStream out = session.getOutputStream()
-					session.getOutputStream().write("${usercommand} \n".getBytes())
-				}
-			}
+			sshControl(usercommand,usersession)
 		}else{
 			def authType="using key file  "
 			if (password) { authType="using password" }
-			usersession.getBasicRemote().sendText("SSH_FAIL: Authentication has failed for user: ${username} on ${host} ${authType}")
+			usersession.getBasicRemote().sendText("SSH: Failed authentication user: ${username} on ${host} ${authType}")
 		}
 	}
 }

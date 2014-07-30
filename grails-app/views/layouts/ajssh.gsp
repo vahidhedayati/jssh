@@ -9,7 +9,9 @@
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 		<title><g:layoutTitle default="Grails"/></title>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-			<asset:stylesheet src="chat.css"/>
+		<asset:stylesheet src="jssh.css"/>
+		<asset:stylesheet src="bootstrap.min.css"/>
+		<g:javascript library="jquery"/>
 		<g:layoutHead/>
 	</head>
 	<body>

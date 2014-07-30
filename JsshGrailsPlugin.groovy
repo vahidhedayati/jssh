@@ -17,9 +17,6 @@ class JsshGrailsPlugin {
 	def doWithSpring = {
 		jsshConfig(JsshConfig) {
 			grailsApplication = ref('grailsApplication')
-		}
-		jsshEndpoint(JsshEndpoint){
-			
 		} 
 		connectSsh(ConnectSsh) {
 			

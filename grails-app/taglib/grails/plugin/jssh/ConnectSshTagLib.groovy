@@ -4,6 +4,7 @@ class ConnectSshTagLib {
 	static namespace = "jssh"
 	def connectSsh
 	def jsshConfig
+	def grailsVersionService
 	def grailsApplication
 	
 	def ajaxconnect =  { attrs, body ->
@@ -58,20 +59,20 @@ class ConnectSshTagLib {
 	
 	def chooseLayout =  { attrs, body ->
 		def file = attrs.remove('file')?.toString()
+		def loadtemplate=attrs.remove('loadtemplate')?.toString()
+		def hostname=attrs.remove('hostname')?.toString()
+		def username=attrs.remove('username')?.toString()
+		def userCommand=attrs.remove('userCommand')?.toString()
+		def password=attrs.remove('password')?.toString()
+		def template=attrs.remove('password')?.toString()
+		def port=attrs.remove('port')?.toString()
+		def input=attrs.remove('input')?.toString()
+		double verify=grailsVersionService.getGrailsVersion()
 		
-		def gver=grailsApplication.metadata['app.grails.version']
-		double verify=getGrailsVersion(gver)
+		def gfolder="resources"
 		if (verify >= 2.4 ) {
-			out << g.render(contextPath: pluginContextPath, template: "/connectSsh/assets/${file}", model: [attrs:attrs])
-		}else{
-			out << g.render(contextPath: pluginContextPath, template: "/connectSsh/resources/${file}", model: [attrs:attrs])
+			gfolder="assets"
 		}
-	}
-	
-	private getGrailsVersion(String appVersion) {
-		if (appVersion && appVersion.indexOf('.')>-1) {
-			int lastPos=appVersion.indexOf(".", appVersion.indexOf(".") + 1)
-			double verify=appVersion.substring(0,lastPos) as double
-		}
+		out << g.render(contextPath: pluginContextPath, template: "/connectSsh/${gfolder}/${file}", model: [attrs:attrs,loadtemplate:loadtemplate,input:input,port:port,username:username,password:password,hostname:hostname,userCommand:userCommand])
 	}
 }

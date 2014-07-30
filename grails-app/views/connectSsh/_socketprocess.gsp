@@ -1,13 +1,4 @@
-<!DOCTYPE html>
-<html>
-	<head>
-		<g:set var="entityName" value="${message(code: 'jssh.process.label', default: 'SSH Output')}" />
-		<title><g:message code="default.list.label" args="[entityName]" /></title>
-		<link rel="stylesheet" href="${createLink(uri: '/css/bootstrap.min.css')}" type="text/css">
-		<link rel="stylesheet" href="${createLink(uri: '/css/jssh.css')}" type="text/css">
-		<script src="${createLink(uri: '/js/jquery.min.js')}" type="text/javascript"></script>
-	</head>
-	<body>
+
 	
 	<div id="pageHeader"></div>
 	<form><div id="mySshBox">
@@ -18,8 +9,7 @@
 	
 	<div  class="logconsolebar">	
 		<div class="btn btn-primary"><b>${hostname }: running command</b></div>	
-			<g:link  class="btn btn-danger" controller="connectSsh" action="closeConnection">Close connection</g:link>
-			<div class="tbutton1"><input type="checkbox" name="pauseLog"  id="pauseLog" onChange="TriggerFilter(this)"> Pause logs</div>
+			<btn  class="btn btn-danger" onClick="closeConnection()">Close connection</btn>
 		</div>
 	</div>
 	<div id="mySshOut">
@@ -54,28 +44,21 @@
 	}
 	
 	function processMessage(message) {
-		if (message.data=="SSH_SUCCESS") {
-			webSocket.send('_internal_process');
-		}else{
-			if(message.data instanceof ArrayBuffer) {
-		    	var wordarray = new Uint16Array(message.data);
-				for (var i = 0; i < wordarray.length; i++) {
-					console.log(wordarray[i]);
-				    wordarray[i]=wordarray[i]+1;
-				}
-				messagesTextarea.value +=""+wordarray.buffer+"\n"
-		    }else{
-			    messagesTextarea.value +=""+message.data+"\n"
-			}
-		}	
+	    messagesTextarea.value +=""+message.data+"\n"
+	    scrollToBottom();
 	}
 	
+	function closeConnection() {
+		webSocket.send("DISCO:-");
+		webSocket.onclose = function() { }
+        webSocket.close();
+        window.history.back();
+    }
+    
 	function sendMessage() {
 		if (textMessage.value!="close") {
 			webSocket.send(textMessage.value);
-			messagesTextarea.value +=" Send to Server ===> ("+ textMessage.value +")\n";
 			textMessage.value="";
-			scrollToBottom();
 		}else {
 			websocket.close();
 		}	
@@ -100,6 +83,3 @@
         webSocket.close();
     }
 </g:javascript>
-
-	</body>
-	</html>
