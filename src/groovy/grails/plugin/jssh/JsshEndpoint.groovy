@@ -93,7 +93,9 @@ class JsshEndpoint implements ServletContextListener {
 				//session.close()
 				ssh.disconnect()
 			}   else{
-				sshControl(message,usersession)
+				
+				def asyncProcess = new Thread({sshControl(message,usersession)  } as Runnable )
+				asyncProcess.start()
 			}
 
 		}
@@ -120,7 +122,7 @@ class JsshEndpoint implements ServletContextListener {
 			if (session.startShell()) {
 				ChannelOutputStream out = session.getOutputStream()
 				session.getOutputStream().write("${usercommand} \n".getBytes())
-				usersession.getBasicRemote().sendText("---------:"+usercommand+"")
+				//usersession.getBasicRemote().sendText("---------:"+usercommand+"")
 				InputStream input=session.getInputStream()
 				byte[] buffer=new byte[255]
 				int read;
