@@ -30,27 +30,6 @@
    font-weight: bold;
 }
 
-.logconsole { 
-	border: 3px groove #ccc;
-  	color: #FFF; 
-  	background: #000;
-  	white-space: pre;
-  	border-style: solid;
-  	border-width: thin;
-  	border-color: black;
-  	font-size: 1em;
-    width: 95%;
-    height: 500px;
-  	font-family: monospace;
-  	display: inline-block;
-  	*display:inline;
-  	*zoom:1;
-  	position: relative;
-  	margin: 6px 6px 6px 6px;
-  	padding: 12px 12px 12px 12px;
-  	overflow:auto;
-	resize:both;
-}	
 div[class*="tbutton"] {
 	border: 1px solid rgba(0,0,0,0.2);
 	box-sizing: content-box !important;

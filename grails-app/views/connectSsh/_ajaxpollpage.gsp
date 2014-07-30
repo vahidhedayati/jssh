@@ -1,6 +1,7 @@
 
 <div class="container">
 	<div class="btn btn-danger"><g:link action="socket">Socket method</g:link></div>
+	<div class="btn btn-primary"><g:link action="socketremote">RemoteForm Websocket</g:link></div>
 	<g:form method="post" action="process">
 	<g:textField name="username" placeholder="Username?"/>
 	<g:passwordField name="password" placeholder="password?"/>

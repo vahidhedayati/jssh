@@ -1,0 +1,1 @@
+<jssh:chooseLayout file="index" loadtemplate="socketremotepage" pageid="ajax" pagetitle="Ajax poll method"/>

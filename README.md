@@ -91,24 +91,40 @@ Refer to ConnectSshTagLib.groovy within plugin
 Define a template= if you wish to override default _process.gsp template from loading
 
 ```gsp
+<!-- ------------------------------------------------------------ -->
 
 <!-- New websockets connector tag lib -->
 <jssh:socketconnect hostname="localhost" username="myuser" 
 template="/optional/file"
 port="{optional : your ssh port}"
-password="mypass" userComand="sudo tail -f /var/log/syslog"
+password="mypass" 
+userCommand="sudo tail -f /var/log/syslog"
+divId="logs2"
+
 />
 
+
+
+
+<!-- ------------------------------------------------------------ -->
 <!-- To use old method (ajax/polling) -->
 <jssh:connect hostname="localhost" username="myuser" 
 template="/optional/file"
 port="{optional : your ssh port}"
-password="mypass" userComand="sudo tail -f /var/log/syslog"
+
+password="mypass" userCommand="sudo tail -f /var/log/syslog"
 />
+<!-- ------------------------------------------------------------ -->
+
 
 ```
 
-Rememeber if you have defined usernames,passwords,keys etc in your config.groovy then there is no need to define those values in any of the calls above..
+ 
+Remember if you have defined usernames,passwords,keys etc in your config.groovy then there is no need to define those values in any of the calls above..
+
+
+### divId="logs2"
+To call websocket connections multiple times on page, you need to set divId within taglib call as above.. this then means you could tail logs from multiple servers using the socketconnect taglib call.
 
 
 
@@ -197,6 +213,9 @@ If you are using jquery slider or bootstrap switch, using fontsawesome you could
 # Change information:
 ```
  0.5 : 	Websockets added to j2ssh - and we are rocking !
+ 		Websockets remoteForm method added, which can be used as an example 
+ 		for having multiple calls on the same page using front end forms. 
+ 		Check out taglibs for direct calls from within gsps.
   		Old ajax calls left alone.
   		
  0.4 :	content passed from j2ssh to view is now changed to return appended value 

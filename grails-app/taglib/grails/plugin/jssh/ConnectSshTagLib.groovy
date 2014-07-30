@@ -12,8 +12,9 @@ class ConnectSshTagLib {
 		def username=attrs.remove('username')?.toString()
 		def userCommand=attrs.remove('userCommand')?.toString()
 		def password=attrs.remove('password')?.toString()
-		def template=attrs.remove('password')?.toString()
+		def template=attrs.remove('template')?.toString()
 		def port=attrs.remove('port')?.toString()
+		
 		if (!userCommand) {
 			throwTagError("Tag [connect] is missing required attribute [userCommand]")
 		}
@@ -48,13 +49,15 @@ class ConnectSshTagLib {
 		def username=attrs.remove('username')?.toString()
 		def userCommand=attrs.remove('userCommand')?.toString()
 		def password=attrs.remove('password')?.toString()
-		def template=attrs.remove('password')?.toString()
+		def template=attrs.remove('template')?.toString()
 		def port=attrs.remove('port')?.toString()
-
+		def divId=attrs.remove('divId')?.toString()
+		def wshostname=grailsApplication.config.jssh.wshostname ?: 'localhost:8080'
+		
 		if (template) {
-			out << g.render(template:template, model: [hostname:hostname,port:port,password:password,username:username,userCommand:userCommand])
+			out << g.render(template:template, model: [divId:divId,wshostname:wshostname,hostname:hostname,port:port,password:password,username:username,userCommand:userCommand])
 		}else{
-			out << g.render(contextPath: pluginContextPath,template:'/connectSsh/socketprocess', model: [hostname:hostname,port:port,password:password,username:username,userCommand:userCommand])
+			out << g.render(contextPath: pluginContextPath,template:"/connectSsh/socketprocess", model: [divId:divId,wshostname:wshostname,hostname:hostname,port:port,password:password,username:username,userCommand:userCommand])
 		}
 	}
 	

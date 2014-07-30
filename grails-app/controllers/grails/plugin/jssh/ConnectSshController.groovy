@@ -6,7 +6,7 @@ class ConnectSshController {
 	def jsshConfig
 	def grailsApplication
 	def index() {}
-
+	
 	
 	def socketprocess() {
 		String hostname=params.hostname ?: 'localhost'
@@ -24,7 +24,9 @@ class ConnectSshController {
 		}
 	}
 	
-	
+	def socketremote() { 
+		
+	}
 
 	def ajaxpoll() { 
 		
