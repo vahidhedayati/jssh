@@ -99,9 +99,10 @@ div[class*="tbutton"] {
 	-webkit-box-shadow: 0 0 3px rgba(255,255,255,0.25) inset, 0 0 1px rgba(255,255,255,0.2), 0 10x 10px rgba(255,255,255,0.08) inset;
 	box-shadow: 0 0 3px rgba(255,255,255,0.25) inset, 0 0 1px rgba(255,255,255,0.2), 0 10px 10px rgba(255,255,255,0.08) inset;
 }
+
 .msg {
-            color: #000;
-            font-weight: normal;
+	color: #000;
+	font-weight: normal;
 }	
 .tbutton1 {
 	color: #FFF;
@@ -110,18 +111,22 @@ div[class*="tbutton"] {
 	color: #000;
 }
 .page-header{padding-bottom:9px;margin:20px 0 30px;border-bottom:1px solid #eeeeee;}
+
 #contact-area input, #contact-area textarea {
-padding: 5px;
-width: 40em;
-font-size: 1.1em;
-margin: 0px 0px 10px 0px;
-border: 2px solid #ccc;
+	padding: 5px;
+	width: 40em;
+	font-size: 1.1em;
+	margin: 0px 0px 10px 0px;
+	border: 2px solid #ccc;
 }
 
 #contact-area textarea {
-height: 3em;
+	height: 3em;
 }
 
 #contact-area textarea:focus, #contact-area input:focus {
-border: 2px solid #900;
+	border: 2px solid #900;
+}
+input.form-fixer {
+    padding: 1px;
 }
