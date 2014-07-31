@@ -1,1 +1,1 @@
-<jssh:chooseLayout file="index" loadtemplate="socketremotepage" pageid="ajax" pagetitle="Ajax poll method"/>
+<jssh:chooseLayout file="index" loadtemplate="socketpageremote" pageid="websocketrf" pagetitle="RemoteForm webSocket SSH Connector"/>

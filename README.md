@@ -1,4 +1,4 @@
-jssh 0.5
+jssh 0.6
 =========
 
 Grails jssh Plugin based on j2ssh library, provides ssh connection with features/facilities to execute remote shell commands. Provides connection via websockets as well as ajax/polling.
@@ -6,7 +6,7 @@ Grails jssh Plugin based on j2ssh library, provides ssh connection with features
 
 Dependency :
 
-	compile ":jssh:0.5" 
+	compile ":jssh:0.6" 
 
 This plugin provides  basic functionality to allow you to call your end host either via a taglib or via a call to provided controller. These are just examples and you could either use out of the package or create your own from given examples.
 
@@ -15,10 +15,14 @@ This plugin provides  basic functionality to allow you to call your end host eit
 Using default tomcat websockets to interact with j2ssh libraries. It is really very powerful/amazing stuff.
 ![websocket connection](https://raw.github.com/vahidhedayati/jssh-test/master/jssh-doc/4.jpg)
 
-I have found whilst tailing a file if I execute a command it actually executes the new command then output resumes back to original tailing.. so in some ways even better than using a console. Downsides, no ctrl c special keys etc. If you are connected and wish to stop such features simply click the big disconnect button or close browser.
+I have found whilst tailing a file if I execute a command it actually executes the new command then output resumes back to original tailing  (please refer to configuration items below, this has to be enabled as part of 0.6+). 
+
+No ctrl C or special keys etc. If you are connected and wish to stop such features simply click the big disconnect button or close browser.
 ![send remote command even whilst tailing !](https://raw.github.com/vahidhedayati/jssh-test/master/jssh-doc/5.jpg)
 
-Websockets will detect such actions and attempt to close ssh connection down..
+
+Javascript detection of browser changes i.e. leaving page/closing browser and will notify websockets to attempt to close ssh connection down.
+
 On the bright side, there are pause and resume buttons provided on websockets which pauses output and on resume pumps back StringBuffer that was preserving the output whilst you had it on pause.
 
 New taglibs added (check under tag lib)
@@ -78,6 +82,22 @@ jssh.PORT="22"
 *
 */
 jssh.wshostname=System.getProperty('SERVERURL')+":8080"
+
+
+/*
+* This is yet another important functionality for websocket connections
+* it stands for NEW CONNnection PER TRANSaction
+* This is as described below default feature of 0.5
+* from 0.6 it will attempt to reuse existing connection 
+*
+* Pros of this being not set  is if you execute sudo -i
+* then execute a new command you are still continuing previous call
+* If you enable this function - sudo -i will be one connection and the next command will be a new shell
+* Cons of this not being enabled - if you are in a tail -f your new command will not execute
+*
+* Pros/cons of enabling this function is reverse of all of above
+*/ 
+jssh.NEWCONNPERTRANS='YES'
 
 ```	
 
@@ -219,6 +239,12 @@ If you are using jquery slider or bootstrap switch, using fontsawesome you could
 
 # Change information:
 ```
+ 0.6 : 	UI Updates + fixed channel re-use issues for dynamic calling backend ssh connection 
+ 		Fixes for remoteForm calls - still not working, left alone for now.
+ 		Returns missing some calls to the r:layoutResources tag (due to complexity to cater for assets/resources)
+ 		On a normal site with assets/resources defined - should be fairly easy to fix (local calls).
+ 		
+ 		
  0.5 : 	Websockets added to j2ssh - and we are rocking !
  		Websockets remoteForm method added, which can be used as an example 
  		for having multiple calls on the same page using front end forms. 

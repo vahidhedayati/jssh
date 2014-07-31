@@ -7,7 +7,7 @@
 		</div>
 
 			
-<pre id="inspect" class="logconsole">
+<pre id="inspect" class="logconsole-lg">
 	${input ?: 'Please be patient - logging will start shortly' }		
 </pre>
 	

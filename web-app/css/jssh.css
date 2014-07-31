@@ -128,3 +128,8 @@ height: 3em;
 #contact-area textarea:focus, #contact-area input:focus {
 border: 2px solid #900;
 }
+
+input.form-fixer {
+    padding: 1px;
+   
+}

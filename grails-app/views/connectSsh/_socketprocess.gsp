@@ -1,7 +1,7 @@
 
 
 
-<div id="mySshBox">
+<div id="mySshBox${divId}">
    <div  class="form-group">
     <label for="execute" class="col-sm-1 control-label">Execute:</label>
    	<div class="col-sm-10">
@@ -25,7 +25,7 @@
 	<btn  class="btn btn-success" onclick="Resume${divId}()">Resume</btn>
 </div>
 	
-<div id="mySshOut">
+<div id="mySshOut${divId}">
 	<g:if test="${divId}">
 		<pre  id="messagesTextarea${divId}" class="logconsole-sm">
 		</pre>
@@ -40,9 +40,8 @@
     var divId="${divId}";
 	if (!window.WebSocket) {
 		var msg = "Your browser does not have WebSocket support";
-		$("#pageHeader").html(msg);
-		$("#mySshBox").html('');
-		$("#mySshOut").html('');
+		$("#mySshBox${divId}").html(msg);
+		$("#mySshOut${divId}").html('');
 	}
 	
 	var webSocket${divId}=new WebSocket("ws://${wshostname}/${meta(name:'app.name')}/j2ssh");
@@ -73,11 +72,18 @@
 	function Resume${divId}() {
 		webSocket${divId}.send("RESUME:-");
     }
+    
 	function closeConnection${divId}() {
 		webSocket${divId}.send("DISCO:-");
 		webSocket${divId}.onclose = function() { }
         webSocket${divId}.close();
-        window.history.back();
+        if (divId=="Basic") {
+        	window.history.back();
+        }else{
+        	$("#mySshBox${divId}").html('');
+			$("#mySshOut${divId}").html('');
+        }
+        	
     }
     
 	function sendMessage${divId}() {
