@@ -103,7 +103,8 @@ jssh.NEWCONNPERTRANS='YES'
 
 
 # Using plugin within existing application
-[wiki](https://github.com/vahidhedayati/jssh/wiki/using-jssh-within-existing-application)
+[wiki on jssh existing app using websockets](https://github.com/vahidhedayati/jssh/wiki/jssh-websocket-within-existing-application)
+[wiki on jssh existing app using ajax polling](https://github.com/vahidhedayati/jssh/wiki/using-jssh-within-existing-application)
 
 
 	
@@ -151,10 +152,10 @@ To call websocket connections multiple times on page, you need to set divId with
 ![multiple websocket taglib calls on default grails site](https://raw.github.com/vahidhedayati/jssh-test/master/jssh-doc/6.jpg)
 
 #### Taglib example on resources based grails app
-[resources based called](https://github.com/vahidhedayati/jssh-test/blob/master/grails-app/views/testjssh/using-resources.gsp)
+[resources based calls](https://github.com/vahidhedayati/jssh-test/blob/master/grails-app/views/testjssh/using-resources.gsp)
 
 #### Taglib example on assets based grails app
-[resources based called](https://github.com/vahidhedayati/jssh-test/blob/master/grails-app/views/testjssh/using-assets.gsp)
+[assets based calls](https://github.com/vahidhedayati/jssh-test/blob/master/grails-app/views/testjssh/using-assets.gsp)
 
 # gsp call:
 Refer to jssh-test project on github and look at views/testjssh/index.gsp
