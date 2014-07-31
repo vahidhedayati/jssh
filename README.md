@@ -1,4 +1,4 @@
-jssh 0.6
+jssh 0.7
 =========
 
 Grails jssh Plugin based on j2ssh library, provides ssh connection with features/facilities to execute remote shell commands. Provides connection via websockets as well as ajax/polling.
@@ -6,7 +6,7 @@ Grails jssh Plugin based on j2ssh library, provides ssh connection with features
 
 Dependency :
 
-	compile ":jssh:0.6" 
+	compile ":jssh:0.7" 
 
 This plugin provides  basic functionality to allow you to call your end host either via a taglib or via a call to provided controller. These are just examples and you could either use out of the package or create your own from given examples.
 
@@ -239,6 +239,8 @@ If you are using jquery slider or bootstrap switch, using fontsawesome you could
 
 # Change information:
 ```
+ 0.7 :	Minor change - updated BuildConfig websockets-api set export to false - conflicting with tomcat in production
+ 
  0.6 : 	UI Updates + fixed channel re-use issues for dynamic calling backend ssh connection 
  		Fixes for remoteForm calls - still not working, left alone for now.
  		Returns missing some calls to the r:layoutResources tag (due to complexity to cater for assets/resources)
