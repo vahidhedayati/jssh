@@ -133,9 +133,11 @@ div[class*="tbutton"] {
 }
 
 #contact-area textarea {
-	height: 3em;
+	height: 2em;
 }
-
+#contact-area .sender {
+	margin-top: -30px;
+}
 #contact-area textarea:focus, #contact-area input:focus {
 	border: 2px solid #900;
 }

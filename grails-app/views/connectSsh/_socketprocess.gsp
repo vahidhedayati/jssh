@@ -16,16 +16,11 @@
 		toggleBlock('#consoleMenu${divId}','#consoleMenuBar${divId}','CONSOLE MENU')
 	</g:javascript>
 	
- <div class="pull-right btn btn-default"><a id="consoleMenu${divId}">SHOW CONSOLE MENU</a></div>
+ <div class="pull-right btn btn-default"><a id="consoleMenu${divId}">HIDE CONSOLE MENU</a></div>
  
 </g:if>
  
-	<div style="clear:both;"></div>
-	
-	
-	
 
-<div style="clear:both"></div>
 <g:if test="${((!hideSendBlock) || (!hideSendBlock.equals('YES')))}">	
 	<div style="clear:both;"></div>
 	
@@ -34,25 +29,29 @@
     	<label for="execute" class="col-sm-1 control-label">Execute:</label>
    		<div class="col-sm-10">
 		<div id="contact-area">
-			<textarea cols="20" rows="3" id="textMessage${divId}" name="message"></textarea>
-        	<button  id="sender" class="btn btn-primary" onclick="sendMessage${divId}();">Send</button>
+			<textarea cols="20" rows="1" id="textMessage${divId}" name="message"></textarea>
+        	<button  class="btn btn-primary sender" onclick="sendMessage${divId}();">Send</button>
    		</div>		
 	</div></div></div>
 </g:if>
 
-<div style="clear:both"></div>
+
 
 
 
 <g:if test="${((!hideConsoleMenu) || (!hideConsoleMenu.equals('YES')))}">	
-	
-<div  class="logconsolebar" id="consoleMenuBar${divId}"  style="display: none;">
-	<div class="btn btn-primary">
+	<div style="clear:both"></div>
+<div  class="logconsolebar" id="consoleMenuBar${divId}" >
+	<div class="btn btn-primary btn-xs" title="${hostname } ssh connection">
 		<b>${hostname }: running <span id="whatCommand${divId}"></span></b>
 	</div>	
-	<btn  class="btn btn-danger" onclick="closeConnection${divId}()">Close connection</btn>
-	<btn  class="btn btn-warning" onclick="Pause${divId}()">Pause</btn>
-	<btn  class="btn btn-success" onclick="Resume${divId}()">Resume</btn>
+	<btn  class="btn btn-danger btn-xs" onclick="closeConnection${divId}()" title="Close SSH Connection">Close connection</btn>
+	<btn  class="btn btn-warning btn-xs" onclick="Pause${divId}()" title="Pause SSH Connection">Pause</btn>
+	<btn  class="btn btn-success btn-xs" onclick="Resume${divId}()" title="Resume SSH Connection">Resume</btn>
+<g:if test="${((!hideSessionCtrl) || (!hideSessionCtrl.equals('YES')))}">		
+	<btn  class="btn btn-danger btn-xs " onclick="NewSess${divId}()" title="New SSH Login per command sent">New CONN_PT</btn>
+	<btn  class="btn btn-primary btn-xs" onclick="SameSess${divId}()" title="Same SSH Login per command sent">Same CONN_PT</btn>
+</g:if>	
 </div>
 	
 </g:if>
@@ -115,6 +114,13 @@ function toggleBlock(caller,called,calltext) {
 	    scrollToBottom${divId}();
 	}
 	
+	function SameSess${divId}() {
+	 	webSocket${divId}.send("SAME_SESSION:-");
+	}
+	
+	function NewSess${divId}() {
+	 	webSocket${divId}.send("NEW_SESSION:-");
+	}
 	
 	function Pause${divId}() {
 		webSocket${divId}.send("PAUSE:-");

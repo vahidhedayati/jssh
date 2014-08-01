@@ -24,13 +24,14 @@ class ConnectSshController {
 		def wshostname=grailsApplication.config.jssh.wshostname ?: 'localhost:8080'
 		def hideConsoleMenu=grailsApplication.config.jssh.hideConsoleMenu
 		def hideSendBlock=grailsApplication.config.jssh.hideSendBlock
+		def hideSessionCtrl=grailsApplication.config.jssh.hideSessionCtrl
 		if (template) {
-			render (view: 'getTemplate', model: [hideConsoleMenu:hideConsoleMenu,hideSendBlock:hideSendBlock,divId:divId,username:username,port:port,password:password,hostname:hostname,userCommand:userCommand,template:template,wshostname:wshostname])
+			render (view: 'getTemplate', model: [hideSessionCtrl:hideSessionCtrl,hideConsoleMenu:hideConsoleMenu,hideSendBlock:hideSendBlock,divId:divId,username:username,port:port,password:password,hostname:hostname,userCommand:userCommand,template:template,wshostname:wshostname])
 		}else{
 			if ( (remoteForm) && (remoteForm.equals('true'))) { 
-				render (template: "/connectSsh/socketprocess", model:[hideConsoleMenu:hideConsoleMenu,hideSendBlock:hideSendBlock,divId:divId, username:username,port:port,password:password,hostname:hostname,userCommand:userCommand,wshostname:wshostname])
+				render (template: "/connectSsh/socketprocess", model:[hideSessionCtrl:hideSessionCtrl,hideConsoleMenu:hideConsoleMenu,hideSendBlock:hideSendBlock,divId:divId, username:username,port:port,password:password,hostname:hostname,userCommand:userCommand,wshostname:wshostname])
 			}else{
-				render (view: "/connectSsh/choose", model:[hideConsoleMenu:hideConsoleMenu,hideSendBlock:hideSendBlock,divId:divId,loadtemplate: 'socketprocess', username:username,port:port,password:password,hostname:hostname,userCommand:userCommand,wshostname:wshostname])
+				render (view: "/connectSsh/choose", model:[hideSessionCtrl:hideSessionCtrl,hideConsoleMenu:hideConsoleMenu,hideSendBlock:hideSendBlock,divId:divId,loadtemplate: 'socketprocess', username:username,port:port,password:password,hostname:hostname,userCommand:userCommand,wshostname:wshostname])
 			}
 		}
 	}

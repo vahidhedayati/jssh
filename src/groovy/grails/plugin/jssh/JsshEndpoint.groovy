@@ -64,6 +64,8 @@ class JsshEndpoint implements ServletContextListener {
 	private boolean isAuthenticated=false
 	private boolean pauseLog=false
 	private boolean resumed=false
+	private boolean newSession=false
+	private boolean sameSession=false
 	//private InputStream input
 
 
@@ -92,13 +94,19 @@ class JsshEndpoint implements ServletContextListener {
 
 		} else{
 			if  (message.equals('DISCO:-')) {
-				//session.close()
+				session.close()
 				ssh.disconnect()
 			} else if  (message.equals('PAUSE:-')) {
 				pauseLog=true
 			} else if  (message.equals('RESUME:-')) {
 				pauseLog=false
 				resumed=true
+			} else if  (message.equals('NEW_SESSION:-')) {
+				newSession=true
+				sameSession=false
+			} else if  (message.equals('SAME_SESSION:-')) {
+				sameSession=true
+				newSession=false
 			} else {
 				def asyncProcess = new Thread({sshControl(message,usersession)  } as Runnable )
 				asyncProcess.start()
@@ -111,34 +119,30 @@ class JsshEndpoint implements ServletContextListener {
 	@OnClose
 	public void handeClose() {
 		//log.debug "Client is now disconnected."
-		//session.close()
+		session.close()
 		ssh.disconnect()
 	}
 
 	@OnError
 	public void handleError(Throwable t) {
 		t.printStackTrace()
-		//session.close()
+		session.close()
 		ssh.disconnect()
 	}
 	private void sshControl(String usercommand,Session usersession) {
 		StringBuilder catchup=new StringBuilder()
 		Boolean newChann=false
-
-		// New stuff for 0.6 new connection per transaction
-		// Default one connection for all transactions
-		// Incase where it is used for tailing -f and you wish to
-		// re-connect and send a new transaction:
-		// Probably will change this to a more dynamic method
-		// driven from web front end sending socket backend call
-		// in later release
-
 		def config= Holders.config
 		String newchannel=config.jssh.NEWCONNPERTRANS
-		if (newchannel.equals('YES')) {
-			newChann=true
-		}
 
+		if (((newchannel.equals('YES'))||(newSession))&&(sameSession==false)) { 
+			newChann=true
+		}else if (newSession) {
+			newChann=true
+		}else if (sameSession) {
+			newChann=false
+		}
+		
 		def cc=ssh.getActiveChannelCount() ?: 0
 		if ((cc>0)&&(newChann==false)) {
 			session.getOutputStream().write("${usercommand} \n".getBytes())

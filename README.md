@@ -1,4 +1,4 @@
-jssh 0.8
+jssh 0.9
 =========
 
 Grails jssh Plugin based on j2ssh library, provides ssh connection with features/facilities to execute remote shell commands. Provides connection via websockets as well as ajax/polling.
@@ -6,7 +6,7 @@ Grails jssh Plugin based on j2ssh library, provides ssh connection with features
 
 Dependency :
 
-	compile ":jssh:0.8" 
+	compile ":jssh:0.9" 
 
 This plugin provides  basic functionality to allow you to call your end host either via a taglib or via a call to provided controller. These are just examples and you could either use out of the package or create your own from given examples.
 
@@ -124,6 +124,11 @@ jssh.hideConsoleMenu="NO"
 */
 jssh.hideSendBlock="NO"
 
+/* hideSessionCtrl
+* this controls two buttons giving end user feature to enable new sessions per transaction or not
+* set this to YES if you wish the users to see the buttons + control action via frontend.
+*/
+jssh.hideSessionCtrl="NO"
 ```	
 
 
@@ -266,6 +271,10 @@ If you are using jquery slider or bootstrap switch, using fontsawesome you could
 # Change information:
 ```
 
+ 0.9 :	More UI tidyup - added session.close to all close methods, just incase there is still a session ongoing.
+ 		Override Config added to enable/disable frontend same ssh connection or 
+ 		new ssh connection per command sent via websockets. Look for hideSessionCtrl="YES" in above Config.groovy. 
+ 
  0.8 : 	New configuration added to disable/enable aspects on view
  
  0.7 :	Minor change - updated BuildConfig websockets-api set export to false - conflicting with tomcat in production
