@@ -1,4 +1,4 @@
-jssh 0.7
+jssh 0.8
 =========
 
 Grails jssh Plugin based on j2ssh library, provides ssh connection with features/facilities to execute remote shell commands. Provides connection via websockets as well as ajax/polling.
@@ -6,7 +6,7 @@ Grails jssh Plugin based on j2ssh library, provides ssh connection with features
 
 Dependency :
 
-	compile ":jssh:0.7" 
+	compile ":jssh:0.8" 
 
 This plugin provides  basic functionality to allow you to call your end host either via a taglib or via a call to provided controller. These are just examples and you could either use out of the package or create your own from given examples.
 
@@ -98,6 +98,31 @@ jssh.wshostname=System.getProperty('SERVERURL')+":8080"
 * Pros/cons of enabling this function is reverse of all of above
 */ 
 jssh.NEWCONNPERTRANS='YES'
+
+
+
+/* hideAuthBlock 
+* if set to YES will Hide Authentication/server block
+* on the main page that loads up form to submit to remote host
+* If you have configured 
+*/
+jssh.hideAuthBlock='NO'
+
+
+/* hideConsoleMenu
+*This hides away the console menu which allows end user to pause/resume logs 
+* as well as disconnect from remote host
+* default either do not define or set to NO 
+* setting to YES will stop showing up the menu
+*/
+jssh.hideConsoleMenu="NO"
+
+
+/* hideSendBlock
+* this will come in handy if you wish to hide away remote execution block from end user
+* set this to YES if you no longer wish end users to be able to execute remote commands
+*/
+jssh.hideSendBlock="NO"
 
 ```	
 
@@ -240,6 +265,9 @@ If you are using jquery slider or bootstrap switch, using fontsawesome you could
 
 # Change information:
 ```
+
+ 0.8 : 	New configuration added to disable/enable aspects on view
+ 
  0.7 :	Minor change - updated BuildConfig websockets-api set export to false - conflicting with tomcat in production
  
  0.6 : 	UI Updates + fixed channel re-use issues for dynamic calling backend ssh connection 

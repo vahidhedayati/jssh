@@ -73,6 +73,7 @@ class ConnectSshTagLib {
 		def input=attrs.remove('input')?.toString()
 		def pageid=attrs.remove('pageid')?.toString() 
 		def pagetitle=attrs.remove('pagetitle')?.toString()
+		def hideAuthBlock=attrs.remove('hideAuthBlock')?.toString()
 		if (!pageid) { 
 			pageid="jssh"
 		}
@@ -85,6 +86,6 @@ class ConnectSshTagLib {
 		if (verify >= 2.4 ) {
 			gfolder="assets"
 		}
-		out << g.render(contextPath: pluginContextPath, template: "/connectSsh/${gfolder}/${file}", model: [attrs:attrs,loadtemplate:loadtemplate,input:input,port:port,username:username,password:password,hostname:hostname,userCommand:userCommand,pageid:pageid,pagetitle:pagetitle])
+		out << g.render(contextPath: pluginContextPath, template: "/connectSsh/${gfolder}/${file}", model: [hideAuthBlock:hideAuthBlock,attrs:attrs,loadtemplate:loadtemplate,input:input,port:port,username:username,password:password,hostname:hostname,userCommand:userCommand,pageid:pageid,pagetitle:pagetitle])
 	}
 }

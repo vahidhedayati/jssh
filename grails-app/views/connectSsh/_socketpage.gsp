@@ -13,33 +13,41 @@
 	<div  class="form-group form-condensed">
 
 		<g:form method="post" action="socketprocess">
-		
-		<div class='row'>
-			<div class='col-sm-4'>
-			<div class='form-group'>
-	 			<label for="username">SSH Username:</label>
-				<g:textField name="username" placeholder="Username?"/>
-			</div>
-			</div>
-			
-			<div class='col-sm-4'>
-			<div class='form-group'>
-				<label for="password">SSH Password:</label>
-				<g:passwordField name="password" placeholder="password?"/>
-			</div>
-			</div>
-			
-			
-		
-			<div class='col-sm-4'>
-			<div class='form-group'>
-				<label for="hostname">SSH Hostname:</label>
-				<g:textField name="hostname" placeholder="hostname?"/>
-			</div>
-			</div>
-			
+	
+
+<g:if test="${((!hideAuthBlock) || (!hideAuthBlock.equals('YES')))}">	
+<g:javascript>
+toggleBlock('#authCtrl','.authList','AUTHENTICATION')
+</g:javascript>
+<div class="pull-right btn btn-default"><a id="authCtrl">SHOW AUTHENTICATION</a></div>
+<div style="clear:both;"></div>
+
+<div class="authList" style="display: none;">	
+	<div class='row'>
+		<div class='col-sm-4'>
+		<div class='form-group'>
+	 		<label for="username">SSH Username:</label>
+			<g:textField name="username" placeholder="Username?" class="form-control form-fixer"/>
+		</div>
 		</div>
 		
+		<div class='col-sm-4'>
+		<div class='form-group'>
+			<label for="password">SSH Password:</label>
+	 		<g:passwordField name="password" placeholder="password?" class="form-control form-fixer"/>
+		</div>
+		</div>
+		
+		<div class='col-sm-4'>
+		<div class='form-group'>
+			<label for="hostname">SSH Hostname:</label>
+			<g:textField name="hostname" placeholder="hostname?" class="form-control form-fixer"/>
+		</div>
+		</div>
+	</div>
+	</div>
+	</g:if>
+
 		<div class='row'>
 			<div class='col-sm-12'>
     		<div class='form-group'>

@@ -112,7 +112,18 @@ div[class*="tbutton"] {
 	color: #000;
 }
 .page-header{padding-bottom:9px;margin:20px 0 30px;border-bottom:1px solid #eeeeee;}
-
+.page-header2{
+	padding-bottom: 1em;
+	margin:1em 0 0;
+	background: #CCC; 
+	width: auto;
+	display: inline-block;
+	*zoom: 1;
+	*display: inline;
+}
+.fixer {
+    padding: 1px;
+}
 #contact-area input, #contact-area textarea {
 	padding: 5px;
 	width: 40em;

@@ -20,5 +20,23 @@
 	<g:render template="/connectSsh/${loadtemplate}" model="[input:input,port:port,username:username,password:password,hostname:hostname,userCommand:userCommand]"/>
 	
 </div>
+
+<g:javascript>
+function toggleBlock(caller,called,calltext) {
+	$(caller).click(function() {
+		if($(called).is(":hidden")) {
+ 			$(caller).html('HIDE '+calltext).fadeIn('slow');
+    	}else{
+        	$(caller).html('SHOW '+calltext).fadeIn('slow');	
+        	
+    	}
+ 		$(called).slideToggle("fast");
+ 	
+  	});
+  }	
+</g:javascript>
+
+
+
 </body>
 </html>

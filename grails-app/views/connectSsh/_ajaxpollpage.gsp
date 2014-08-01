@@ -16,7 +16,14 @@
  <div  class="form-group form-condensed">
  
 	<g:form method="post" action="process">
-	
+	<g:if test="${((!hideAuthBlock) || (!hideAuthBlock.equals('YES')))}">	
+<g:javascript>
+toggleBlock('#authCtrl','.authList','AUTHENTICATION')
+</g:javascript>
+<div class="pull-right btn btn-default"><a id="authCtrl">SHOW AUTHENTICATION</a></div>
+<div style="clear:both;"></div>
+
+<div class="authList" style="display: none;">	
 	<div class='row'>
 		<div class='col-sm-4'>
 		<div class='form-group'>
@@ -39,7 +46,8 @@
 		</div>
 		</div>
 	</div>
-	
+	</div>
+	</g:if>
 	<div class='row'>
 		<div class='col-sm-12'>
     	<div class='form-group'>

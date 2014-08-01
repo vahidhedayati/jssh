@@ -1,22 +1,52 @@
 
 
+<g:if test="${((!hideSendBlock) || (!hideSendBlock.equals('YES')))}">	
+	<g:javascript>
+		toggleBlock('#sendCommand${divId}','#mySshBox${divId}','REMOTE EXECUTOR')
+	</g:javascript>
+	
+	
+ <div class="pull-right btn btn-default"><a id="sendCommand${divId}">SHOW REMOTE EXECUTOR</a></div>
 
-<div id="mySshBox${divId}">
-   <div  class="form-group">
-    <label for="execute" class="col-sm-1 control-label">Execute:</label>
-   	<div class="col-sm-10">
-	<div id="contact-area">
-		<textarea cols="20" rows="3" id="textMessage${divId}" name="message"></textarea>
+</g:if>
 
-        <button  id="sender" class="btn btn-primary" onclick="sendMessage${divId}();">Send</button>
 
-   </div>		
-</div></div>
-</div>
+<g:if test="${((!hideConsoleMenu) || (!hideConsoleMenu.equals('YES')))}">	
+	<g:javascript>
+		toggleBlock('#consoleMenu${divId}','#consoleMenuBar${divId}','CONSOLE MENU')
+	</g:javascript>
+	
+ <div class="pull-right btn btn-default"><a id="consoleMenu${divId}">SHOW CONSOLE MENU</a></div>
+ 
+</g:if>
+ 
+	<div style="clear:both;"></div>
+	
+	
+	
+
+<div style="clear:both"></div>
+<g:if test="${((!hideSendBlock) || (!hideSendBlock.equals('YES')))}">	
+	<div style="clear:both;"></div>
+	
+	<div id="mySshBox${divId}"  style="display: none;">
+   	<div  class="form-group">
+    	<label for="execute" class="col-sm-1 control-label">Execute:</label>
+   		<div class="col-sm-10">
+		<div id="contact-area">
+			<textarea cols="20" rows="3" id="textMessage${divId}" name="message"></textarea>
+        	<button  id="sender" class="btn btn-primary" onclick="sendMessage${divId}();">Send</button>
+   		</div>		
+	</div></div></div>
+</g:if>
+
 <div style="clear:both"></div>
 
-		
-<div  class="logconsolebar">
+
+
+<g:if test="${((!hideConsoleMenu) || (!hideConsoleMenu.equals('YES')))}">	
+	
+<div  class="logconsolebar" id="consoleMenuBar${divId}"  style="display: none;">
 	<div class="btn btn-primary">
 		<b>${hostname }: running <span id="whatCommand${divId}"></span></b>
 	</div>	
@@ -24,6 +54,8 @@
 	<btn  class="btn btn-warning" onclick="Pause${divId}()">Pause</btn>
 	<btn  class="btn btn-success" onclick="Resume${divId}()">Resume</btn>
 </div>
+	
+</g:if>
 	
 <div id="mySshOut${divId}">
 	<g:if test="${divId}">
@@ -37,6 +69,25 @@
 </div>
 
 <g:javascript>
+
+
+// Should be loaded from higher level
+// added just incase this page is called 
+// from outside of the scope of default plugin method
+function toggleBlock(caller,called,calltext) {
+	$(caller).click(function() {
+		if($(called).is(":hidden")) {
+ 			$(caller).html('HIDE '+calltext).fadeIn('slow');
+    	}else{
+        	$(caller).html('SHOW '+calltext).fadeIn('slow');	
+        	
+    	}
+ 		$(called).slideToggle("fast");
+ 	
+  	});
+  }	
+
+  
     var divId="${divId}";
 	if (!window.WebSocket) {
 		var msg = "Your browser does not have WebSocket support";

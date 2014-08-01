@@ -89,7 +89,7 @@ class JsshEndpoint implements ServletContextListener {
 			// Initial call lets connect
 			def asyncProcess = new Thread({	sshConnect(user,userpass,host,usercommand,port as int,usersession)  } as Runnable )
 			asyncProcess.start()
-			
+
 		} else{
 			if  (message.equals('DISCO:-')) {
 				//session.close()
@@ -105,7 +105,7 @@ class JsshEndpoint implements ServletContextListener {
 			}
 
 		}
-		
+
 	}
 
 	@OnClose
@@ -114,7 +114,7 @@ class JsshEndpoint implements ServletContextListener {
 		//session.close()
 		ssh.disconnect()
 	}
-	
+
 	@OnError
 	public void handleError(Throwable t) {
 		t.printStackTrace()
@@ -124,21 +124,21 @@ class JsshEndpoint implements ServletContextListener {
 	private void sshControl(String usercommand,Session usersession) {
 		StringBuilder catchup=new StringBuilder()
 		Boolean newChann=false
-		
+
 		// New stuff for 0.6 new connection per transaction
 		// Default one connection for all transactions
-		// Incase where it is used for tailing -f and you wish to 
+		// Incase where it is used for tailing -f and you wish to
 		// re-connect and send a new transaction:
-		// Probably will change this to a more dynamic method 
+		// Probably will change this to a more dynamic method
 		// driven from web front end sending socket backend call
 		// in later release
-		 
+
 		def config= Holders.config
 		String newchannel=config.jssh.NEWCONNPERTRANS
 		if (newchannel.equals('YES')) {
 			newChann=true
 		}
-		
+
 		def cc=ssh.getActiveChannelCount() ?: 0
 		if ((cc>0)&&(newChann==false)) {
 			session.getOutputStream().write("${usercommand} \n".getBytes())
@@ -163,38 +163,37 @@ class JsshEndpoint implements ServletContextListener {
 				}
 				//}
 			}
-			
+
 		}else{
-		usersession.getBasicRemote().sendText("CHANNEL LOOP 2")
-		session = ssh.openSessionChannel()
-		SessionOutputReader sor = new SessionOutputReader(session)
-		if (session.requestPseudoTerminal("gogrid",80,24, 0 , 0, "")) {
-			if (session.startShell()) {
-				ChannelOutputStream out = session.getOutputStream()
-				session.getOutputStream().write("${usercommand} \n".getBytes())
-				InputStream input=session.getInputStream()
-				byte[] buffer=new byte[255]
-				int read;
-				int i=0
-				//def pattern = ~/^\s+$/
-				while((read = input.read(buffer)) > 0)  {
-					String out1 = new String(buffer, 0, read)
-					//def m=pattern.matcher(out1).matches()
-					//if (m==false) {
-					if (pauseLog) {
-						catchup.append(out1)
-					}else{
-						if (resumed) {
-							resumed=false
-							usersession.getBasicRemote().sendText(catchup as String)
-							catchup=new StringBuilder()
-						}	
-						usersession.getBasicRemote().sendText(out1)
-					}	
-					//}
+			session = ssh.openSessionChannel()
+			SessionOutputReader sor = new SessionOutputReader(session)
+			if (session.requestPseudoTerminal("gogrid",80,24, 0 , 0, "")) {
+				if (session.startShell()) {
+					ChannelOutputStream out = session.getOutputStream()
+					session.getOutputStream().write("${usercommand} \n".getBytes())
+					InputStream input=session.getInputStream()
+					byte[] buffer=new byte[255]
+					int read;
+					int i=0
+					//def pattern = ~/^\s+$/
+					while((read = input.read(buffer)) > 0)  {
+						String out1 = new String(buffer, 0, read)
+						//def m=pattern.matcher(out1).matches()
+						//if (m==false) {
+						if (pauseLog) {
+							catchup.append(out1)
+						}else{
+							if (resumed) {
+								resumed=false
+								usersession.getBasicRemote().sendText(catchup as String)
+								catchup=new StringBuilder()
+							}
+							usersession.getBasicRemote().sendText(out1)
+						}
+						//}
+					}
 				}
 			}
-			}	
 		}
 		session.close()
 	}

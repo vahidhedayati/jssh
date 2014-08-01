@@ -5,7 +5,11 @@ class ConnectSshController {
 	def connectSsh
 	def jsshConfig
 	def grailsApplication
-	def index() {}
+	def index() {
+		
+		def hideAuthBlock=grailsApplication.config.jssh.hideAuthBlock 
+		[hideAuthBlock:hideAuthBlock]
+	}
 	
 	
 	def socketprocess() {
@@ -18,14 +22,15 @@ class ConnectSshController {
 		String divId=params.divId ?: 'Basic'
 		String remoteForm=params.remoteForm
 		def wshostname=grailsApplication.config.jssh.wshostname ?: 'localhost:8080'
+		def hideConsoleMenu=grailsApplication.config.jssh.hideConsoleMenu
+		def hideSendBlock=grailsApplication.config.jssh.hideSendBlock
 		if (template) {
-			render (view: 'getTemplate', model: [divId:divId,username:username,port:port,password:password,hostname:hostname,userCommand:userCommand,template:template,wshostname:wshostname])
+			render (view: 'getTemplate', model: [hideConsoleMenu:hideConsoleMenu,hideSendBlock:hideSendBlock,divId:divId,username:username,port:port,password:password,hostname:hostname,userCommand:userCommand,template:template,wshostname:wshostname])
 		}else{
 			if ( (remoteForm) && (remoteForm.equals('true'))) { 
-					println "Rendering template /connectSsh/socketprocess"
-				render (template: "/connectSsh/socketprocess", model:[divId:divId, username:username,port:port,password:password,hostname:hostname,userCommand:userCommand,wshostname:wshostname])
+				render (template: "/connectSsh/socketprocess", model:[hideConsoleMenu:hideConsoleMenu,hideSendBlock:hideSendBlock,divId:divId, username:username,port:port,password:password,hostname:hostname,userCommand:userCommand,wshostname:wshostname])
 			}else{
-				render (view: "/connectSsh/choose", model:[divId:divId,loadtemplate: 'socketprocess', username:username,port:port,password:password,hostname:hostname,userCommand:userCommand,wshostname:wshostname])
+				render (view: "/connectSsh/choose", model:[hideConsoleMenu:hideConsoleMenu,hideSendBlock:hideSendBlock,divId:divId,loadtemplate: 'socketprocess', username:username,port:port,password:password,hostname:hostname,userCommand:userCommand,wshostname:wshostname])
 			}
 		}
 	}
