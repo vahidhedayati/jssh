@@ -11,6 +11,9 @@ Dependency :
 This plugin provides  basic functionality to allow you to call your end host either via a taglib or via a call to provided controller. These are just examples and you could either use out of the package or create your own from given examples.
 
 
+# Video:
+I have made a video of a site from scratch with jssh 0.9, whilst waiting on creations of stuff there was some discussion into the backend plugin code and how it interacts via websockets: [jssh 0.9 full walk through](https://www.youtube.com/watch?v=r-dBVUmT9Uo)
+
 # 0.5 release : websocket live ssh interaction:
 Using default tomcat websockets to interact with j2ssh libraries. It is really very powerful/amazing stuff.
 ![websocket connection](https://raw.github.com/vahidhedayati/jssh-test/master/jssh-doc/4.jpg)
