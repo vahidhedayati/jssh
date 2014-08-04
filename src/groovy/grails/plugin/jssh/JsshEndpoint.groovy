@@ -108,8 +108,13 @@ class JsshEndpoint implements ServletContextListener {
 				sameSession=true
 				newSession=false
 			} else {
-				def asyncProcess = new Thread({sshControl(message,usersession)  } as Runnable )
-				asyncProcess.start()
+				def config= Holders.config
+				def hideSendBlock=config.jssh.hideSendBlock
+				// Ensure user can actually send stuff according to backend config
+				if ((!hideSendBlock)||(!hideSendBlock.equals('YES'))) {
+					def asyncProcess = new Thread({sshControl(message,usersession)  } as Runnable )
+					asyncProcess.start()
+				}
 			}
 
 		}
@@ -134,8 +139,9 @@ class JsshEndpoint implements ServletContextListener {
 		Boolean newChann=false
 		def config= Holders.config
 		String newchannel=config.jssh.NEWCONNPERTRANS
-
-		if (((newchannel.equals('YES'))||(newSession))&&(sameSession==false)) { 
+		String hideSessionCtrl=config.jssh.hideSessionCtrl
+		// Ensure user is not attempting to hack page - check backend config ensure session control is enabled.
+		if ((newchannel.equals('YES'))||(hideSessionCtrl.equals('NO')&&(newSession)&&(sameSession==false))) { 
 			newChann=true
 		}else if (newSession) {
 			newChann=true

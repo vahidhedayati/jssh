@@ -1,4 +1,4 @@
-jssh 0.9
+jssh 0.10
 =========
 
 Grails jssh Plugin based on j2ssh library, provides ssh connection with features/facilities to execute remote shell commands. Provides connection via websockets as well as ajax/polling.
@@ -6,7 +6,7 @@ Grails jssh Plugin based on j2ssh library, provides ssh connection with features
 
 Dependency :
 
-	compile ":jssh:0.9" 
+	compile ":jssh:0.10" 
 
 This plugin provides  basic functionality to allow you to call your end host either via a taglib or via a call to provided controller. These are just examples and you could either use out of the package or create your own from given examples.
 
@@ -87,21 +87,32 @@ jssh.PORT="22"
 jssh.wshostname=System.getProperty('SERVERURL')+":8080"
 
 
-/*
-* This is yet another important functionality for websocket connections
-* it stands for NEW CONNnection PER TRANSaction
-* This is as described below default feature of 0.5
-* from 0.6 it will attempt to reuse existing connection 
-*
-* Pros of this being not set  is if you execute sudo -i
-* then execute a new command you are still continuing previous call
-* If you enable this function - sudo -i will be one connection and the next command will be a new shell
-* Cons of this not being enabled - if you are in a tail -f your new command will not execute
-*
-* Pros/cons of enabling this function is reverse of all of above
-*/ 
-jssh.NEWCONNPERTRANS='YES'
+/* disable.login
+* Typically you should have some form of authentication mechanism 
+* from which you would lock down the default index pages that allows interaction
+* If you do not set this to YES 
+* This will then disable the default index pages that allows interaction. 
+*/
+jssh.disable.login="NO"
 
+
+/*--------------------------------------------------------------------------*/
+/* WEB PAGE SPECIFIC CONFIGURATION */
+
+/*
+* NEWCONNPERTRANS
+* Stands for NEW CONNnection PER TRANSaction
+* watch the video to understand how / what this is doing..
+*/ 
+jssh.NEWCONNPERTRANS='NO'
+
+
+/* hideSessionCtrl
+* this controls two buttons giving end user feature to enable new sessions per transaction or not
+* set this to YES if you wish the users to see the buttons + control action via front end.
+* This must be set to YES if you wish to not let end user override above defined value
+*/
+jssh.hideSessionCtrl="NO"
 
 
 /* hideAuthBlock 
@@ -113,10 +124,11 @@ jssh.hideAuthBlock='NO'
 
 
 /* hideConsoleMenu
-*This hides away the console menu which allows end user to pause/resume logs 
-* as well as disconnect from remote host
-* default either do not define or set to NO 
-* setting to YES will stop showing up the menu
+* Has got a little more complex from 0.10.
+* If disabled it will attempt to hide all controls such as pause/resume/disconnect
+* If disabled it will also check for :  
+* hidePauseControl + hideDiscoButton
+* if those two are set to no then it will show those two buttons
 */
 jssh.hideConsoleMenu="NO"
 
@@ -127,12 +139,48 @@ jssh.hideConsoleMenu="NO"
 */
 jssh.hideSendBlock="NO"
 
-/* hideSessionCtrl
-* this controls two buttons giving end user feature to enable new sessions per transaction or not
-* set this to YES if you wish the users to see the buttons + control action via frontend.
+
+/* hidePauseControl
+* This hides the control buttons to pause/resume logs
 */
-jssh.hideSessionCtrl="NO"
+jssh.hidePauseControl="NO"
+
+
+/* hideWhatsRunning
+* This hides the label that shows what host the user is connected to and what command is being executed
+*/
+jssh.hideWhatsRunning="NO"
+
+
+/* hideDiscoButton
+* This hides the disconnect button
+* unsure why you would want to - but maybe you do
+*/
+jssh.hideDiscoButton="NO"
+
 ```	
+
+
+So besides the configuration items such as username/keys etc for the actual view, I have enabled the following options:
+
+```groovy
+jssh.disable.login="YES"
+jssh.NEWCONNPERTRANS='NO'
+jssh.hideSessionCtrl="YES"
+jssh.hideAuthBlock='NO'
+jssh.hideConsoleMenu="YES"
+jssh.hideSendBlock="YES"
+jssh.hidePauseControl="NO"
+jssh.hideWhatsRunning="NO"
+jssh.hideDiscoButton="NO"
+```
+
+The above now means there are no pages that end users can interact with so far as default plugin goes, when the actual site sends something via this plugin, the view (being socketprocess) disables everything besides pause/resume logs and disconnect.
+
+You can tweak the above to meet your criteria...
+
+
+
 
 
 # Using plugin within existing application

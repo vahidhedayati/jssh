@@ -1,13 +1,9 @@
 
-
 <g:if test="${((!hideSendBlock) || (!hideSendBlock.equals('YES')))}">	
 	<g:javascript>
 		toggleBlock('#sendCommand${divId}','#mySshBox${divId}','REMOTE EXECUTOR')
 	</g:javascript>
-	
-	
- <div class="pull-right btn btn-default"><a id="sendCommand${divId}">SHOW REMOTE EXECUTOR</a></div>
-
+	 <div class="pull-right btn btn-default"><a id="sendCommand${divId}">SHOW REMOTE EXECUTOR</a></div>
 </g:if>
 
 
@@ -15,15 +11,12 @@
 	<g:javascript>
 		toggleBlock('#consoleMenu${divId}','#consoleMenuBar${divId}','CONSOLE MENU')
 	</g:javascript>
-	
  <div class="pull-right btn btn-default"><a id="consoleMenu${divId}">HIDE CONSOLE MENU</a></div>
- 
 </g:if>
  
 
 <g:if test="${((!hideSendBlock) || (!hideSendBlock.equals('YES')))}">	
 	<div style="clear:both;"></div>
-	
 	<div id="mySshBox${divId}"  style="display: none;">
    	<div  class="form-group">
     	<label for="execute" class="col-sm-1 control-label">Execute:</label>
@@ -37,25 +30,39 @@
 
 
 
-
-
-<g:if test="${((!hideConsoleMenu) || (!hideConsoleMenu.equals('YES')))}">	
 	<div style="clear:both"></div>
-<div  class="logconsolebar" id="consoleMenuBar${divId}" >
-	<div class="btn btn-primary btn-xs" title="${hostname } ssh connection">
-		<b>${hostname }: running <span id="whatCommand${divId}"></span></b>
-	</div>	
-	<btn  class="btn btn-danger btn-xs" onclick="closeConnection${divId}()" title="Close SSH Connection">Close connection</btn>
-	<btn  class="btn btn-warning btn-xs" onclick="Pause${divId}()" title="Pause SSH Connection">Pause</btn>
-	<btn  class="btn btn-success btn-xs" onclick="Resume${divId}()" title="Resume SSH Connection">Resume</btn>
-<g:if test="${((!hideSessionCtrl) || (!hideSessionCtrl.equals('YES')))}">		
-	<btn  class="btn btn-danger btn-xs " onclick="NewSess${divId}()" title="New SSH Login per command sent">New CONN_PT</btn>
-	<btn  class="btn btn-primary btn-xs" onclick="SameSess${divId}()" title="Same SSH Login per command sent">Same CONN_PT</btn>
-</g:if>	
-</div>
+	<div  class="logconsolebar" id="consoleMenuBar${divId}" >
+	<g:if test="${((!hideConsoleMenu) || (!hideConsoleMenu.equals('YES')))}">		
+		<g:if test="${((!hideWhatsRunning) || (!hideWhatsRunning.equals('YES')))}">
+			<div class="btn btn-primary btn-xs" title="${hostname } ssh connection">
+				<b>${hostname }: running <span id="whatCommand${divId}"></span></b>
+			</div>
+		</g:if>
 	
-</g:if>
+		<g:if test="${((!hideDiscoButton) || (!hideDiscoButton.equals('YES')))}">
+			<btn  class="btn btn-danger btn-xs" onclick="closeConnection${divId}()" title="Close SSH Connection">Close connection</btn>
+		</g:if>	
+		<g:if test="${((!hidePauseControl) || (!hidePauseControl.equals('YES')))}">	
+			<btn  class="btn btn-warning btn-xs" onclick="Pause${divId}()" title="Pause SSH Connection">Pause</btn>
+			<btn  class="btn btn-success btn-xs" onclick="Resume${divId}()" title="Resume SSH Connection">Resume</btn>
+		</g:if>
 	
+		<g:if test="${((!hideSessionCtrl) || (!hideSessionCtrl.equals('YES')))}">		
+			<btn  class="btn btn-danger btn-xs " onclick="NewSess${divId}()" title="New SSH Login per command sent">New CONN_PT</btn>
+			<btn  class="btn btn-primary btn-xs" onclick="SameSess${divId}()" title="Same SSH Login per command sent">Same CONN_PT</btn>
+		</g:if>
+	</g:if>	
+	<g:else>
+		<g:if test="${((!hideDiscoButton) || (!hideDiscoButton.equals('YES')))}">
+			<btn  class="btn btn-danger btn-xs" onclick="closeConnection${divId}()" title="Close SSH Connection">Close connection</btn>
+		</g:if>	
+		<g:if test="${((!hidePauseControl) || (!hidePauseControl.equals('YES')))}">	
+			<btn  class="btn btn-warning btn-xs" onclick="Pause${divId}()" title="Pause SSH Connection">Pause</btn>
+			<btn  class="btn btn-success btn-xs" onclick="Resume${divId}()" title="Resume SSH Connection">Resume</btn>
+		</g:if>
+	</g:else>
+	</div>
+		
 <div id="mySshOut${divId}">
 	<g:if test="${divId}">
 		<pre  id="messagesTextarea${divId}" class="logconsole-sm">
