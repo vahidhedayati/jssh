@@ -53,6 +53,11 @@
 		</g:if>
 	</g:if>	
 	<g:else>
+		<g:if test="${((!hideWhatsRunning) || (!hideWhatsRunning.equals('YES')))}">
+			<div class="btn btn-primary btn-xs" title="${hostname } ssh connection">
+				<b>${hostname }: running <span id="whatCommand${divId}"></span></b>
+			</div>
+		</g:if>
 		<g:if test="${((!hideDiscoButton) || (!hideDiscoButton.equals('YES')))}">
 			<btn  class="btn btn-danger btn-xs" onclick="closeConnection${divId}()" title="Close SSH Connection">Close connection</btn>
 		</g:if>	
