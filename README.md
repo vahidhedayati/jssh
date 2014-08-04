@@ -1,4 +1,4 @@
-jssh 0.10
+jssh 0.11
 =========
 
 Grails jssh Plugin based on j2ssh library, provides ssh connection with features/facilities to execute remote shell commands. Provides connection via websockets as well as ajax/polling.
@@ -6,7 +6,7 @@ Grails jssh Plugin based on j2ssh library, provides ssh connection with features
 
 Dependency :
 
-	compile ":jssh:0.10" 
+	compile ":jssh:0.11" 
 
 This plugin provides  basic functionality to allow you to call your end host either via a taglib or via a call to provided controller. These are just examples and you could either use out of the package or create your own from given examples.
 
@@ -321,44 +321,47 @@ If you are using jquery slider or bootstrap switch, using fontsawesome you could
 
 # Change information:
 ```
+ 0.11 	: 	taglib override config calls missed out in 0.9/0.10 added in 0.11
+ 
+ 0.10	:	New override configuration added to control all aspects of frontend calls.
 
- 0.9 :	More UI tidyup - added session.close to all close methods, just incase there is still a session ongoing.
- 		Override Config added to enable/disable frontend same ssh connection or 
- 		new ssh connection per command sent via websockets. Look for hideSessionCtrl="YES" in above Config.groovy. 
+ 0.9 	:	More UI tidyup - added session.close to all close methods, just incase there is still a session ongoing.
+ 			Override Config added to enable/disable frontend same ssh connection or 
+ 			new ssh connection per command sent via websockets. Look for hideSessionCtrl="YES" in above Config.groovy. 
  
- 0.8 : 	New configuration added to disable/enable aspects on view
+ 0.8 	: 	New configuration added to disable/enable aspects on view
  
- 0.7 :	Minor change - updated BuildConfig websockets-api set export to false - conflicting with tomcat in production
+ 0.7 	:	Minor change - updated BuildConfig websockets-api set export to false - conflicting with tomcat in production
  
- 0.6 : 	UI Updates + fixed channel re-use issues for dynamic calling backend ssh connection 
- 		Fixes for remoteForm calls - still not working, left alone for now.
- 		Returns missing some calls to the r:layoutResources tag (due to complexity to cater for assets/resources)
- 		On a normal site with assets/resources defined - should be fairly easy to fix (local calls).
+ 0.6 	: 	UI Updates + fixed channel re-use issues for dynamic calling backend ssh connection 
+ 			Fixes for remoteForm calls - still not working, left alone for now.
+ 			Returns missing some calls to the r:layoutResources tag (due to complexity to cater for assets/resources)
+ 			On a normal site with assets/resources defined - should be fairly easy to fix (local calls).
  		
  		
- 0.5 : 	Websockets added to j2ssh - and we are rocking !
- 		Websockets remoteForm method added, which can be used as an example 
- 		for having multiple calls on the same page using front end forms. 
- 		Check out taglibs for direct calls from within gsps.
-  		Old ajax calls left alone.
+ 0.5 	: 	Websockets added to j2ssh - and we are rocking !
+ 			Websockets remoteForm method added, which can be used as an example 
+ 			for having multiple calls on the same page using front end forms. 
+ 			Check out taglibs for direct calls from within gsps.
+  			Old ajax calls left alone.
   		
- 0.4 :	content passed from j2ssh to view is now changed to return appended value 
- 		rather than entire replacement
- 		of content. As a result a few things changed, buffer sizing removed from 
- 		_process.gsp - 
- 		content is now ongoing rolling content from back end appended to HTML view.
- 		SSH port configuration enabled
+ 0.4 	:	content passed from j2ssh to view is now changed to return appended value 
+ 			rather than entire replacement
+ 			of content. As a result a few things changed, buffer sizing removed from 
+ 			_process.gsp - 
+ 			content is now ongoing rolling content from back end appended to HTML view.
+ 			SSH port configuration enabled
  		
- 0.3 : 	Unlimited BufferSize added by setting value as 0, _process template override 
- 		feature provided.
- 		by either posting a form which has new template value or in TAGlib adding 
- 		template="/path/to/my/template"
- 		BufferSize connection input type added to process page on mouseOut will set 
- 		the value as what user defines 
- 		on process page
+ 0.3 	: 	Unlimited BufferSize added by setting value as 0, _process template override 
+ 			feature provided.
+ 			by either posting a form which has new template value or in TAGlib adding 
+ 			template="/path/to/my/template"
+ 			BufferSize connection input type added to process page on mouseOut will set 
+ 			the value as what user defines 
+ 			on process page
  
- 0.2 :	added auto scrolling to terminal window, fixed close connection to work 
- 		regardless of connection or not. Added friendly messages for bad login, 
- 		host connection issues. Added bootstrap CSS + buttons.
- 		BUFFFERSIZE added as a configuration option to ease on browser slowing down.
+ 0.2 	:	added auto scrolling to terminal window, fixed close connection to work 
+ 			regardless of connection or not. Added friendly messages for bad login, 
+ 			host connection issues. Added bootstrap CSS + buttons.
+ 			BUFFFERSIZE added as a configuration option to ease on browser slowing down.
 ```
