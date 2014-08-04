@@ -194,8 +194,8 @@ Refer to ConnectSshTagLib.groovy within plugin
 
 Define a template= if you wish to override default _process.gsp template from loading
 
+#### Websockets tag lib call
 ```gsp
-<!-- ------------------------------------------------------------ -->
 
 <!-- New websockets connector tag lib -->
 <jssh:socketconnect hostname="localhost" username="myuser" 
@@ -204,23 +204,38 @@ port="{optional : your ssh port}"
 password="mypass" 
 userCommand="sudo tail -f /var/log/syslog"
 divId="logs2"
+/>
+```
+
+Complete call allowing you to customise all override values per call or if not defined according to your config.groovy values:
+```gsp
+<jssh:socketconnect hostname="localhost" username="myuser" 
+template="/optional/file"
+port="{optional : your ssh port}"
+password="mypass" 
+userCommand="sudo tail -f /var/log/syslog"
+divId="logs2"
+
+wshostname="new_WEBSOCKET_HOSTNAME"
+hideWhatsRunning="YES"
+hideDiscoButton="NO"
+hidePauseControl="NO"
+hideSessionCtrl="YES"
+hideConsoleMenu="YES"
+hideSendBlock="YES"
 
 />
+```
 
 
-
-
-<!-- ------------------------------------------------------------ -->
-<!-- To use old method (ajax/polling) -->
+#### ajax/polling tag lib call
+```gsp
 <jssh:connect hostname="localhost" username="myuser" 
 template="/optional/file"
 port="{optional : your ssh port}"
-
-password="mypass" userCommand="sudo tail -f /var/log/syslog"
+password="mypass" 
+userCommand="sudo tail -f /var/log/syslog"
 />
-<!-- ------------------------------------------------------------ -->
-
-
 ```
 
  

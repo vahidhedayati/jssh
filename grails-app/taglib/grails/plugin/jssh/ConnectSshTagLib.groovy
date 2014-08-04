@@ -52,13 +52,57 @@ class ConnectSshTagLib {
 		def template=attrs.remove('template')?.toString()
 		def port=attrs.remove('port')?.toString()
 		def divId=attrs.remove('divId')?.toString()
-		def wshostname=grailsApplication.config.jssh.wshostname ?: 'localhost:8080'
-		def hideConsoleMenu=grailsApplication.config.jssh.hideConsoleMenu ?: 'NO'
-		def hideSendBlock=grailsApplication.config.jssh.hideSendBlock ?: 'NO'
-		def hideSessionCtrl=grailsApplication.config.jssh.hideSessionCtrl ?: 'NO'
-		def hideWhatsRunning=grailsApplication.config.jssh.hideWhatsRunning ?: 'NO'
-		def hideDiscoButton=grailsApplication.config.jssh.hideDiscoButton ?: 'NO'
-		def hidePauseControl=grailsApplication.config.jssh.hidePauseControl ?: 'NO'
+		
+		def wshostname
+		if (!attrs.wshostname) {
+			wshostname=grailsApplication.config.jssh.wshostname ?: 'localhost:8080'
+		}else{
+			wshostname=attrs.wshostname
+		}	
+		
+		def hideConsoleMenu
+		if (!attrs.hideConsoleMenu) {
+			hideConsoleMenu=grailsApplication.config.jssh.hideConsoleMenu ?: 'NO'
+		}else{
+			hideConsoleMenu=attrs.hideConsoleMenu
+		}
+			
+		def hideSendBlock
+		if (!attrs.hideSendBlock) {
+			hideSendBlock=grailsApplication.config.jssh.hideSendBlock ?: 'NO'
+		}else{
+			hideSendBlock=attrs.hideSendBlock
+		}
+		
+		def hideSessionCtrl
+		if (!attrs.hideSessionCtrl)	 {
+			hideSessionCtrl=grailsApplication.config.jssh.hideSessionCtrl ?: 'NO'
+		}else{
+			hideSessionCtrl=attrs.hideSessionCtrl
+		}
+		
+		def hideWhatsRunning
+		if (!attrs.hideWhatsRunning) {
+			hideWhatsRunning=grailsApplication.config.jssh.hideWhatsRunning ?: 'NO'
+		}else{
+			hideWhatsRunning=attrs.hideWhatsRunning
+		}
+			
+		def hideDiscoButton
+		if (!attrs.hideDiscoButton) {
+			hideDiscoButton=grailsApplication.config.jssh.hideDiscoButton ?: 'NO'
+		}else{
+			hideDiscoButton=attrs.hideDiscoButton
+		}
+		
+		def hidePauseControl
+		if (!attrs.hidePauseControl) {
+			hidePauseControl=grailsApplication.config.jssh.hidePauseControl ?: 'NO'
+		}else{
+			hidePauseControl=attrs.hidePauseControl
+		} 
+		
+		
 		if (template) {
 			out << g.render(template:template, model: [hideWhatsRunning:hideWhatsRunning,hideDiscoButton:hideDiscoButton,hidePauseControl:hidePauseControl,hideSessionCtrl:hideSessionCtrl,hideConsoleMenu:hideConsoleMenu,hideSendBlock:hideSendBlock,divId:divId,wshostname:wshostname,hostname:hostname,port:port,password:password,username:username,userCommand:userCommand])
 		}else{
