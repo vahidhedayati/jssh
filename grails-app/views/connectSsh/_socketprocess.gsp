@@ -35,13 +35,21 @@
 	<g:if test="${((!hideConsoleMenu) || (!hideConsoleMenu.equals('YES')))}">		
 		<g:if test="${((!hideWhatsRunning) || (!hideWhatsRunning.equals('YES')))}">
 			<div class="btn btn-primary btn-xs" title="${hostname } ssh connection">
-				<b>${hostname }: running <span id="whatCommand${divId}"></span></b>
+				<b>${hostname }: running <span id="whatCommand${divId}"></span></b> |
+				CONN_COUNT: <span id="connectionCount${divId}"></span>
 			</div>
 		</g:if>
 	
+		
 		<g:if test="${((!hideDiscoButton) || (!hideDiscoButton.equals('YES')))}">
 			<btn  class="btn btn-danger btn-xs" onclick="closeConnection${divId}()" title="Close SSH Connection">Close connection</btn>
+		</g:if>
+		
+		<g:if test="${((!hideNewShellButton) || (!hideNewShellButton.equals('YES')))}">
+			<btn  class="btn btn-success btn-xs" onclick="NewShell${divId}()" title="New Shell">New Shell</btn>
+			<btn  class="btn btn-primary btn-xs" onclick="CloseShell${divId}()" title="New Shell">Close Shell</btn>
 		</g:if>	
+			
 		<g:if test="${((!hidePauseControl) || (!hidePauseControl.equals('YES')))}">	
 			<btn  class="btn btn-warning btn-xs" onclick="Pause${divId}()" title="Pause SSH Connection">Pause</btn>
 			<btn  class="btn btn-success btn-xs" onclick="Resume${divId}()" title="Resume SSH Connection">Resume</btn>
@@ -55,7 +63,8 @@
 	<g:else>
 		<g:if test="${((!hideWhatsRunning) || (!hideWhatsRunning.equals('YES')))}">
 			<div class="btn btn-primary btn-xs" title="${hostname } ssh connection">
-				<b>${hostname }: running <span id="whatCommand${divId}"></span></b>
+				<b>${hostname }: running <span id="whatCommand${divId}"></span></b> | 
+				CONN_COUNT: <span id="connectionCount${divId}"></span>
 			</div>
 		</g:if>
 		<g:if test="${((!hideDiscoButton) || (!hideDiscoButton.equals('YES')))}">
@@ -115,6 +124,7 @@ function toggleBlock(caller,called,calltext) {
 	webSocket${divId}.onclose=function(message) {processClose${divId}(message);};
 	webSocket${divId}.onerror=function(message) {processError${divId}(message);};
 	var textMessage=document.getElementById("textMessage${divId}");
+	
 	function processOpen${divId}(message) {
 		$('#messagesTextarea${divId}').append('Server Connect....\n');
 		webSocket${divId}.send(JSON.stringify({'user':"${username }",'password':"${password }", 'hostname':"${hostname }",  'port': "${port }", 'usercommand': "${userCommand }"}))
@@ -122,8 +132,19 @@ function toggleBlock(caller,called,calltext) {
 	}
 	
 	function processMessage${divId}(message) {
-	    $('#messagesTextarea${divId}').append(message.data);
-	    scrollToBottom${divId}();
+		var json;
+		try {
+	  		json = JSON.parse(message.data);
+		} catch (exception) {
+	  		json = null;
+		}
+		if(json) {
+			var jsonData=JSON.parse(message.data);
+			$('#connectionCount${divId}').html(jsonData.connCount);
+		}else{
+			$('#messagesTextarea${divId}').append(message.data);
+			scrollToBottom${divId}();
+		}
 	}
 	
 	function SameSess${divId}() {
@@ -134,6 +155,13 @@ function toggleBlock(caller,called,calltext) {
 	 	webSocket${divId}.send("NEW_SESSION:-");
 	}
 	
+	function NewShell${divId}() {
+		webSocket${divId}.send("NEW_SHELL:-");
+    }
+    	function CloseShell${divId}() {
+		webSocket${divId}.send("CLOSE_SHELL:-");
+    }
+    
 	function Pause${divId}() {
 		webSocket${divId}.send("PAUSE:-");
     }

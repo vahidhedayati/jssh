@@ -1,4 +1,4 @@
-jssh 0.11
+jssh 0.12
 =========
 
 Grails jssh Plugin based on j2ssh library, provides ssh connection with features/facilities to execute remote shell commands. Provides connection via websockets as well as ajax/polling.  
@@ -8,7 +8,7 @@ Websocket ssh interaction can be incorporated to an existing grails app running 
 
 Dependency :
 
-	compile ":jssh:0.11" 
+	compile ":jssh:0.12" 
 
 This plugin provides  basic functionality to allow you to call your end host either via a taglib or via a call to provided controller. These are just examples and you could either use out of the package or create your own from given examples.
 
@@ -160,6 +160,17 @@ jssh.hideWhatsRunning="NO"
 */
 jssh.hideDiscoButton="NO"
 
+
+
+/* hideNewShellButton
+* This hides two buttons new shell / close shell
+* as of 0.12  new shell was introduced
+* its off of NSPT from earlier versions
+* a cleaner way of controlling new shells/closing shells. 
+*/
+
+hideNewShellButton="NO"
+
 ```	
 
 
@@ -175,6 +186,7 @@ jssh.hideSendBlock="YES"
 jssh.hidePauseControl="NO"
 jssh.hideWhatsRunning="NO"
 jssh.hideDiscoButton="NO"
+hideNewShellButton="YES"
 ```
 
 The above now means there are no pages that end users can interact with so far as default plugin goes, when the actual site sends something via this plugin, the view (being socketprocess) disables everything besides pause/resume logs and disconnect.
@@ -338,6 +350,9 @@ If you are using jquery slider or bootstrap switch, using fontsawesome you could
 
 # Change information:
 ```
+ 0.12 	:	New Shell / Close shell buttons added - like a console reconnect 
+ 			Connection count now displayed - showing how many current connections there are to backend
+ 		
  0.11 	: 	taglib override config calls missed out in 0.9/0.10 added in 0.11
  
  0.10	:	New override configuration added to control all aspects of frontend calls.

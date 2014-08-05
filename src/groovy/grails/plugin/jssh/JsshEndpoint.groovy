@@ -104,6 +104,12 @@ class JsshEndpoint implements ServletContextListener {
 			} else if  (message.equals('NEW_SESSION:-')) {
 				newSession=true
 				sameSession=false
+			} else if  (message.equals('NEW_SHELL:-')) {
+				newShell(usersession)
+				sameSession=true
+			}else if (message.equals('CLOSE_SHELL:-')) {
+				closeShell(usersession)
+				sameSession=true
 			} else if  (message.equals('SAME_SESSION:-')) {
 				sameSession=true
 				newSession=false
@@ -134,23 +140,64 @@ class JsshEndpoint implements ServletContextListener {
 		session.close()
 		ssh.disconnect()
 	}
+	
+	private void closeShell(Session usersession) {
+		def myMsg=[:]
+		int timeout = 1000;
+		def cc=ssh.getActiveChannelCount() ?: 1
+		if (cc>1) {
+			session.close()
+			session.getState().waitForState(ChannelState.CHANNEL_CLOSED,timeout);
+			usersession.getBasicRemote().sendText('Shell closed')
+		}else{
+			usersession.getBasicRemote().sendText('Only 1 shell - could not close master window - try closing session : '+cc)
+		} 
+		def ncc=ssh.getActiveChannelCount() ?: 1
+		myMsg.put("connCount", ncc.toString())
+		def myMsgj=myMsg as JSON
+		usersession.getBasicRemote().sendText(myMsgj as String)
+	}
+	
+	private void newShell(Session usersession) {
+		session = ssh.openSessionChannel()
+	
+		SessionOutputReader sor = new SessionOutputReader(session)
+		if (session.requestPseudoTerminal("gogrid",80,24, 0 , 0, "")) {
+			if (session.startShell()) {
+				ChannelOutputStream out = session.getOutputStream()
+				
+			}
+		}
+		
+		def cc=ssh.getActiveChannelCount() ?: 1
+		def myMsg=[:]
+		myMsg.put("connCount", cc.toString())
+		def myMsgj=myMsg as JSON
+		usersession.getBasicRemote().sendText(myMsgj as String)
+		usersession.getBasicRemote().sendText('New shell created, console window : '+cc)
+	}
+	
 	private void sshControl(String usercommand,Session usersession) {
 		StringBuilder catchup=new StringBuilder()
 		Boolean newChann=false
 		def config= Holders.config
 		String newchannel=config.jssh.NEWCONNPERTRANS
 		String hideSessionCtrl=config.jssh.hideSessionCtrl
-		// Ensure user is not attempting to hack page - check backend config ensure session control is enabled.
+		// Ensure user is not attempting to gain unauthorised access - check backend config ensure session control is enabled.
 		if ((newchannel.equals('YES'))||(hideSessionCtrl.equals('NO')&&(newSession)&&(sameSession==false))) { 
 			newChann=true
-		}else if (newSession) {
+		}else if ((newSession)&&(hideSessionCtrl.equals('NO'))) {
 			newChann=true
-		}else if (sameSession) {
+		}else if ((sameSession)&&(hideSessionCtrl.equals('NO'))) {
 			newChann=false
 		}
 		
-		def cc=ssh.getActiveChannelCount() ?: 0
-		if ((cc>0)&&(newChann==false)) {
+		def cc=ssh.getActiveChannelCount() ?: 1
+		def myMsg=[:]
+		myMsg.put("connCount", cc.toString())
+		def myMsgj=myMsg as JSON
+		usersession.getBasicRemote().sendText(myMsgj as String)
+		if ((cc>1)&&(newChann==false)) {
 			session.getOutputStream().write("${usercommand} \n".getBytes())
 			InputStream input=session.getInputStream()
 			byte[] buffer=new byte[255]
