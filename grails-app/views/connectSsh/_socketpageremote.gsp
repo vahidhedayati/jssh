@@ -20,13 +20,13 @@
     	<input type="hidden" name="remoteForm" value="true">
    
 <g:if test="${((!hideAuthBlock) || (!hideAuthBlock.equals('YES')))}">	
-<g:javascript>
-toggleBlock('#authCtrl','.authList','AUTHENTICATION')
-</g:javascript>
+
 <div class="pull-right btn btn-default"><a id="authCtrl">SHOW AUTHENTICATION</a></div>
 
 <div style="clear:both;"></div>
-
+<g:javascript>
+toggleBlock('#authCtrl','.authList','AUTHENTICATION');
+</g:javascript>
 <div class="authList" style="display: none;">	
 	<div class='row'>
 		<div class='col-sm-4'>

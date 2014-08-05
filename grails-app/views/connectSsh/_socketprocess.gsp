@@ -1,20 +1,21 @@
 
 <g:if test="${((!hideSendBlock) || (!hideSendBlock.equals('YES')))}">	
-	<g:javascript>
-		toggleBlock('#sendCommand${divId}','#mySshBox${divId}','REMOTE EXECUTOR')
-	</g:javascript>
+
 	 <div class="pull-right btn btn-default"><a id="sendCommand${divId}">SHOW REMOTE EXECUTOR</a></div>
+	 	<g:javascript>
+		toggleBlock('#sendCommand${divId}','#mySshBox${divId}','REMOTE EXECUTOR');
+	</g:javascript>
 </g:if>
 
 
 <g:if test="${((!hideConsoleMenu) || (!hideConsoleMenu.equals('YES')))}">	
-	<g:javascript>
-		toggleBlock('#consoleMenu${divId}','#consoleMenuBar${divId}','CONSOLE MENU')
-	</g:javascript>
+
  <div class="pull-right btn btn-default"><a id="consoleMenu${divId}">HIDE CONSOLE MENU</a></div>
 </g:if>
  
-
+	<g:javascript>
+		toggleBlock('#consoleMenu${divId}','#consoleMenuBar${divId}','CONSOLE MENU');
+	</g:javascript>
 <g:if test="${((!hideSendBlock) || (!hideSendBlock.equals('YES')))}">	
 	<div style="clear:both;"></div>
 	<div id="mySshBox${divId}"  style="display: none;">

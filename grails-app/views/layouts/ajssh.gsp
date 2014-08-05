@@ -11,7 +11,10 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<asset:stylesheet src="jssh.css"/>
 		<asset:stylesheet src="bootstrap.min.css"/>
-		<asset:javascript src="application.js"/>
+		
+		
+		<asset:javascript src="jquery.min.js"/>
+		<asset:javascript src="jssh.js"/>
 		<g:layoutHead/>
 	</head>
 	<body>

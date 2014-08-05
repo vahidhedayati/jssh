@@ -145,4 +145,34 @@ class ConnectSshTagLib {
 		}
 		out << g.render(contextPath: pluginContextPath, template: "/connectSsh/${gfolder}/${file}", model: [hideAuthBlock:hideAuthBlock,attrs:attrs,loadtemplate:loadtemplate,input:input,port:port,username:username,password:password,hostname:hostname,userCommand:userCommand,pageid:pageid,pagetitle:pagetitle])
 	}
+
+/*		
+	def verifyVersion= { 
+		double verify=grailsVersionService.getGrailsVersion()
+		if (verify>=2.4) {
+			if (!request.xhr) {
+				out << "<meta name='layout' content='ajssh'/>"
+			} else {
+				out << """
+ <asset:stylesheet href="jssh.css" />
+    	 <asset:stylesheet href="bootstrap.min.css" />
+    	   <asset:javascript src="jssh.js"/>
+    	 <g:javascript library="jquery"/>
+"""
+			}
+		}else{
+		if (!request.xhr) {
+			out << "<meta name='layout' content='jssh'/>"
+		} else {
+		out << """
+	<link rel="stylesheet" href="${resource(dir: 'css', file: 'bootstrap.min.css')}" type="text/css">
+	<link rel="stylesheet" href="${resource(dir: 'css', file: 'jssh.css')}" type="text/css">
+	<g:javascript library="jquery"/>
+"""
+		}	
+		} 
+	
+	}
+*/	
+	
 }
