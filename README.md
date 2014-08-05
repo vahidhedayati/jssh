@@ -1,4 +1,4 @@
-jssh 0.12
+jssh 0.13
 =========
 
 Grails jssh Plugin based on j2ssh library, provides ssh connection with features/facilities to execute remote shell commands. Provides connection via websockets as well as ajax/polling.  
@@ -8,7 +8,7 @@ Websocket ssh interaction can be incorporated to an existing grails app running 
 
 Dependency :
 
-	compile ":jssh:0.12" 
+	compile ":jssh:0.13" 
 
 This plugin provides  basic functionality to allow you to call your end host either via a taglib or via a call to provided controller. These are just examples and you could either use out of the package or create your own from given examples.
 
@@ -231,13 +231,13 @@ userCommand="sudo tail -f /var/log/syslog"
 divId="logs2"
 
 wshostname="new_WEBSOCKET_HOSTNAME"
-hideWhatsRunning="YES"
+hideWhatsRunning="NO"
 hideDiscoButton="NO"
 hidePauseControl="NO"
 hideSessionCtrl="YES"
-hideConsoleMenu="YES"
+hideConsoleMenu="NO"
 hideSendBlock="YES"
-
+hideNewShellButton="YES"
 />
 ```
 
@@ -350,6 +350,8 @@ If you are using jquery slider or bootstrap switch, using fontsawesome you could
 
 # Change information:
 ```
+ 0.13	:	missing tags for new newShellButton added
+ 
  0.12 	:	New Shell / Close shell buttons added - like a console reconnect 
  			Connection count now displayed - showing how many current connections there are to backend
  		

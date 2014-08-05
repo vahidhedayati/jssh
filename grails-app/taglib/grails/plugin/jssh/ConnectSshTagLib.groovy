@@ -69,14 +69,14 @@ class ConnectSshTagLib {
 			
 		def hideSendBlock
 		if (!attrs.hideSendBlock) {
-			hideSendBlock=grailsApplication.config.jssh.hideSendBlock ?: 'NO'
+			hideSendBlock=grailsApplication.config.jssh.hideSendBlock ?: 'YES'
 		}else{
 			hideSendBlock=attrs.hideSendBlock
 		}
 		
 		def hideSessionCtrl
 		if (!attrs.hideSessionCtrl)	 {
-			hideSessionCtrl=grailsApplication.config.jssh.hideSessionCtrl ?: 'NO'
+			hideSessionCtrl=grailsApplication.config.jssh.hideSessionCtrl ?: 'YES'
 		}else{
 			hideSessionCtrl=attrs.hideSessionCtrl
 		}
@@ -102,9 +102,17 @@ class ConnectSshTagLib {
 			hidePauseControl=attrs.hidePauseControl
 		} 
 		
+		def hideNewShellButton
+		if (!attrs.hideNewShellButton) {
+			hideNewShellButton=grailsApplication.config.jssh.hideNewShellButton ?: 'YES'
+		}else{
+			hideNewShellButton=attrs.hideNewShellButton
+		}
+		
+		
 		
 		if (template) {
-			out << g.render(template:template, model: [hideWhatsRunning:hideWhatsRunning,hideDiscoButton:hideDiscoButton,hidePauseControl:hidePauseControl,hideSessionCtrl:hideSessionCtrl,hideConsoleMenu:hideConsoleMenu,hideSendBlock:hideSendBlock,divId:divId,wshostname:wshostname,hostname:hostname,port:port,password:password,username:username,userCommand:userCommand])
+			out << g.render(template:template, model: [hideNewShellButton:hideNewShellButton,hideWhatsRunning:hideWhatsRunning,hideDiscoButton:hideDiscoButton,hidePauseControl:hidePauseControl,hideSessionCtrl:hideSessionCtrl,hideConsoleMenu:hideConsoleMenu,hideSendBlock:hideSendBlock,divId:divId,wshostname:wshostname,hostname:hostname,port:port,password:password,username:username,userCommand:userCommand])
 		}else{
 			out << g.render(contextPath: pluginContextPath,template:"/connectSsh/socketprocess", model: [hideWhatsRunning:hideWhatsRunning,hideDiscoButton:hideDiscoButton,hidePauseControl:hidePauseControl,hideSessionCtrl:hideSessionCtrl,hideConsoleMenu:hideConsoleMenu,hideSendBlock:hideSendBlock,divId:divId,wshostname:wshostname,hostname:hostname,port:port,password:password,username:username,userCommand:userCommand])
 		}
