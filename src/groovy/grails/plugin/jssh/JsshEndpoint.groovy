@@ -114,13 +114,14 @@ class JsshEndpoint implements ServletContextListener {
 				sameSession=true
 				newSession=false
 			} else {
-				def config= Holders.config
-				def hideSendBlock=config.jssh.hideSendBlock
+				//def config= Holders.config
+				//def hideSendBlock=config.jssh.hideSendBlock
+				// Will returm here conflicts with custom calls
 				// Ensure user can actually send stuff according to backend config
-				if ((!hideSendBlock)||(!hideSendBlock.equals('YES'))) {
+				//if ((!hideSendBlock)||(!hideSendBlock.equals('YES'))) {
 					def asyncProcess = new Thread({sshControl(message,usersession)  } as Runnable )
 					asyncProcess.start()
-				}
+				//}
 			}
 
 		}
