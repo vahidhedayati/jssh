@@ -252,7 +252,7 @@ class JsshEndpoint implements ServletContextListener {
 				}
 			}
 		}
-		session.close()
+		//session.close()
 	}
 
 	private void execCmd(String cmd,Session usersession) {
