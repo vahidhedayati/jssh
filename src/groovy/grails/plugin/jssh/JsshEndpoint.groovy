@@ -183,6 +183,15 @@ class JsshEndpoint implements ServletContextListener {
 		def config= Holders.config
 		String newchannel=config.jssh.NEWCONNPERTRANS
 		String hideSessionCtrl=config.jssh.hideSessionCtrl
+
+		if ((newchannel.equals('YES'))||((newSession)&&(sameSession==false))) { 
+			newChann=true
+		}else if (newSession) {
+			newChann=true
+		}else if (sameSession) {
+			newChann=false
+		}
+		/*
 		// Ensure user is not attempting to gain unauthorised access - check backend config ensure session control is enabled.
 		if ((newchannel.equals('YES'))||(hideSessionCtrl.equals('NO')&&(newSession)&&(sameSession==false))) { 
 			newChann=true
@@ -191,7 +200,8 @@ class JsshEndpoint implements ServletContextListener {
 		}else if ((sameSession)&&(hideSessionCtrl.equals('NO'))) {
 			newChann=false
 		}
-		
+		*/
+
 		def cc=ssh.getActiveChannelCount() ?: 1
 		def myMsg=[:]
 		myMsg.put("connCount", cc.toString())
