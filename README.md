@@ -1,4 +1,4 @@
-jssh 0.17
+jssh 0.18
 =========
 
 Grails jssh Plugin based on j2ssh library, provides ssh connection with features/facilities to execute remote shell commands. Provides connection via websockets as well as ajax/polling.  
@@ -8,7 +8,7 @@ Websocket ssh interaction can be incorporated to an existing grails app running 
 
 Dependency :
 
-	compile ":jssh:0.17" 
+	compile ":jssh:0.18" 
 
 This plugin provides  basic functionality to allow you to call your end host either via a taglib or via a call to provided controller. These are just examples and you could either use out of the package or create your own from given examples.
 
@@ -350,36 +350,49 @@ If you are using jquery slider or bootstrap switch, using fontsawesome you could
 
 # Change information:
 ```
- 0.17	: 	Issues with SendBlock custom calls not working again another security check need to revisit
+ 0.18	:	Moved over to 2.4.2. Tidy up of grails app version called in pluginbuddy
+ 
+ 0.17	: 	Issues with SendBlock custom calls not working again another security check 
+ 			need to revisit
 
- 0.16	: 	Problem related to lockdown if hideSesionCtrl was set to no in config the check conflicted with custom calls + terminal access.
-		Will revisit logic later
+ 0.16	: 	Problem related to lockdown if hideSesionCtrl was set to no in config the 
+ 			check conflicted with custom calls + terminal access.
+			Will revisit logic later
 
- 0.15	: 	ssh.disconnect removed from initial command  / unexpected behaviour for terminal view
+ 0.15	: 	ssh.disconnect removed from initial command  / unexpected behaviour for 
+ 			terminal view
 	
- 0.14 	: 	Tests against 2.4 failed - plugin reviewed fixed for apps 2.4+ - remoteForm call now working under 2.4 with 0.14 but not on grails pre 2.4
+ 0.14 	: 	Tests against 2.4 failed - plugin reviewed fixed for apps 2.4+ - remoteForm 
+ 			call now working under 2.4 with 0.14 but not on grails pre 2.4
  
  0.13	:	missing tags for new newShellButton added
  
  0.12 	:	New Shell / Close shell buttons added - like a console reconnect 
- 			Connection count now displayed - showing how many current connections there are to backend
+ 			Connection count now displayed - showing how many current connections there 
+ 			are to backend
  		
  0.11 	: 	taglib override config calls missed out in 0.9/0.10 added in 0.11
  
  0.10	:	New override configuration added to control all aspects of frontend calls.
 
- 0.9 	:	More UI tidyup - added session.close to all close methods, just incase there is still a session ongoing.
+ 0.9 	:	More UI tidyup - added session.close to all close methods, just incase 
+ 			there is still a session ongoing.
  			Override Config added to enable/disable frontend same ssh connection or 
- 			new ssh connection per command sent via websockets. Look for hideSessionCtrl="YES" in above Config.groovy. 
+ 			new ssh connection per command sent via websockets. Look for 
+ 			hideSessionCtrl="YES" in above Config.groovy. 
  
  0.8 	: 	New configuration added to disable/enable aspects on view
  
- 0.7 	:	Minor change - updated BuildConfig websockets-api set export to false - conflicting with tomcat in production
+ 0.7 	:	Minor change - updated BuildConfig websockets-api set export to false - 
+ 			conflicting with tomcat in production
  
- 0.6 	: 	UI Updates + fixed channel re-use issues for dynamic calling backend ssh connection 
+ 0.6 	: 	UI Updates + fixed channel re-use issues for dynamic calling backend ssh 
+ 			connection 
  			Fixes for remoteForm calls - still not working, left alone for now.
- 			Returns missing some calls to the r:layoutResources tag (due to complexity to cater for assets/resources)
- 			On a normal site with assets/resources defined - should be fairly easy to fix (local calls).
+ 			Returns missing some calls to the r:layoutResources tag (due to complexity 
+ 			to cater for assets/resources)
+ 			On a normal site with assets/resources defined - should be fairly easy to 
+ 			fix (local calls).
  		
  		
  0.5 	: 	Websockets added to j2ssh - and we are rocking !
@@ -395,7 +408,8 @@ If you are using jquery slider or bootstrap switch, using fontsawesome you could
  			content is now ongoing rolling content from back end appended to HTML view.
  			SSH port configuration enabled
  		
- 0.3 	: 	Unlimited BufferSize added by setting value as 0, _process template override 
+ 0.3 	: 	Unlimited BufferSize added by setting value as 0, _process template 
+ 			override 
  			feature provided.
  			by either posting a form which has new template value or in TAGlib adding 
  			template="/path/to/my/template"
