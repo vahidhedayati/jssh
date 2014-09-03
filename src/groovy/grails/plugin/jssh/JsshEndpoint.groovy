@@ -41,6 +41,9 @@ class JsshEndpoint implements ServletContextListener {
 
 		try {
 			serverContainer.addEndpoint(JsshEndpoint.class)
+			def config=Holders.config
+			def DefaultMaxSessionIdleTimeout=config.jssh.timeout  ?: 0
+			serverContainer.setDefaultMaxSessionIdleTimeout(DefaultMaxSessionIdleTimeout as int)
 		} catch (DeploymentException e) {
 			e.printStackTrace()
 		}
