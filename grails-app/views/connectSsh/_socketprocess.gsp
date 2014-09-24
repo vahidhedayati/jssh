@@ -1,4 +1,8 @@
-
+---> 
+<pre>
+${userCommand }
+</pre>
+ --
 <g:if test="${((!hideSendBlock) || (!hideSendBlock.equals('YES')))}">	
 
 	 <div class="pull-right btn btn-default"><a id="sendCommand${divId}">SHOW REMOTE EXECUTOR</a></div>
@@ -108,7 +112,7 @@ function toggleBlock(caller,called,calltext) {
   	});
   }	
 
-  
+    var appName="${meta(name:'app.name')}";
     var divId="${divId}";
 	if (!window.WebSocket) {
 		var msg = "Your browser does not have WebSocket support";
@@ -128,7 +132,17 @@ function toggleBlock(caller,called,calltext) {
 	
 	function processOpen${divId}(message) {
 		$('#messagesTextarea${divId}').append('Server Connect....\n');
-		webSocket${divId}.send(JSON.stringify({'user':"${username }",'password':"${password }", 'hostname':"${hostname }",  'port': "${port }", 'usercommand': "${userCommand }"}))
+		
+		webSocket${divId}.send(JSON.stringify({'user':"${username }",'password':"${password }", 'hostname':"${hostname }",  'port': "${port }", 'usercommand': "logger -s '${username} has connected through '+appName+''"}))
+		
+		if ((userCommand.value.indexOf('\n')>-1) || (userCommand.value.indexOf('\r')>-1) ) {
+			actOnEachLine(userCommand, function(line) {
+   				webSocket${divId}.send(line);
+			});
+		}else{
+			webSocket${divId}.send('${userCommand }');
+		}
+			
 		$('#whatCommand${divId}').html("${userCommand }"); 
 	}
 	
@@ -186,8 +200,14 @@ function toggleBlock(caller,called,calltext) {
     
 	function sendMessage${divId}() {
 		if (textMessage.value!="close") {
-			webSocket${divId}.send(textMessage${divId}.value);
-			$('#whatCommand${divId}').html(textMessage${divId}.value);
+			if ((textMessage${divId}.value.indexOf('\n')>-1) || (textMessage${divId}.value.indexOf('\r')>-1) ) {
+				actOnEachLine(textMessage${divId}, function(line) {
+   					webSocket${divId}.send(line);
+				});
+			}else{
+				webSocket${divId}.send(textMessage${divId}.value);
+			}
+			//$('#whatCommand${divId}').html(textMessage${divId}.value);
 			textMessage${divId}.value="";
 		}else {
 			webSocket${divId}.close();
@@ -207,6 +227,25 @@ function toggleBlock(caller,called,calltext) {
     	$('#messagesTextarea${divId}').scrollTop($('#messagesTextarea${divId}')[0].scrollHeight);
 	}
 	
+	
+	function actOnEachLine(textarea, func) {
+    	var lines = textarea.value.replace(/\r\n/g, "\n").split("\n");
+    	var newLines, newValue, i;
+
+    	// Use the map() method of Array where available 
+    	if (typeof lines.map != "undefined") {
+ 	       newLines = lines.map(func);
+    	} else {
+        	newLines = [];
+        	i = lines.length;
+        	while (i--) {
+            	newLines[i] = func(lines[i]);
+        	}
+    	}
+    	textarea.value = newLines.join("\r\n");
+	}
+
+
 	$('#textMessage${divId}').keypress(function(e){
   		if (e.keyCode == 13 && !e.shiftKey) {
      		e.preventDefault();

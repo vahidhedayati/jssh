@@ -1,4 +1,4 @@
-jssh 0.19
+jssh 0.20
 =========
 
 Grails jssh Plugin based on j2ssh library, provides ssh connection with features/facilities to execute remote shell commands. Provides connection via websockets as well as ajax/polling.  
@@ -8,7 +8,7 @@ Websocket ssh interaction can be incorporated to an existing grails app running 
 
 Dependency :
 
-	compile ":jssh:0.19" 
+	compile ":jssh:0.20" 
 
 This plugin provides  basic functionality to allow you to call your end host either via a taglib or via a call to provided controller. These are just examples and you could either use out of the package or create your own from given examples.
 
@@ -244,10 +244,6 @@ wshostname="new_WEBSOCKET_HOSTNAME"
 hideWhatsRunning="NO"
 hideDiscoButton="NO"
 hidePauseControl="NO"
-hideSessionCtrl="YES"
-hideConsoleMenu="NO"
-hideSendBlock="YES"
-hideNewShellButton="YES"
 />
 ```
 
@@ -360,6 +356,11 @@ If you are using jquery slider or bootstrap switch, using fontsawesome you could
 
 # Change information:
 ```
+ 0.20	:	Javascript added to parse through textarea and send line by line to socket connection.
+ 			It worked so long as textarea contained 1 command, caused socket errors otherwise.
+ 			Now should support multiple commands seperated by line breaks within textarea.
+ 			This should also fix taglib issue http://stackoverflow.com/questions/25852017/grails-taglib-retain-new-line-breaks-from-controller
+ 			
  0.19 	: 	Timeout defined for end point, pluginbuddy updated.
  
  0.18	:	Moved over to 2.4.2. Tidy up of grails app version called in pluginbuddy

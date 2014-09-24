@@ -1,5 +1,5 @@
 package grails.plugin.jssh
-
+import javax.swing.text.html.HTML
 class ConnectSshTagLib {
 	static namespace = "jssh"
 	def connectSsh
@@ -10,7 +10,7 @@ class ConnectSshTagLib {
 	def ajaxconnect =  { attrs, body ->
 		def hostname=attrs.remove('hostname')?.toString()
 		def username=attrs.remove('username')?.toString()
-		def userCommand=attrs.remove('userCommand')?.toString()
+		def userCommand=attrs.remove('userCommand') as HTML
 		def password=attrs.remove('password')?.toString()
 		def template=attrs.remove('template')?.toString()
 		def port=attrs.remove('port')?.toString()
@@ -47,7 +47,8 @@ class ConnectSshTagLib {
 	def socketconnect =  { attrs, body ->
 		def hostname=attrs.remove('hostname')?.toString()
 		def username=attrs.remove('username')?.toString()
-		def userCommand=attrs.remove('userCommand')?.toString()
+		//def userCommand=attrs.remove('userCommand') as
+		//def userCommand=attrs.remove('userCommand')?.encodeAsRaw()
 		def password=attrs.remove('password')?.toString()
 		def template=attrs.remove('template')?.toString()
 		def port=attrs.remove('port')?.toString()
@@ -112,9 +113,9 @@ class ConnectSshTagLib {
 		
 		
 		if (template) {
-			out << g.render(template:template, model: [hideNewShellButton:hideNewShellButton,hideWhatsRunning:hideWhatsRunning,hideDiscoButton:hideDiscoButton,hidePauseControl:hidePauseControl,hideSessionCtrl:hideSessionCtrl,hideConsoleMenu:hideConsoleMenu,hideSendBlock:hideSendBlock,divId:divId,wshostname:wshostname,hostname:hostname,port:port,password:password,username:username,userCommand:userCommand])
+			out << g.render(template:template, model: [hideNewShellButton:hideNewShellButton,hideWhatsRunning:hideWhatsRunning,hideDiscoButton:hideDiscoButton,hidePauseControl:hidePauseControl,hideSessionCtrl:hideSessionCtrl,hideConsoleMenu:hideConsoleMenu,hideSendBlock:hideSendBlock,divId:divId,wshostname:wshostname,hostname:hostname,port:port,password:password,username:username,userCommand:attrs.userCommand])
 		}else{
-			out << g.render(contextPath: pluginContextPath,template:"/connectSsh/socketprocess", model: [hideWhatsRunning:hideWhatsRunning,hideDiscoButton:hideDiscoButton,hidePauseControl:hidePauseControl,hideSessionCtrl:hideSessionCtrl,hideConsoleMenu:hideConsoleMenu,hideSendBlock:hideSendBlock,divId:divId,wshostname:wshostname,hostname:hostname,port:port,password:password,username:username,userCommand:userCommand])
+			out << g.render(contextPath: pluginContextPath,template:"/connectSsh/socketprocess", model: [hideWhatsRunning:hideWhatsRunning,hideDiscoButton:hideDiscoButton,hidePauseControl:hidePauseControl,hideSessionCtrl:hideSessionCtrl,hideConsoleMenu:hideConsoleMenu,hideSendBlock:hideSendBlock,divId:divId,wshostname:wshostname,hostname:hostname,port:port,password:password,username:username,userCommand:attrs.userCommand.encodeAsHTML()])
 		}
 	}
 	
