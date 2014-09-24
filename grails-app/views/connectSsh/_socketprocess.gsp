@@ -1,8 +1,4 @@
----> 
-<pre>
-${userCommand }
-</pre>
- --
+
 <g:if test="${((!hideSendBlock) || (!hideSendBlock.equals('YES')))}">	
 
 	 <div class="pull-right btn btn-default"><a id="sendCommand${divId}">SHOW REMOTE EXECUTOR</a></div>
@@ -112,7 +108,7 @@ function toggleBlock(caller,called,calltext) {
   	});
   }	
 
-    var appName="${meta(name:'app.name')}";
+
     var divId="${divId}";
 	if (!window.WebSocket) {
 		var msg = "Your browser does not have WebSocket support";
@@ -123,7 +119,7 @@ function toggleBlock(caller,called,calltext) {
 	var webSocket${divId}=new WebSocket("ws://${wshostname}/${meta(name:'app.name')}/j2ssh");
 	var THRESHOLD = 10240;
 	var chr=0;
-		
+	var userCommand="${userCommand }";
 	webSocket${divId}.onopen=function (message) {processOpen${divId}(message);};
 	webSocket${divId}.onmessage=function(message) {processMessage${divId}(message);};
 	webSocket${divId}.onclose=function(message) {processClose${divId}(message);};
@@ -132,12 +128,18 @@ function toggleBlock(caller,called,calltext) {
 	
 	function processOpen${divId}(message) {
 		$('#messagesTextarea${divId}').append('Server Connect....\n');
-		
-		webSocket${divId}.send(JSON.stringify({'user':"${username }",'password':"${password }", 'hostname':"${hostname }",  'port': "${port }", 'usercommand': "logger -s '${username} has connected through '+appName+''"}))
-		
-		if ((userCommand.value.indexOf('\n')>-1) || (userCommand.value.indexOf('\r')>-1) ) {
-			actOnEachLine(userCommand, function(line) {
-   				webSocket${divId}.send(line);
+		var lines = userCommand.replace(/\r\n/g, "\n").split("\n");
+    	var uc = lines.join("\r\n");
+		webSocket${divId}.send(JSON.stringify({'user':"${username }",'password':"${password }", 'hostname':"${hostname }",  'port': "${port }", 'usercommand': uc}))
+	}
+	
+	function startUp(userCommand) {
+	if ((userCommand.indexOf('\n')>-1) || (userCommand.indexOf('\r')>-1) ) {
+			actOnLine(userCommand, function(line) {
+				if (line) {
+					console.log(line);
+   					webSocket${divId}.send(line);
+   				}
 			});
 		}else{
 			webSocket${divId}.send('${userCommand }');
@@ -145,7 +147,6 @@ function toggleBlock(caller,called,calltext) {
 			
 		$('#whatCommand${divId}').html("${userCommand }"); 
 	}
-	
 	function processMessage${divId}(message) {
 		var json;
 		try {
@@ -200,14 +201,16 @@ function toggleBlock(caller,called,calltext) {
     
 	function sendMessage${divId}() {
 		if (textMessage.value!="close") {
-			if ((textMessage${divId}.value.indexOf('\n')>-1) || (textMessage${divId}.value.indexOf('\r')>-1) ) {
-				actOnEachLine(textMessage${divId}, function(line) {
-   					webSocket${divId}.send(line);
-				});
-			}else{
-				webSocket${divId}.send(textMessage${divId}.value);
-			}
-			//$('#whatCommand${divId}').html(textMessage${divId}.value);
+		
+			//if ((textMessage${divId}.value.indexOf('\n')>-1) || (textMessage${divId}.value.indexOf('\r')>-1) ) {
+			//	actOnEachLine(textMessage${divId}, function(line) {
+   			//		webSocket${divId}.send(line);
+			//	});
+			//}else{
+			//	webSocket${divId}.send(textMessage${divId}.value);
+			//	}
+			
+			$('#whatCommand${divId}').html(textMessage${divId}.value);
 			textMessage${divId}.value="";
 		}else {
 			webSocket${divId}.close();
@@ -227,7 +230,7 @@ function toggleBlock(caller,called,calltext) {
     	$('#messagesTextarea${divId}').scrollTop($('#messagesTextarea${divId}')[0].scrollHeight);
 	}
 	
-	
+
 	function actOnEachLine(textarea, func) {
     	var lines = textarea.value.replace(/\r\n/g, "\n").split("\n");
     	var newLines, newValue, i;

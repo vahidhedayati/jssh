@@ -85,6 +85,7 @@ class ConnectSshController {
 
 	def resetOutput() { 
 		connectSsh.setOutput(new StringBuilder())
+		render ''
 	}
 
 	def closeConnection() {
