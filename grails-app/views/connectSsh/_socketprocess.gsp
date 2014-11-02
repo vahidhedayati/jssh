@@ -202,13 +202,13 @@ function toggleBlock(caller,called,calltext) {
 	function sendMessage${divId}() {
 		if (textMessage.value!="close") {
 		
-			//if ((textMessage${divId}.value.indexOf('\n')>-1) || (textMessage${divId}.value.indexOf('\r')>-1) ) {
-			//	actOnEachLine(textMessage${divId}, function(line) {
-   			//		webSocket${divId}.send(line);
-			//	});
-			//}else{
-			//	webSocket${divId}.send(textMessage${divId}.value);
-			//	}
+			if ((textMessage${divId}.value.indexOf('\n')>-1) || (textMessage${divId}.value.indexOf('\r')>-1) ) {
+				actOnEachLine(textMessage${divId}, function(line) {
+   					webSocket${divId}.send(line);
+				});
+			}else{
+				webSocket${divId}.send(textMessage${divId}.value);
+			}
 			
 			$('#whatCommand${divId}').html(textMessage${divId}.value);
 			textMessage${divId}.value="";

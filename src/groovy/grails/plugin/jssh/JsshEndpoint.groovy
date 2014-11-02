@@ -233,7 +233,7 @@ class JsshEndpoint implements ServletContextListener {
 		def myMsg=[:]
 		myMsg.put("connCount", cc.toString())
 		def myMsgj=myMsg as JSON
-		usersession.asyncRemote.sendText(myMsgj as String)
+		usersession.basicRemote.sendText(myMsgj as String)
 		if ((cc>1)&&(newChann==false)) {
 			session.getOutputStream().write("${usercommand} \n".getBytes())
 			InputStream input=session.getInputStream()
@@ -250,10 +250,10 @@ class JsshEndpoint implements ServletContextListener {
 				}else{
 					if (resumed) {
 						resumed=false
-						usersession.asyncRemote.sendText(catchup as String)
+						usersession.basicRemote.sendText(catchup as String)
 						catchup=new StringBuilder()
 					}
-					usersession.asyncRemote.sendText(out1)
+					usersession.basicRemote.sendText(out1)
 				}
 				//}
 			}
@@ -279,10 +279,10 @@ class JsshEndpoint implements ServletContextListener {
 						}else{
 							if (resumed) {
 								resumed=false
-								usersession.asyncRemote.sendText(catchup as String)
+								usersession.basicRemote.sendText(catchup as String)
 								catchup=new StringBuilder()
 							}
-							usersession.asyncRemote.sendText(out1)
+							usersession.basicRemote.sendText(out1)
 						}
 						//}
 					}
@@ -301,7 +301,7 @@ class JsshEndpoint implements ServletContextListener {
 						java.io.ByteArrayOutputStream();
 				output.connect(session.getInputStream(), bos );
 				session.getState().waitForState(ChannelState.CHANNEL_CLOSED);
-				usersession.asyncRemote.sendText(bos.toString())
+				usersession.basicRemote.sendText(bos.toString())
 			}
 		}	  catch(Exception e)  {
 			log.debug "Exception : " + e.getMessage()
@@ -360,7 +360,7 @@ class JsshEndpoint implements ServletContextListener {
 		}else{
 			def authType="using key file  "
 			if (password) { authType="using password" }
-			usersession.asyncRemote.sendText("SSH: Failed authentication user: ${username} on ${host} ${authType}")
+			usersession.basicRemote.sendText("SSH: Failed authentication user: ${username} on ${host} ${authType}")
 		}
 	}
 }
