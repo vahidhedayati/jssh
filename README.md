@@ -441,17 +441,3 @@ If you are using jquery slider or bootstrap switch, using fontsawesome you could
  			host connection issues. Added bootstrap CSS + buttons.
  			BUFFFERSIZE added as a configuration option to ease on browser slowing down.
 ```
-
-
-### Issues:
-
-Whilst running this plugin on a tomcat server from an application that calls plugin, I have seen:
-
-```
-javax.websocket.DeploymentException: Multiple Endpoints may not be deployed to the same path [/j2ssh]
-    at org.apache.tomcat.websocket.server.WsServerContainer.addEndpoint(WsServerContainer.java:209)
-    at org.apache.tomcat.websocket.server.WsServerContainer.addEndpoint(WsServerContainer.java:268)
-    at javax.websocket.server.ServerContainer$addEndpoint.call(Unknown Source)
-```
-
-This does appear to be a warning and endpoint still works fine, and happens in tomcat... 7 + 8
