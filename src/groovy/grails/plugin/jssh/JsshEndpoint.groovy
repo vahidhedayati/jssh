@@ -2,7 +2,6 @@ package grails.plugin.jssh
 
 
 import grails.converters.JSON
-import grails.util.Holders
 
 import javax.servlet.ServletContext
 import javax.servlet.ServletContextEvent
@@ -17,6 +16,10 @@ import javax.websocket.server.ServerContainer
 import javax.websocket.server.ServerEndpoint
 
 import org.codehaus.groovy.grails.commons.GrailsApplication
+import org.codehaus.groovy.grails.web.context.ServletContextHolder as SCH
+import org.codehaus.groovy.grails.web.servlet.GrailsApplicationAttributes as GA
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 import com.sshtools.j2ssh.SshClient
 import com.sshtools.j2ssh.authentication.AuthenticationProtocolState
@@ -31,12 +34,6 @@ import com.sshtools.j2ssh.session.SessionOutputReader
 import com.sshtools.j2ssh.transport.IgnoreHostKeyVerification
 import com.sshtools.j2ssh.transport.publickey.SshPrivateKey
 import com.sshtools.j2ssh.transport.publickey.SshPrivateKeyFile
-
-import org.codehaus.groovy.grails.commons.GrailsApplication
-import org.codehaus.groovy.grails.web.context.ServletContextHolder as SCH
-import org.codehaus.groovy.grails.web.servlet.GrailsApplicationAttributes as GA
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
 @WebListener
 @ServerEndpoint("/j2ssh")
