@@ -4,10 +4,10 @@ package grails.plugin.jssh
 import grails.converters.JSON
 import grails.util.Holders
 
+import javax.servlet.ServletContext
 import javax.servlet.ServletContextEvent
 import javax.servlet.ServletContextListener
 import javax.servlet.annotation.WebListener
-import javax.websocket.DeploymentException
 import javax.websocket.OnClose
 import javax.websocket.OnError
 import javax.websocket.OnMessage
@@ -15,6 +15,8 @@ import javax.websocket.OnOpen
 import javax.websocket.Session
 import javax.websocket.server.ServerContainer
 import javax.websocket.server.ServerEndpoint
+
+import org.codehaus.groovy.grails.commons.GrailsApplication
 
 import com.sshtools.j2ssh.SshClient
 import com.sshtools.j2ssh.authentication.AuthenticationProtocolState
@@ -30,22 +32,37 @@ import com.sshtools.j2ssh.transport.IgnoreHostKeyVerification
 import com.sshtools.j2ssh.transport.publickey.SshPrivateKey
 import com.sshtools.j2ssh.transport.publickey.SshPrivateKeyFile
 
+import org.codehaus.groovy.grails.commons.GrailsApplication
+import org.codehaus.groovy.grails.web.context.ServletContextHolder as SCH
+import org.codehaus.groovy.grails.web.servlet.GrailsApplicationAttributes as GA
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
 @WebListener
 @ServerEndpoint("/j2ssh")
 class JsshEndpoint implements ServletContextListener {
-
+	
+	private final Logger log = LoggerFactory.getLogger(getClass().name)
+	
+	private GrailsApplication grailsApplication
+	
 	@Override
-	public void contextInitialized(ServletContextEvent servletContextEvent) {
-		final ServerContainer serverContainer = (ServerContainer) servletContextEvent.getServletContext()
-				.getAttribute("javax.websocket.server.ServerContainer")
-
+	public void contextInitialized(ServletContextEvent event) {
+		ServletContext servletContext = event.servletContext
+		final ServerContainer serverContainer = servletContext.getAttribute("javax.websocket.server.ServerContainer")
 		try {
-			serverContainer.addEndpoint(JsshEndpoint.class)
-			def config=Holders.config
-			def DefaultMaxSessionIdleTimeout=config.jssh.timeout  ?: 0
-			serverContainer.setDefaultMaxSessionIdleTimeout(DefaultMaxSessionIdleTimeout as int)
-		} catch (DeploymentException e) {
-			e.printStackTrace()
+			serverContainer.addEndpoint(JsshEndpoint)
+
+			def ctx = servletContext.getAttribute(GA.APPLICATION_CONTEXT)
+			
+			grailsApplication = ctx.grailsApplication
+			def config = grailsApplication.config
+			
+			int defaultMaxSessionIdleTimeout = config.jssh.timeout ?: 0
+			serverContainer.defaultMaxSessionIdleTimeout = defaultMaxSessionIdleTimeout
+		}
+		catch (IOException e) {
+			log.error e.message, e
 		}
 	}
 
@@ -75,7 +92,11 @@ class JsshEndpoint implements ServletContextListener {
 
 	@OnOpen
 	public String handleOpen(Session usersession) {
-		usersession.getBasicRemote().sendText('Attempting SSH Connection')
+		usersession.basicRemote.sendText('Attempting SSH Connection')
+		
+		def ctx= SCH.servletContext.getAttribute(GA.APPLICATION_CONTEXT)
+		
+		grailsApplication= ctx.grailsApplication
 	}
 
 
@@ -118,6 +139,7 @@ class JsshEndpoint implements ServletContextListener {
 				newSession=false
 			} else {
 				//def config= Holders.config
+				//def config = grailsApplication.config
 				//def hideSendBlock=config.jssh.hideSendBlock
 				// Will returm here conflicts with custom calls
 				// Ensure user can actually send stuff according to backend config
@@ -152,14 +174,14 @@ class JsshEndpoint implements ServletContextListener {
 		if (cc>1) {
 			session.close()
 			session.getState().waitForState(ChannelState.CHANNEL_CLOSED,timeout);
-			usersession.getBasicRemote().sendText('Shell closed')
+			usersession.basicRemote.sendText('Shell closed')
 		}else{
-			usersession.getBasicRemote().sendText('Only 1 shell - could not close master window - try closing session : '+cc)
+			usersession.basicRemote.sendText('Only 1 shell - could not close master window - try closing session : '+cc)
 		} 
 		def ncc=ssh.getActiveChannelCount() ?: 1
 		myMsg.put("connCount", ncc.toString())
 		def myMsgj=myMsg as JSON
-		usersession.getBasicRemote().sendText(myMsgj as String)
+		usersession.basicRemote.sendText(myMsgj as String)
 	}
 	
 	private void newShell(Session usersession) {
@@ -177,14 +199,15 @@ class JsshEndpoint implements ServletContextListener {
 		def myMsg=[:]
 		myMsg.put("connCount", cc.toString())
 		def myMsgj=myMsg as JSON
-		usersession.getBasicRemote().sendText(myMsgj as String)
-		usersession.getBasicRemote().sendText('New shell created, console window : '+cc)
+		usersession.basicRemote.sendText(myMsgj as String)
+		usersession.basicRemote.sendText('New shell created, console window : '+cc)
 	}
 	
 	private void sshControl(String usercommand,Session usersession) {
 		StringBuilder catchup=new StringBuilder()
 		Boolean newChann=false
-		def config= Holders.config
+		//def config= Holders.config
+		def config = grailsApplication.config
 		String newchannel=config.jssh.NEWCONNPERTRANS
 		String hideSessionCtrl=config.jssh.hideSessionCtrl
 
@@ -210,7 +233,7 @@ class JsshEndpoint implements ServletContextListener {
 		def myMsg=[:]
 		myMsg.put("connCount", cc.toString())
 		def myMsgj=myMsg as JSON
-		usersession.getBasicRemote().sendText(myMsgj as String)
+		usersession.asyncRemote.sendText(myMsgj as String)
 		if ((cc>1)&&(newChann==false)) {
 			session.getOutputStream().write("${usercommand} \n".getBytes())
 			InputStream input=session.getInputStream()
@@ -227,10 +250,10 @@ class JsshEndpoint implements ServletContextListener {
 				}else{
 					if (resumed) {
 						resumed=false
-						usersession.getBasicRemote().sendText(catchup as String)
+						usersession.asyncRemote.sendText(catchup as String)
 						catchup=new StringBuilder()
 					}
-					usersession.getBasicRemote().sendText(out1)
+					usersession.asyncRemote.sendText(out1)
 				}
 				//}
 			}
@@ -256,10 +279,10 @@ class JsshEndpoint implements ServletContextListener {
 						}else{
 							if (resumed) {
 								resumed=false
-								usersession.getBasicRemote().sendText(catchup as String)
+								usersession.asyncRemote.sendText(catchup as String)
 								catchup=new StringBuilder()
 							}
-							usersession.getBasicRemote().sendText(out1)
+							usersession.asyncRemote.sendText(out1)
 						}
 						//}
 					}
@@ -278,7 +301,7 @@ class JsshEndpoint implements ServletContextListener {
 						java.io.ByteArrayOutputStream();
 				output.connect(session.getInputStream(), bos );
 				session.getState().waitForState(ChannelState.CHANNEL_CLOSED);
-				usersession.getBasicRemote().sendText(bos.toString())
+				usersession.asyncRemote.sendText(bos.toString())
 			}
 		}	  catch(Exception e)  {
 			log.debug "Exception : " + e.getMessage()
@@ -286,7 +309,8 @@ class JsshEndpoint implements ServletContextListener {
 	}
 
 	private void sshConnect(String user,String userpass,String host,String usercommand, int port,Session usersession)  {
-		def config= Holders.config
+		//def config= Holders.config
+		def config = grailsApplication.config
 		String sshuser=config.jssh.USER
 		String sshpass=config.jssh.PASS
 		String sshkey=config.jssh.KEY
@@ -336,7 +360,7 @@ class JsshEndpoint implements ServletContextListener {
 		}else{
 			def authType="using key file  "
 			if (password) { authType="using password" }
-			usersession.getBasicRemote().sendText("SSH: Failed authentication user: ${username} on ${host} ${authType}")
+			usersession.asyncRemote.sendText("SSH: Failed authentication user: ${username} on ${host} ${authType}")
 		}
 	}
 }
