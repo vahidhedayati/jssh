@@ -48,7 +48,10 @@ class JsshEndpoint implements ServletContextListener {
 		ServletContext servletContext = event.servletContext
 		final ServerContainer serverContainer = servletContext.getAttribute("javax.websocket.server.ServerContainer")
 		try {
-			serverContainer.addEndpoint(JsshEndpoint)
+			
+			// Adding this conflicts with listener added via plugin descriptor
+			// Whilst it works as run-app - in production this causes issues
+			//serverContainer.addEndpoint(JsshEndpoint)
 
 			def ctx = servletContext.getAttribute(GA.APPLICATION_CONTEXT)
 			
