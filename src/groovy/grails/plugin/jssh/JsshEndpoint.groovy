@@ -332,8 +332,6 @@ class JsshEndpoint implements ServletContextListener {
 		properties.setHost(host)
 		properties.setPort(sshPort)
 		ssh.connect(properties, new IgnoreHostKeyVerification())
-		
-		println "---------- ${sshuser} ${sshkey.toString()} >${password}< |${sshpass}| -${userpass}-"
 		if (!password) {
 			PublicKeyAuthenticationClient pk = new PublicKeyAuthenticationClient()
 			pk.setUsername(username)
