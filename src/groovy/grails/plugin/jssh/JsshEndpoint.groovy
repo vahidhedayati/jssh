@@ -2,6 +2,7 @@ package grails.plugin.jssh
 
 
 import grails.converters.JSON
+import grails.util.Environment
 
 import javax.servlet.ServletContext
 import javax.servlet.ServletContextEvent
@@ -51,7 +52,10 @@ class JsshEndpoint implements ServletContextListener {
 			
 			// Adding this conflicts with listener added via plugin descriptor
 			// Whilst it works as run-app - in production this causes issues
-			//serverContainer.addEndpoint(JsshEndpoint)
+			def environment=Environment.current.name
+			if (environment=='development') {
+				serverContainer.addEndpoint(JsshEndpoint)
+			}	
 
 			def ctx = servletContext.getAttribute(GA.APPLICATION_CONTEXT)
 			
