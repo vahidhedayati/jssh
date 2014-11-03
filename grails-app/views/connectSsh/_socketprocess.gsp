@@ -1,4 +1,9 @@
-
+<g:if test="${enduser?.verifyAppVersion().equals('assets')}">
+   	<g:render template="/assets"/>
+</g:if>
+<g:else>
+	<g:render template="/resources"/>
+</g:else>    
 <g:if test="${((!hideSendBlock) || (!hideSendBlock.equals('YES')))}">	
 
 	 <div class="pull-right btn btn-default"><a id="sendCommand${divId}">SHOW REMOTE EXECUTOR</a></div>
