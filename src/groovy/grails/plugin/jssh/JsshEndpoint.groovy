@@ -16,7 +16,6 @@ import javax.websocket.Session
 import javax.websocket.server.ServerContainer
 import javax.websocket.server.ServerEndpoint
 
-import org.codehaus.groovy.grails.commons.GrailsApplication
 import org.codehaus.groovy.grails.web.context.ServletContextHolder as SCH
 import org.codehaus.groovy.grails.web.servlet.GrailsApplicationAttributes as GA
 import org.slf4j.Logger
@@ -42,7 +41,8 @@ class JsshEndpoint implements ServletContextListener {
 	
 	private final Logger log = LoggerFactory.getLogger(getClass().name)
 	
-	private GrailsApplication grailsApplication
+	//private GrailsApplication grailsApplication
+	private def config
 	
 	@Override
 	public void contextInitialized(ServletContextEvent event) {
@@ -59,10 +59,11 @@ class JsshEndpoint implements ServletContextListener {
 
 			def ctx = servletContext.getAttribute(GA.APPLICATION_CONTEXT)
 			
-			grailsApplication = ctx.grailsApplication
-			def config = grailsApplication.config
+			def grailsApplication = ctx.grailsApplication
 			
-			int defaultMaxSessionIdleTimeout = config.jssh.timeout ?: 0
+			config = grailsApplication.config.jssh
+			
+			int defaultMaxSessionIdleTimeout = config.timeout ?: 0
 			serverContainer.defaultMaxSessionIdleTimeout = defaultMaxSessionIdleTimeout
 		}
 		catch (IOException e) {
@@ -100,7 +101,9 @@ class JsshEndpoint implements ServletContextListener {
 		
 		def ctx= SCH.servletContext.getAttribute(GA.APPLICATION_CONTEXT)
 		
-		grailsApplication= ctx.grailsApplication
+		def grailsApplication = ctx.grailsApplication
+		
+		config = grailsApplication.config.jssh
 	}
 
 
@@ -142,10 +145,9 @@ class JsshEndpoint implements ServletContextListener {
 				sameSession=true
 				newSession=false
 			} else {
-				//def config= Holders.config
-				//def config = grailsApplication.config
-				//def hideSendBlock=config.jssh.hideSendBlock
-				// Will returm here conflicts with custom calls
+				
+				//def hideSendBlock=config.hideSendBlock
+				// Will return here conflicts with custom calls
 				// Ensure user can actually send stuff according to backend config
 				//if ((!hideSendBlock)||(!hideSendBlock.equals('YES'))) {
 					def asyncProcess = new Thread({sshControl(message,usersession)  } as Runnable )
@@ -210,10 +212,9 @@ class JsshEndpoint implements ServletContextListener {
 	private void sshControl(String usercommand,Session usersession) {
 		StringBuilder catchup=new StringBuilder()
 		Boolean newChann=false
-		//def config= Holders.config
-		def config = grailsApplication.config
-		String newchannel=config.jssh.NEWCONNPERTRANS
-		String hideSessionCtrl=config.jssh.hideSessionCtrl
+
+		String newchannel=config.NEWCONNPERTRANS
+		String hideSessionCtrl=config.hideSessionCtrl
 
 		if ((newchannel.equals('YES'))||((newSession)&&(sameSession==false))) { 
 			newChann=true
@@ -313,13 +314,12 @@ class JsshEndpoint implements ServletContextListener {
 	}
 
 	private void sshConnect(String user,String userpass,String host,String usercommand, int port,Session usersession)  {
-		//def config= Holders.config
-		def config = grailsApplication.config
-		String sshuser=config.jssh.USER
-		String sshpass=config.jssh.PASS
-		String sshkey=config.jssh.KEY
-		String sshkeypass=config.jssh.KEYPASS
-		String sshport=config.jssh.PORT
+		
+		String sshuser=config.USER
+		String sshpass=config.PASS
+		String sshkey=config.KEY
+		String sshkeypass=config.KEYPASS
+		String sshport=config.PORT
 
 		String username = user ?: sshuser
 		String password = userpass ?: sshpass
