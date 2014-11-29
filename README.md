@@ -1,4 +1,4 @@
-jssh 0.24
+jssh 0.25
 =========
 
 Grails jssh Plugin based on j2ssh library, provides ssh connection with features/facilities to execute remote shell commands. Provides connection via websockets as well as ajax/polling.  
@@ -8,7 +8,7 @@ Websocket ssh interaction can be incorporated to an existing grails app running 
 
 Dependency :
 
-	compile ":jssh:0.24" 
+	compile ":jssh:0.25" 
 
 This plugin provides  basic functionality to allow you to call your end host either via a taglib or via a call to provided controller. These are just examples and you could either use out of the package or create your own from given examples.
 
@@ -312,6 +312,35 @@ for i in {0..1000000}; do sleep 3s; echo "$(date +%d-%M-%y-%H:%m:%S) $i" >> /tmp
 
 ```
 
+### Issues with userCommand output
+
+Not been able to trace down the exact reason and it must be some configuration item on my main project but if you find you are passing a lengthy script via the taglib call as the userCommand field and then the _socketprocess page does not actually appear to connect properly ?. At this point view the source code look for var userCommand= within the javascript segment..
+
+```
+var userCommand="echo \u0022|Running : \u002fetc\u002finit.d\u002ftomcat stop\u0022\u003b\necho \
+```
+it should appear in a block as seen above if it has failed and the contents of this var is actually split across multiple lines (Chrome) actually points out its an invalid variable.. What needs to be done is for each line to be ammended and to add \\n\
+to end of each line.
+
+I added a hack thinking it was all resources sites but upon creating a new app this issue did not occur and the userCommand as above was in one block with \u0022 etc...
+
+So if you are facing a similar issue there is a hack you can add pre calling taglib either within gsp or controller passing script: 
+
+```groovy
+if (userCommand.contains('\n')) {
+					String uc=''
+					userCommand.split('\n').collect { if (it && it != "") { uc+=it.trim().replace('\"','\\"').replace('\'','\\\'')+'\\n\\\n'} }
+					userCommand=uc
+				}
+```
+Not really recommended to do it in gsp but if there is no choice and is last place before taglib call, so do something like this just above the taglib call and userCommand="${uc}"
+```gsp
+<%String uc='' %>
+<% userCommand.split('\n').collect { if (it && it != "") { uc+=it.trim().replace('\"','\\"').replace('\'','\\\'')+'\\n\\\n'} } %>
+```
+
+
+
 ##### Bootstrap/jquery switch method
 If you are using jquery slider or bootstrap switch, using fontsawesome you could do thumbs up/down for stopping logs. Current default method provided by plugin is a checkbox.
   
@@ -357,17 +386,28 @@ If you are using jquery slider or bootstrap switch, using fontsawesome you could
 
 # Change information:
 ```
-
- 0.23 	: 	Untested in prod - another plugin wschat revised/fixed - rolled over to this plugin
+ 0.25	: 	Tidy up of DataSource, config options returning object. 
+ 		  	Additional documentation around end scripts added to README.
+ 		  	HideNewShellButton config was not being passed through. 		
+  	
+ 0.24	: 	Tidy up of Config calls 
  
- 0.22	:	Tidy up - removal of Holders.config, removed _Events.groovy listener added to plugin descriptor.
+ 0.23 	: 	Untested in prod - another plugin wschat revised/fixed - 
+ 			rolled over to this plugin
+ 
+ 0.22	:	Tidy up - removal of Holders.config, removed _Events.groovy listener 
+ 			added to plugin descriptor.
  
  0.21 	: 	Last attempt a stab in the dark due to actual app ver compatibility issues.
- 			Issue now fixed. Another problem with ajax poll method where outputReset generated a 404 in debug - fixed.
+ 			Issue now fixed. Another problem with ajax poll method where outputReset 
+ 			generated a 404 in debug - fixed.
  			
- 0.20	:	Javascript added to parse through textarea and send line by line to socket connection.
- 			It worked so long as textarea contained 1 command, caused socket errors otherwise.
- 			Now should support multiple commands seperated by line breaks within textarea.
+ 0.20	:	Javascript added to parse through textarea and send line by line to socket
+ 	 		connection.
+ 			It worked so long as textarea contained 1 command, caused socket errors
+ 			otherwise.
+ 			Now should support multiple commands seperated by line breaks within
+ 			textarea.
  			This should also fix taglib issue http://stackoverflow.com/questions/25852017/grails-taglib-retain-new-line-breaks-from-controller
  			
  0.19 	: 	Timeout defined for end point, pluginbuddy updated.

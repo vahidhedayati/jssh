@@ -134,24 +134,24 @@ function toggleBlock(caller,called,calltext) {
 	function processOpen${divId}(message) {
 		$('#messagesTextarea${divId}').append('Server Connect....\n');
 		var lines = userCommand.replace(/\r\n/g, "\n").split("\n");
-    	var uc = lines.join("\r\n");
-		webSocket${divId}.send(JSON.stringify({'user':"${username }",'password':"${password }", 'hostname':"${hostname }",  'port': "${port }", 'usercommand': uc}))
+		var uc = lines.join("\r\n");
+		webSocket${divId}.send(JSON.stringify({'user':"${username }",'password':"${password }", 'hostname':"${hostname }", 'port': "${port }", 'usercommand': uc}))
 	}
-	
+
 	function startUp(userCommand) {
-	if ((userCommand.indexOf('\n')>-1) || (userCommand.indexOf('\r')>-1) ) {
-			actOnLine(userCommand, function(line) {
-				if (line) {
-					console.log(line);
-   					webSocket${divId}.send(line);
-   				}
-			});
+		if ((userCommand.indexOf('\n')>-1) || (userCommand.indexOf('\r')>-1) ) {
+		actOnLine(userCommand, function(line) {
+		if (line) {
+			console.log(line);
+			webSocket${divId}.send(line);
+		}
+		});
 		}else{
 			webSocket${divId}.send('${userCommand }');
 		}
-			
-		$('#whatCommand${divId}').html("${userCommand }"); 
+		$('#whatCommand${divId}').html("${userCommand }");
 	}
+	
 	function processMessage${divId}(message) {
 		var json;
 		try {

@@ -42,7 +42,7 @@ class JsshEndpoint implements ServletContextListener {
 	private final Logger log = LoggerFactory.getLogger(getClass().name)
 	
 	//private GrailsApplication grailsApplication
-	private def config
+	private Map config
 	
 	@Override
 	public void contextInitialized(ServletContextEvent event) {
@@ -213,8 +213,8 @@ class JsshEndpoint implements ServletContextListener {
 		StringBuilder catchup=new StringBuilder()
 		Boolean newChann=false
 
-		String newchannel=config.NEWCONNPERTRANS
-		String hideSessionCtrl=config.hideSessionCtrl
+		String newchannel=config.NEWCONNPERTRANS ?: ''
+		String hideSessionCtrl=config.hideSessionCtrl ?: ''
 
 		if ((newchannel.equals('YES'))||((newSession)&&(sameSession==false))) { 
 			newChann=true
@@ -315,16 +315,16 @@ class JsshEndpoint implements ServletContextListener {
 
 	private void sshConnect(String user,String userpass,String host,String usercommand, int port,Session usersession)  {
 		
-		String sshuser=config.USER
-		String sshpass=config.PASS
-		String sshkey=config.KEY
-		String sshkeypass=config.KEYPASS
-		String sshport=config.PORT
+		String sshuser=config.USER ?: ''
+		String sshpass=config.PASS ?: ''
+		String sshkey=config.KEY ?: ''
+		String sshkeypass=config.KEYPASS ?: ''
+		String sshport=config.PORT ?: ''
 
+		
 		String username = user ?: sshuser
 		String password = userpass ?: sshpass
 		int sshPort=port ?: sshport as Integer
-
 		String keyfilePass=''
 		int result=0
 
