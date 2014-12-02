@@ -124,7 +124,6 @@ function toggleBlock(caller,called,calltext) {
 	var webSocket${divId}=new WebSocket("ws://${wshostname}/${meta(name:'app.name')}/j2ssh");
 	var THRESHOLD = 10240;
 	var chr=0;
-	var userCommand="${userCommand }";
 	webSocket${divId}.onopen=function (message) {processOpen${divId}(message);};
 	webSocket${divId}.onmessage=function(message) {processMessage${divId}(message);};
 	webSocket${divId}.onclose=function(message) {processClose${divId}(message);};
@@ -133,24 +132,9 @@ function toggleBlock(caller,called,calltext) {
 	
 	function processOpen${divId}(message) {
 		$('#messagesTextarea${divId}').append('Server Connect....\n');
-		var lines = userCommand.replace(/\r\n/g, "\n").split("\n");
-		var uc = lines.join("\r\n");
-		webSocket${divId}.send(JSON.stringify({'user':"${username }",'password':"${password }", 'hostname':"${hostname }", 'port': "${port }", 'usercommand': uc}))
+		webSocket${divId}.send(JSON.stringify({'user':"${username }",'password':"${password }", 'hostname':"${hostname }", 'port': "${port }", 'usercommand': "${userCommand}"}))
 	}
 
-	function startUp(userCommand) {
-		if ((userCommand.indexOf('\n')>-1) || (userCommand.indexOf('\r')>-1) ) {
-		actOnLine(userCommand, function(line) {
-		if (line) {
-			console.log(line);
-			webSocket${divId}.send(line);
-		}
-		});
-		}else{
-			webSocket${divId}.send('${userCommand }');
-		}
-		$('#whatCommand${divId}').html("${userCommand }");
-	}
 	
 	function processMessage${divId}(message) {
 		var json;
