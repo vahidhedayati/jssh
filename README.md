@@ -314,17 +314,21 @@ for i in {0..1000000}; do sleep 3s; echo "$(date +%d-%M-%y-%H:%m:%S) $i" >> /tmp
 
 ### Issues with userCommand output
 
-Not been able to trace down the exact reason and it must be some configuration item on my main project but if you find you are passing a lengthy script via the taglib call as the userCommand field and then the _socketprocess page does not actually appear to connect properly ?. At this point view the source code look for var userCommand= within the javascript segment..
+If you find you are passing a  script via the taglib call as the userCommand field and then the _socketprocess page does not actually appear to connect properly ?. At this point view the source code look for var userCommand= within the javascript segment..
 
 ```
 var userCommand="echo \u0022|Running : \u002fetc\u002finit.d\u002ftomcat stop\u0022\u003b\necho \
 ```
-it should appear in a block as seen above if it has failed and the contents of this var is actually split across multiple lines (Chrome) actually points out its an invalid variable.. What needs to be done is for each line to be ammended and to add \\n\
-to end of each line.
 
-I added a hack thinking it was all resources sites but upon creating a new app this issue did not occur and the userCommand as above was in one block with \u0022 etc...
+it should appear in a block as seen above if it has failed and the contents of this var is actually split across multiple lines (Chrome) actually points out its an invalid variable.. What needs to be done is to encodeAsJavaScript..
 
-So if you are facing a similar issue there is a hack you can add pre calling taglib either within gsp or controller passing script: 
+```
+userCommand="${script1.encodeAsJavaScript()}"
+```
+
+
+
+Alternatively the nastier way would be to be ammended and to add \\n\ OR A hack that will append \\n\n to your line by line output would be 
 
 ```groovy
 if (userCommand.contains('\n')) {
@@ -333,12 +337,6 @@ if (userCommand.contains('\n')) {
 					userCommand=uc
 				}
 ```
-Not really recommended to do it in gsp but if there is no choice and is last place before taglib call, so do something like this just above the taglib call and userCommand="${uc}"
-```gsp
-<%String uc='' %>
-<% userCommand.split('\n').collect { if (it && it != "") { uc+=it.trim().replace('\"','\\"').replace('\'','\\\'')+'\\n\\\n'} } %>
-```
-
 
 
 ##### Bootstrap/jquery switch method
