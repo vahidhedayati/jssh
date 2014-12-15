@@ -52,11 +52,10 @@ class JsshEndpoint implements ServletContextListener {
 			
 			// Adding this conflicts with listener added via plugin descriptor
 			// Whilst it works as run-app - in production this causes issues
-			def environment=Environment.current.name
-			if (environment=='development') {
+			if (Environment.current == Environment.DEVELOPMENT) {
 				serverContainer.addEndpoint(JsshEndpoint)
-			}	
-
+			}
+			
 			def ctx = servletContext.getAttribute(GA.APPLICATION_CONTEXT)
 			
 			def grailsApplication = ctx.grailsApplication
