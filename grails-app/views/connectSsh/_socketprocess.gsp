@@ -82,19 +82,40 @@
 		</g:if>
 	</g:else>
 	</div>
-		
+	
 <div id="mySshOut${divId}">
 	<g:if test="${divId}">
-		<pre  id="messagesTextarea${divId}" class="logconsole-sm">
+		<pre  class="logconsole-sm" >
+		<code  id="messagesTextarea${divId}">
+		</code>
 		</pre>
 	</g:if>
 	<g:else>
-		<pre  id="messagesTextarea${divId}" class="logconsole-lg">
+
+		<pre  class="logconsole-lg">
+			<code id="messagesTextarea${divId}" >
+		</code>
 		</pre>
+		
 	</g:else>
 </div>
 
 <g:javascript>
+function unescapeHTML(escapedHTML) {
+  return escapedHTML.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&');
+}
+
+
+
+function escapeHtml(unsafe) {
+    return unsafe
+         .replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/"/g, "&quot;")
+         .replace(/'/g, "&#039;");
+ }
+
 
 
 // Should be loaded from higher level
@@ -147,7 +168,8 @@ function toggleBlock(caller,called,calltext) {
 			var jsonData=JSON.parse(message.data);
 			$('#connectionCount${divId}').html(jsonData.connCount);
 		}else{
-			$('#messagesTextarea${divId}').append(message.data);
+			
+			$('#messagesTextarea${divId}').append(escapeHtml(message.data));
 			scrollToBottom${divId}();
 		}
 	}

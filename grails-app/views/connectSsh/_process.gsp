@@ -7,16 +7,29 @@
 		</div>
 
 			
-<pre id="inspect" class="logconsole-lg">
-	${input ?: 'Please be patient - logging will start shortly' }		
+<pre class="logconsole-lg">
+	<code   id="inspect" >
+			${input ?: 'Please be patient - logging will start shortly' }
+	</code>
 </pre>
 	
 <script type="text/javascript">
 	var t;
 	var r;
+
+	function escapeHtml(unsafe) {
+		    return unsafe
+		         .replace(/&/g, "&amp;")
+		         .replace(/</g, "&lt;")
+		         .replace(/>/g, "&gt;")
+		         .replace(/"/g, "&quot;")
+		         .replace(/'/g, "&#039;");
+	 }
+
+		
     function getOnline() {
     	 $.get('${createLink(controller:"connectSsh", action: "inspection")}',function(data){
-    			$('#inspect').append(data);
+    			$('#inspect').append(escapeHtml(data));
     			 resetOutput();
  		});
     }
