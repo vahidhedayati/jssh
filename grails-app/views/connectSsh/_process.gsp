@@ -7,10 +7,8 @@
 		</div>
 
 			
-<pre class="logconsole-lg">
-	<code   id="inspect" >
-			${input ?: 'Please be patient - logging will start shortly' }
-	</code>
+<pre class="logconsole-lg"  id="inspect">
+	${input ?: 'Please be patient - logging will start shortly' }	
 </pre>
 	
 <script type="text/javascript">

@@ -85,18 +85,12 @@
 	
 <div id="mySshOut${divId}">
 	<g:if test="${divId}">
-		<pre  class="logconsole-sm" >
-		<code  id="messagesTextarea${divId}">
-		</code>
+		<pre  class="logconsole-sm" id="messagesTextarea${divId}" >
 		</pre>
 	</g:if>
 	<g:else>
-
-		<pre  class="logconsole-lg">
-			<code id="messagesTextarea${divId}" >
-		</code>
+		<pre  class="logconsole-lg" id="messagesTextarea${divId}">
 		</pre>
-		
 	</g:else>
 </div>
 

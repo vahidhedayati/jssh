@@ -42,7 +42,7 @@ class JsshEndpoint implements ServletContextListener {
 	private final Logger log = LoggerFactory.getLogger(getClass().name)
 	
 	//private GrailsApplication grailsApplication
-	private Map config
+	private ConfigObject config
 	
 	@Override
 	public void contextInitialized(ServletContextEvent event) {
@@ -79,17 +79,17 @@ class JsshEndpoint implements ServletContextListener {
 	Integer port=22
 	String userpass=""
 	String usercommand = ""
-	StringBuilder output=new StringBuilder()
+	StringBuilder output = new StringBuilder()
 
 
 	private SshClient ssh = new SshClient()
 	private SessionChannelClient session
 	private SshConnectionProperties properties = null
-	private boolean isAuthenticated=false
-	private boolean pauseLog=false
-	private boolean resumed=false
-	private boolean newSession=false
-	private boolean sameSession=false
+	private boolean isAuthenticated = false
+	private boolean pauseLog = false
+	private boolean resumed = false
+	private boolean newSession = false
+	private boolean sameSession = false
 	//private InputStream input
 
 
@@ -108,18 +108,18 @@ class JsshEndpoint implements ServletContextListener {
 
 	@OnMessage
 	public void handleMessage(String message, Session usersession) {
-		def data=JSON.parse(message)
+		def data = JSON.parse(message)
 		// authentication stuff - system calls
 		if (data) {
-			host=data.hostname
-			user=data.user
-			userpass=data.password
-			usercommand=data.usercommand
+			host = data.hostname
+			user = data.user
+			userpass = data.password
+			usercommand = data.usercommand
 			if (data.port) {
-				port=data.port
+				port = data.port
 			}
 			// Initial call lets connect
-			def asyncProcess = new Thread({	sshConnect(user,userpass,host,usercommand,port as int,usersession)  } as Runnable )
+			def asyncProcess = new Thread({	sshConnect(user, userpass, host, usercommand, port as int, usersession)  } as Runnable )
 			asyncProcess.start()
 
 		} else{
@@ -127,29 +127,29 @@ class JsshEndpoint implements ServletContextListener {
 				session.close()
 				ssh.disconnect()
 			} else if  (message.equals('PAUSE:-')) {
-				pauseLog=true
+				pauseLog = true
 			} else if  (message.equals('RESUME:-')) {
-				pauseLog=false
-				resumed=true
+				pauseLog = false
+				resumed = true
 			} else if  (message.equals('NEW_SESSION:-')) {
-				newSession=true
-				sameSession=false
+				newSession = true
+				sameSession = false
 			} else if  (message.equals('NEW_SHELL:-')) {
 				newShell(usersession)
-				sameSession=true
+				sameSession = true
 			}else if (message.equals('CLOSE_SHELL:-')) {
 				closeShell(usersession)
-				sameSession=true
+				sameSession = true
 			} else if  (message.equals('SAME_SESSION:-')) {
-				sameSession=true
-				newSession=false
+				sameSession = true
+				newSession = false
 			} else {
 				
-				//def hideSendBlock=config.hideSendBlock
+				//def hideSendBlock = config.hideSendBlock
 				// Will return here conflicts with custom calls
 				// Ensure user can actually send stuff according to backend config
 				//if ((!hideSendBlock)||(!hideSendBlock.equals('YES'))) {
-					def asyncProcess = new Thread({sshControl(message,usersession)  } as Runnable )
+					def asyncProcess = new Thread({sshControl(message, usersession)  } as Runnable )
 					asyncProcess.start()
 				//}
 			}
@@ -173,19 +173,19 @@ class JsshEndpoint implements ServletContextListener {
 	}
 	
 	private void closeShell(Session usersession) {
-		def myMsg=[:]
+		def myMsg = [:]
 		int timeout = 1000;
-		def cc=ssh.getActiveChannelCount() ?: 1
+		def cc = ssh.getActiveChannelCount() ?: 1
 		if (cc>1) {
 			session.close()
-			session.getState().waitForState(ChannelState.CHANNEL_CLOSED,timeout);
+			session.getState().waitForState(ChannelState.CHANNEL_CLOSED, timeout);
 			usersession.basicRemote.sendText('Shell closed')
 		}else{
 			usersession.basicRemote.sendText('Only 1 shell - could not close master window - try closing session : '+cc)
 		} 
-		def ncc=ssh.getActiveChannelCount() ?: 1
+		def ncc = ssh.getActiveChannelCount() ?: 1
 		myMsg.put("connCount", ncc.toString())
-		def myMsgj=myMsg as JSON
+		def myMsgj = myMsg as JSON
 		usersession.basicRemote.sendText(myMsgj as String)
 	}
 	
@@ -200,62 +200,62 @@ class JsshEndpoint implements ServletContextListener {
 			}
 		}
 		
-		def cc=ssh.getActiveChannelCount() ?: 1
-		def myMsg=[:]
+		def cc = ssh.getActiveChannelCount() ?: 1
+		def myMsg = [:]
 		myMsg.put("connCount", cc.toString())
-		def myMsgj=myMsg as JSON
+		def myMsgj = myMsg as JSON
 		usersession.basicRemote.sendText(myMsgj as String)
 		usersession.basicRemote.sendText('New shell created, console window : '+cc)
 	}
 	
-	private void sshControl(String usercommand,Session usersession) {
-		StringBuilder catchup=new StringBuilder()
-		Boolean newChann=false
+	private void sshControl(String usercommand, Session usersession) {
+		StringBuilder catchup = new StringBuilder()
+		Boolean newChann = false
 
-		String newchannel=config.NEWCONNPERTRANS ?: ''
-		String hideSessionCtrl=config.hideSessionCtrl ?: ''
+		String newchannel = config.NEWCONNPERTRANS ?: ''
+		String hideSessionCtrl = config.hideSessionCtrl ?: ''
 
 		if ((newchannel.equals('YES'))||((newSession)&&(sameSession==false))) { 
-			newChann=true
+			newChann = true
 		}else if (newSession) {
-			newChann=true
+			newChann = true
 		}else if (sameSession) {
-			newChann=false
+			newChann = false
 		}
 		/*
 		// Ensure user is not attempting to gain unauthorised access - check backend config ensure session control is enabled.
 		if ((newchannel.equals('YES'))||(hideSessionCtrl.equals('NO')&&(newSession)&&(sameSession==false))) { 
-			newChann=true
+			newChann = true
 		}else if ((newSession)&&(hideSessionCtrl.equals('NO'))) {
-			newChann=true
+			newChann = true
 		}else if ((sameSession)&&(hideSessionCtrl.equals('NO'))) {
-			newChann=false
+			newChann = false
 		}
 		*/
 
-		def cc=ssh.getActiveChannelCount() ?: 1
-		def myMsg=[:]
+		def cc = ssh.getActiveChannelCount() ?: 1
+		def myMsg = [:]
 		myMsg.put("connCount", cc.toString())
-		def myMsgj=myMsg as JSON
+		def myMsgj = myMsg as JSON
 		usersession.basicRemote.sendText(myMsgj as String)
 		if ((cc>1)&&(newChann==false)) {
 			session.getOutputStream().write("${usercommand} \n".getBytes())
-			InputStream input=session.getInputStream()
-			byte[] buffer=new byte[255]
+			InputStream input = session.getInputStream()
+			byte[] buffer = new byte[255]
 			int read;
 			int i=0
 			//def pattern = ~/^\s+$/
 			while((read = input.read(buffer)) > 0)  {
 				String out1 = new String(buffer, 0, read)
-				//def m=pattern.matcher(out1).matches()
+				//def m = pattern.matcher(out1).matches()
 				//if (m==false) {
 				if (pauseLog) {
 					catchup.append(out1)
 				}else{
 					if (resumed) {
-						resumed=false
+						resumed = false
 						usersession.basicRemote.sendText(catchup as String)
-						catchup=new StringBuilder()
+						catchup = new StringBuilder()
 					}
 					usersession.basicRemote.sendText(out1)
 				}
@@ -269,22 +269,22 @@ class JsshEndpoint implements ServletContextListener {
 				if (session.startShell()) {
 					ChannelOutputStream out = session.getOutputStream()
 					session.getOutputStream().write("${usercommand} \n".getBytes())
-					InputStream input=session.getInputStream()
-					byte[] buffer=new byte[255]
+					InputStream input = session.getInputStream()
+					byte[] buffer = new byte[255]
 					int read;
 					int i=0
 					//def pattern = ~/^\s+$/
 					while((read = input.read(buffer)) > 0)  {
 						String out1 = new String(buffer, 0, read)
-						//def m=pattern.matcher(out1).matches()
+						//def m = pattern.matcher(out1).matches()
 						//if (m==false) {
 						if (pauseLog) {
 							catchup.append(out1)
 						}else{
 							if (resumed) {
-								resumed=false
+								resumed = false
 								usersession.basicRemote.sendText(catchup as String)
-								catchup=new StringBuilder()
+								catchup = new StringBuilder()
 							}
 							usersession.basicRemote.sendText(out1)
 						}
@@ -296,7 +296,7 @@ class JsshEndpoint implements ServletContextListener {
 		//session.close()
 	}
 
-	private void execCmd(String cmd,Session usersession) {
+	private void execCmd(String cmd, Session usersession) {
 		try {
 			session = ssh.openSessionChannel();
 			if ( session.executeCommand(cmd) )	{
@@ -312,18 +312,18 @@ class JsshEndpoint implements ServletContextListener {
 		}
 	}
 
-	private void sshConnect(String user,String userpass,String host,String usercommand, int port,Session usersession)  {
+	private void sshConnect(String user, String userpass, String host, String usercommand, int port, Session usersession)  {
 		
-		String sshuser=config.USER ?: ''
-		String sshpass=config.PASS ?: ''
-		String sshkey=config.KEY ?: ''
-		String sshkeypass=config.KEYPASS ?: ''
-		String sshport=config.PORT ?: ''
+		String sshuser = config.USER ?: ''
+		String sshpass = config.PASS ?: ''
+		String sshkey = config.KEY ?: ''
+		String sshkeypass = config.KEYPASS ?: ''
+		String sshport = config.PORT ?: ''
 
 		
 		String username = user ?: sshuser
 		String password = userpass ?: sshpass
-		int sshPort=port ?: sshport as Integer
+		int sshPort = port ?: sshport as Integer
 		String keyfilePass=''
 		int result=0
 
@@ -344,7 +344,7 @@ class JsshEndpoint implements ServletContextListener {
 			// Try the authentication
 			result = ssh.authenticate(pk)
 			if (result == AuthenticationProtocolState.COMPLETE) {
-				isAuthenticated=true
+				isAuthenticated = true
 			}
 		}else{
 			PasswordAuthenticationClient pwd = new PasswordAuthenticationClient()
@@ -352,13 +352,13 @@ class JsshEndpoint implements ServletContextListener {
 			pwd.setPassword(password)
 			result = ssh.authenticate(pwd)
 			if(result == 4)  {
-				isAuthenticated=true
+				isAuthenticated = true
 			}
 		}
 
 		// Evaluate the result
 		if (isAuthenticated) {
-			sshControl(usercommand,usersession)
+			sshControl(usercommand, usersession)
 		}else{
 			def authType="using key file  "
 			if (password) { authType="using password" }

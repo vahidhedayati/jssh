@@ -18,11 +18,11 @@ class ConnectSsh {
 	Integer port=22
 	String userpass=""
 	String usercommand = ""
-	StringBuilder output=new StringBuilder()
+	StringBuilder output = new StringBuilder()
 	private SshClient ssh = new SshClient()
 	SessionChannelClient session
 	SshConnectionProperties properties = null
-	private boolean isAuthenticated=false
+	private boolean isAuthenticated = false
 	
 	public String ssh(JsshConfig ac)  {
 		try {
@@ -35,18 +35,18 @@ class ConnectSsh {
 		return
 	}
 
-	private void processit(JsshConfig ac)  throws IOException,InterruptedException {
-		Object sshuser=ac.getConfig("USER")
-		Object sshpass=ac.getConfig("PASS")
-		Object sshkey=ac.getConfig("KEY")
-		Object sshkeypass=ac.getConfig("KEYPASS")
-		Object sshport=ac.getConfig("PORT")	
+	private void processit(JsshConfig ac)  throws IOException, InterruptedException {
+		Object sshuser = ac.getConfig("USER")
+		Object sshpass = ac.getConfig("PASS")
+		Object sshkey = ac.getConfig("KEY")
+		Object sshkeypass = ac.getConfig("KEYPASS")
+		Object sshport = ac.getConfig("PORT")	
 
 		String username = user ?: sshuser.toString()
 		String password = userpass ?: sshpass.toString()
-		int sshPort=port ?: sshport as Integer
+		int sshPort = port ?: sshport as Integer
 		String keyfilePass=''
-		output=new StringBuilder()
+		output = new StringBuilder()
 		if (isAuthenticated) {
 			session.close()
 			ssh.disconnect()
@@ -70,7 +70,7 @@ class ConnectSsh {
 			// Try the authentication
 			result = ssh.authenticate(pk)
 			if (result == AuthenticationProtocolState.COMPLETE) {
-				isAuthenticated=true
+				isAuthenticated = true
 			}
 		}else{
 			PasswordAuthenticationClient pwd = new PasswordAuthenticationClient()
@@ -78,7 +78,7 @@ class ConnectSsh {
 			pwd.setPassword(password)
 			result = ssh.authenticate(pwd)
 			if(result == 4)  {
-				isAuthenticated=true
+				isAuthenticated = true
 			}
 		}
 		// Evaluate the result
@@ -90,7 +90,7 @@ class ConnectSsh {
 					ChannelOutputStream out = session.getOutputStream()
 					session.getOutputStream().write("${usercommand} \n".getBytes())
 					InputStream input =session.getInputStream()
-					byte[] buffer=new byte[255]
+					byte[] buffer = new byte[255]
 					int read;
 					int i=0
 					while((read = input.read(buffer)) > 0)  {
@@ -112,13 +112,13 @@ class ConnectSsh {
 	
 
 	// TODO: part of next release - allow expect type of executions
-	def qAndA(String command, String question,String reply, ChannelOutputStream out,SessionOutputReader sor) {
+	def qAndA(String command, String question, String reply, ChannelOutputStream out, SessionOutputReader sor) {
 		out.write(command.getBytes())
 		Thread.currentThread()
 		Thread.sleep(1*30)
 		String answer = null
 		String aux = null
-		aux=sor.getOutput()
+		aux = sor.getOutput()
 		String[] str = aux.split("\n")
 		answer = str[str.length-1]
 		if(answer.contains(question))  {
