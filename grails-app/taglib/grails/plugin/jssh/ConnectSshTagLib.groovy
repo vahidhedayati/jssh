@@ -57,56 +57,58 @@ class ConnectSshTagLib {
 		def port = attrs.remove('port')?.toString()
 		def divId = attrs.remove('divId')?.toString()
 
-		def wshostname
+		String addAppName =  config.addAppName ?: 'YES'
+		
+		String wshostname
 		if (!attrs.wshostname) {
 			wshostname = config.wshostname ?: 'localhost:8080'
 		}else{
 			wshostname = attrs.wshostname
 		}
 
-		def hideConsoleMenu
+		String hideConsoleMenu
 		if (!attrs.hideConsoleMenu) {
 			hideConsoleMenu = config.hideConsoleMenu ?: 'NO'
 		}else{
 			hideConsoleMenu = attrs.hideConsoleMenu
 		}
 
-		def hideSendBlock
+		String hideSendBlock
 		if (!attrs.hideSendBlock) {
 			hideSendBlock = config.hideSendBlock ?: 'YES'
 		}else{
 			hideSendBlock = attrs.hideSendBlock
 		}
 
-		def hideSessionCtrl
+		String hideSessionCtrl
 		if (!attrs.hideSessionCtrl)	 {
 			hideSessionCtrl = config.hideSessionCtrl ?: 'YES'
 		}else{
 			hideSessionCtrl = attrs.hideSessionCtrl
 		}
 
-		def hideWhatsRunning
+		String hideWhatsRunning
 		if (!attrs.hideWhatsRunning) {
 			hideWhatsRunning = config.hideWhatsRunning ?: 'NO'
 		}else{
 			hideWhatsRunning = attrs.hideWhatsRunning
 		}
 
-		def hideDiscoButton
+		String hideDiscoButton
 		if (!attrs.hideDiscoButton) {
 			hideDiscoButton = config.hideDiscoButton ?: 'NO'
 		}else{
 			hideDiscoButton = attrs.hideDiscoButton
 		}
 
-		def hidePauseControl
+		String hidePauseControl
 		if (!attrs.hidePauseControl) {
 			hidePauseControl = config.hidePauseControl ?: 'NO'
 		}else{
 			hidePauseControl = attrs.hidePauseControl
 		}
 
-		def hideNewShellButton
+		String hideNewShellButton
 		if (!attrs.hideNewShellButton) {
 			hideNewShellButton = config.hideNewShellButton ?: 'YES'
 		}else{
@@ -122,7 +124,8 @@ class ConnectSshTagLib {
 			hidePauseControl:hidePauseControl, hideSessionCtrl:hideSessionCtrl,
 			hideNewShellButton:hideNewShellButton, hideConsoleMenu:hideConsoleMenu, 
 			hideSendBlock:hideSendBlock, divId:divId, wshostname:wshostname, hostname:hostname, 
-			port:port, password:password, username:username, userCommand:userCommand]
+			port:port, password:password, username:username, userCommand:userCommand, addAppName:addAppName]
+		
 		
 		if (template) {
 			out << g.render(template:template, model: model)

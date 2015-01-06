@@ -135,8 +135,16 @@ function toggleBlock(caller,called,calltext) {
 		$("#mySshBox${divId}").html(msg);
 		$("#mySshOut${divId}").html('');
 	}
+
+	<g:if test="${addAppName=='NO'}">
+		var wsurl="ws://${wshostname}/j2ssh"
+	</g:if>
+	<g:else>
+		var wsurl="ws://${wshostname}/${meta(name:'app.name')}/j2ssh"	
+	</g:else>
 	
-	var webSocket${divId}=new WebSocket("ws://${wshostname}/${meta(name:'app.name')}/j2ssh");
+	
+	var webSocket${divId}=new WebSocket(wsurl);
 	var THRESHOLD = 10240;
 	var chr=0;
 	webSocket${divId}.onopen=function (message) {processOpen${divId}(message);};

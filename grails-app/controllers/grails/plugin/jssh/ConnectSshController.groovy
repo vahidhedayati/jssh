@@ -42,27 +42,30 @@ class ConnectSshController {
 		String port = params.port
 		String divId = params.divId ?: 'Basic'
 		String remoteForm = params.remoteForm
-		def wshostname = config.wshostname ?: 'localhost:8080'
-		def hideConsoleMenu = config.hideConsoleMenu ?: 'NO'
-		def hideSendBlock = config.hideSendBlock ?: 'YES'
-		def hideSessionCtrl = config.hideSessionCtrl ?: 'YES'
-		def hideWhatsRunning = config.hideWhatsRunning ?: 'NO'
-		def hideDiscoButton = config.hideDiscoButton ?: 'NO'
-		def hidePauseControl = config.hidePauseControl ?: 'NO'
-		def hideNewShellButton = config.hideNewShellButton ?: 'YES'
+		String wshostname = config.wshostname ?: 'localhost:8080'
+		String hideConsoleMenu = config.hideConsoleMenu ?: 'NO'
+		String hideSendBlock = config.hideSendBlock ?: 'YES'
+		String hideSessionCtrl = config.hideSessionCtrl ?: 'YES'
+		String hideWhatsRunning = config.hideWhatsRunning ?: 'NO'
+		String hideDiscoButton = config.hideDiscoButton ?: 'NO'
+		String hidePauseControl = config.hidePauseControl ?: 'NO'
+		String hideNewShellButton = config.hideNewShellButton ?: 'YES'
+		
+		String addAppName =  config.addAppName ?: 'YES'
 		
 		Map model= [hideNewShellButton:hideNewShellButton, hideWhatsRunning:hideWhatsRunning, hideDiscoButton:hideDiscoButton, 
 			hidePauseControl:hidePauseControl, hideSessionCtrl:hideSessionCtrl, hideConsoleMenu:hideConsoleMenu, hideSendBlock:hideSendBlock,
-			divId:divId, username:username, port:port, password:password, hostname:hostname, userCommand:userCommand, wshostname:wshostname]
+			divId:divId, username:username, port:port, password:password, hostname:hostname, userCommand:userCommand, wshostname:wshostname, 
+			addAppName:addAppName]
 		
 		if (template) {
-			model.put(template:template)
+			model.put('template',template)
 			render (view: 'getTemplate', model: model )
 		}else{
 			if ( (remoteForm) && (remoteForm.equals('true'))) { 
 				render (template: "/connectSsh/socketprocess", model:model)
 			}else{
-				model.put(loadtemplate: 'socketprocess')
+				model.put('loadtemplate', 'socketprocess')
 				render (view: "/connectSsh/choose", model:model)
 			}
 		}
@@ -93,10 +96,10 @@ class ConnectSshController {
 		
 		
 		if (template) {
-			model.put(template:template)
+			model.put('template',template)
 			render (view: 'getTemplate', model: model)
 		}else{
-			model.put(loadtemplate: 'process')
+			model.put('loadtemplate', 'process')
 			render (view: "/connectSsh/choose", model: model)
 		}
 	}
