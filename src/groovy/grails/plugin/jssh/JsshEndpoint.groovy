@@ -3,6 +3,7 @@ package grails.plugin.jssh
 
 import grails.converters.JSON
 import grails.util.Environment
+import groovy.time.TimeCategory
 
 import javax.servlet.ServletContext
 import javax.servlet.ServletContextEvent
@@ -38,30 +39,30 @@ import com.sshtools.j2ssh.transport.publickey.SshPrivateKeyFile
 @WebListener
 @ServerEndpoint("/j2ssh")
 class JsshEndpoint implements ServletContextListener {
-	
+
 	private final Logger log = LoggerFactory.getLogger(getClass().name)
-	
+
 	//private GrailsApplication grailsApplication
 	private ConfigObject config
-	
+
 	@Override
 	public void contextInitialized(ServletContextEvent event) {
 		ServletContext servletContext = event.servletContext
 		final ServerContainer serverContainer = servletContext.getAttribute("javax.websocket.server.ServerContainer")
 		try {
-			
+
 			// Adding this conflicts with listener added via plugin descriptor
 			// Whilst it works as run-app - in production this causes issues
 			if (Environment.current == Environment.DEVELOPMENT) {
 				serverContainer.addEndpoint(JsshEndpoint)
 			}
-			
+
 			def ctx = servletContext.getAttribute(GA.APPLICATION_CONTEXT)
-			
+
 			def grailsApplication = ctx.grailsApplication
-			
+
 			config = grailsApplication.config.jssh
-			
+
 			int defaultMaxSessionIdleTimeout = config.timeout ?: 0
 			serverContainer.defaultMaxSessionIdleTimeout = defaultMaxSessionIdleTimeout
 		}
@@ -97,11 +98,11 @@ class JsshEndpoint implements ServletContextListener {
 	@OnOpen
 	public String handleOpen(Session usersession) {
 		usersession.basicRemote.sendText('Attempting SSH Connection')
-		
+
 		def ctx= SCH.servletContext.getAttribute(GA.APPLICATION_CONTEXT)
-		
+
 		def grailsApplication = ctx.grailsApplication
-		
+
 		config = grailsApplication.config.jssh
 	}
 
@@ -144,13 +145,13 @@ class JsshEndpoint implements ServletContextListener {
 				sameSession = true
 				newSession = false
 			} else {
-				
+
 				//def hideSendBlock = config.hideSendBlock
 				// Will return here conflicts with custom calls
 				// Ensure user can actually send stuff according to backend config
 				//if ((!hideSendBlock)||(!hideSendBlock.equals('YES'))) {
-					def asyncProcess = new Thread({sshControl(message, usersession)  } as Runnable )
-					asyncProcess.start()
+				def asyncProcess = new Thread({sshControl(message, usersession)  } as Runnable )
+				asyncProcess.start()
 				//}
 			}
 
@@ -171,7 +172,7 @@ class JsshEndpoint implements ServletContextListener {
 		session.close()
 		ssh.disconnect()
 	}
-	
+
 	private void closeShell(Session usersession) {
 		def myMsg = [:]
 		int timeout = 1000;
@@ -182,24 +183,24 @@ class JsshEndpoint implements ServletContextListener {
 			usersession.basicRemote.sendText('Shell closed')
 		}else{
 			usersession.basicRemote.sendText('Only 1 shell - could not close master window - try closing session : '+cc)
-		} 
+		}
 		def ncc = ssh.getActiveChannelCount() ?: 1
 		myMsg.put("connCount", ncc.toString())
 		def myMsgj = myMsg as JSON
 		usersession.basicRemote.sendText(myMsgj as String)
 	}
-	
+
 	private void newShell(Session usersession) {
 		session = ssh.openSessionChannel()
-	
+
 		SessionOutputReader sor = new SessionOutputReader(session)
 		if (session.requestPseudoTerminal("gogrid",80,24, 0 , 0, "")) {
 			if (session.startShell()) {
 				ChannelOutputStream out = session.getOutputStream()
-				
+
 			}
 		}
-		
+
 		def cc = ssh.getActiveChannelCount() ?: 1
 		def myMsg = [:]
 		myMsg.put("connCount", cc.toString())
@@ -207,7 +208,7 @@ class JsshEndpoint implements ServletContextListener {
 		usersession.basicRemote.sendText(myMsgj as String)
 		usersession.basicRemote.sendText('New shell created, console window : '+cc)
 	}
-	
+
 	private void sshControl(String usercommand, Session usersession) {
 		StringBuilder catchup = new StringBuilder()
 		Boolean newChann = false
@@ -215,7 +216,13 @@ class JsshEndpoint implements ServletContextListener {
 		String newchannel = config.NEWCONNPERTRANS ?: ''
 		String hideSessionCtrl = config.hideSessionCtrl ?: ''
 
-		if ((newchannel.equals('YES'))||((newSession)&&(sameSession==false))) { 
+		//Enable custom ping-pong - on current work network / network drops connections
+		// regardless of socket timeout
+		boolean enablePong = config.enablePong.toBoolean() ?: false
+		int pingRate = config.pingRate ?: 2
+		String pingMessage = config.pingMessage ?: ''
+
+		if ((newchannel.equals('YES'))||((newSession)&&(sameSession==false))) {
 			newChann = true
 		}else if (newSession) {
 			newChann = true
@@ -223,15 +230,15 @@ class JsshEndpoint implements ServletContextListener {
 			newChann = false
 		}
 		/*
-		// Ensure user is not attempting to gain unauthorised access - check backend config ensure session control is enabled.
-		if ((newchannel.equals('YES'))||(hideSessionCtrl.equals('NO')&&(newSession)&&(sameSession==false))) { 
-			newChann = true
-		}else if ((newSession)&&(hideSessionCtrl.equals('NO'))) {
-			newChann = true
-		}else if ((sameSession)&&(hideSessionCtrl.equals('NO'))) {
-			newChann = false
-		}
-		*/
+		 // Ensure user is not attempting to gain unauthorised access - check backend config ensure session control is enabled.
+		 if ((newchannel.equals('YES'))||(hideSessionCtrl.equals('NO')&&(newSession)&&(sameSession==false))) { 
+		 newChann = true
+		 }else if ((newSession)&&(hideSessionCtrl.equals('NO'))) {
+		 newChann = true
+		 }else if ((sameSession)&&(hideSessionCtrl.equals('NO'))) {
+		 newChann = false
+		 }
+		 */
 
 		def cc = ssh.getActiveChannelCount() ?: 1
 		def myMsg = [:]
@@ -245,10 +252,21 @@ class JsshEndpoint implements ServletContextListener {
 			int read;
 			int i=0
 			//def pattern = ~/^\s+$/
-			while((read = input.read(buffer)) > 0)  {
+
+
+			// Start pingpong
+			def asyncProcess = new Thread({pingPong(usersession, pingRate, pingMessage)  } as Runnable )
+			asyncProcess.start()
+
+
+			while((read = input.read(buffer))>0)  {
+
 				String out1 = new String(buffer, 0, read)
 				//def m = pattern.matcher(out1).matches()
 				//if (m==false) {
+
+				// Internal Ping-Pong
+
 				if (pauseLog) {
 					catchup.append(out1)
 				}else{
@@ -260,8 +278,9 @@ class JsshEndpoint implements ServletContextListener {
 					usersession.basicRemote.sendText(out1)
 				}
 				//}
-			}
 
+
+			}
 		}else{
 			session = ssh.openSessionChannel()
 			SessionOutputReader sor = new SessionOutputReader(session)
@@ -274,6 +293,11 @@ class JsshEndpoint implements ServletContextListener {
 					int read;
 					int i=0
 					//def pattern = ~/^\s+$/
+
+					// Start pingpong
+					def asyncProcess = new Thread({pingPong(usersession, pingRate, pingMessage)  } as Runnable )
+					asyncProcess.start()
+
 					while((read = input.read(buffer)) > 0)  {
 						String out1 = new String(buffer, 0, read)
 						//def m = pattern.matcher(out1).matches()
@@ -296,6 +320,45 @@ class JsshEndpoint implements ServletContextListener {
 		//session.close()
 	}
 
+
+
+
+	private void pingPong(Session usersession, Integer pingRate, String pingMessage) {
+		def now = new Date()
+		def pongIt = pongTime(now, pingRate)
+		boolean sendPong = false
+		while (sendPong==false) {
+			sleep(600)
+			now= new Date()
+			sendPong=pongInterval(now, pongIt)
+			if (sendPong) {
+				now= new Date()
+				pongIt = pongTime(now, pingRate)
+				usersession.basicRemote.sendText(pingMessage)
+				now = new Date()
+				sendPong=false
+			}
+		}
+	}
+
+	private Date pongTime(Date trigger, Integer length) {
+		def later=trigger
+		use(TimeCategory) {
+			later = trigger +length.minutes
+		}
+		return later
+	}
+
+	private Boolean pongInterval(Date trigger, Date expires) {
+		boolean yesis = false
+		if (trigger.after(expires)) {
+			yesis = true
+		}
+		return yesis
+	}
+
+
+
 	private void execCmd(String cmd, Session usersession) {
 		try {
 			session = ssh.openSessionChannel();
@@ -313,14 +376,14 @@ class JsshEndpoint implements ServletContextListener {
 	}
 
 	private void sshConnect(String user, String userpass, String host, String usercommand, int port, Session usersession)  {
-		
+
 		String sshuser = config.USER ?: ''
 		String sshpass = config.PASS ?: ''
 		String sshkey = config.KEY ?: ''
 		String sshkeypass = config.KEYPASS ?: ''
 		String sshport = config.PORT ?: ''
 
-		
+
 		String username = user ?: sshuser
 		String password = userpass ?: sshpass
 		int sshPort = port ?: sshport as Integer

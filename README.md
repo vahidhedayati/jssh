@@ -8,7 +8,7 @@ Websocket ssh interaction can be incorporated to an existing grails app running 
 
 Dependency :
 
-	compile ":jssh:0.27-SNAPSHOT1" 
+	compile ":jssh:0.27-SNAPSHOT2" 
 
 This plugin provides  basic functionality to allow you to call your end host either via a taglib or via a call to provided controller. These are just examples and you could either use out of the package or create your own from given examples.
 
@@ -179,7 +179,21 @@ jssh.hideDiscoButton="NO"
 * a cleaner way of controlling new shells/closing shells. 
 */
 
-hideNewShellButton="NO"
+jssh.hideNewShellButton="NO"
+
+
+/* Customised ping-pong variables
+* Even though websocket timeout is set to not time out
+* within current network it appears to drop tail -f connections 
+* using the following options backend will attempt to keep connection going by sending
+* messages per defined interval to frontend user. 
+*/
+//Boolean to enable backend poll
+jssh.enablePong=true
+// In minutes
+jssh.pingRate=2
+//message to send as pong - can be '' (nothing)
+jssh.pingMessage="pingpong"
 
 ```	
 
@@ -383,6 +397,8 @@ If you are using jquery slider or bootstrap switch, using fontsawesome you could
 
 # Change information:
 ```
+0.27-SNAPSHOT2 	:	Custom pingpong added to plugin , allowing you to define pingpong period / message.
+
 0.27-SNAPSHOT1	: 	Observation of log lines longer than screen caused previous release to extend line further than visible.
 					code block re-added - appears to fix issue, scrolltobottom now working with code block.
 
