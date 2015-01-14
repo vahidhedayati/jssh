@@ -3,12 +3,8 @@ package grails.plugin.jssh
 class ConnectSshController {
 	def connectSsh
 	def jsshConfig
-	//def grailsApplication
-//(.*[A-z])=([A-z].*)	
-//$1 = $2
-			
-//([A-Za-z])\,([A-Za-z])
-//	$1\, $2
+	
+	
 	def index() {
 		def process = config.disable.login ?: 'NO'
 		if (process.toString().toLowerCase().equals('yes')) {
@@ -107,6 +103,7 @@ class ConnectSshController {
 	private getConfig() { 
 		grailsApplication.config?.jssh
 	}
+	
 	def resetOutput() { 
 		connectSsh.setOutput(new StringBuilder())
 		render ''

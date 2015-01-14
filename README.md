@@ -8,7 +8,7 @@ Websocket ssh interaction can be incorporated to an existing grails app running 
 
 Dependency :
 
-	compile ":jssh:0.27-SNAPSHOT" 
+	compile ":jssh:0.27-SNAPSHOT1" 
 
 This plugin provides  basic functionality to allow you to call your end host either via a taglib or via a call to provided controller. These are just examples and you could either use out of the package or create your own from given examples.
 
@@ -383,6 +383,8 @@ If you are using jquery slider or bootstrap switch, using fontsawesome you could
 
 # Change information:
 ```
+0.27-SNAPSHOT1	: 	Observation of log lines longer than screen caused previous release to extend line further than visible.
+					code block re-added - appears to fix issue, scrolltobottom now working with code block.
 
  0.27-SNAPSHOT 	: 	Codeblock causing issues with scrolling, removed. Tidy up of config calls.
  					added addAppName as another overridable configuration option

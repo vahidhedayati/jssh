@@ -85,11 +85,15 @@
 	
 <div id="mySshOut${divId}">
 	<g:if test="${divId}">
-		<pre  class="logconsole-sm" id="messagesTextarea${divId}" >
+		<pre  class="logconsole-sm" id="preTextarea${divId}">
+		<code id="messagesTextarea${divId}">
+		</code>
 		</pre>
 	</g:if>
 	<g:else>
-		<pre  class="logconsole-lg" id="messagesTextarea${divId}">
+		<pre  class="logconsole-lg" id="preTextarea${divId}">
+		<code id="messagesTextarea${divId}">
+		</code>
 		</pre>
 	</g:else>
 </div>
@@ -240,7 +244,8 @@ function toggleBlock(caller,called,calltext) {
 	}
 	
 	function scrollToBottom${divId}() {
-    	$('#messagesTextarea${divId}').scrollTop($('#messagesTextarea${divId}')[0].scrollHeight);
+    	//$('#messagesTextarea${divId}').scrollTop($('#messagesTextarea${divId}')[0].scrollHeight);
+    	$('#preTextarea${divId}').scrollTop($('#preTextarea${divId}')[0].scrollHeight);
 	}
 	
 
