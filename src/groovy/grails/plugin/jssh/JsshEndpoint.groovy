@@ -255,8 +255,10 @@ class JsshEndpoint implements ServletContextListener {
 
 
 			// Start pingpong
-			def asyncProcess = new Thread({pingPong(usersession, pingRate, pingMessage)  } as Runnable )
-			asyncProcess.start()
+			if (enablePong) {
+				def asyncProcess = new Thread({pingPong(usersession, pingRate, pingMessage)  } as Runnable )
+				asyncProcess.start()
+			}
 
 
 			while((read = input.read(buffer))>0)  {
@@ -295,8 +297,10 @@ class JsshEndpoint implements ServletContextListener {
 					//def pattern = ~/^\s+$/
 
 					// Start pingpong
-					def asyncProcess = new Thread({pingPong(usersession, pingRate, pingMessage)  } as Runnable )
-					asyncProcess.start()
+					if (enablePong) {
+						def asyncProcess = new Thread({pingPong(usersession, pingRate, pingMessage)  } as Runnable )
+						asyncProcess.start()
+					}	
 
 					while((read = input.read(buffer)) > 0)  {
 						String out1 = new String(buffer, 0, read)
