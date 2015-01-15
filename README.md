@@ -192,6 +192,10 @@ jssh.hideNewShellButton="NO"
 jssh.enablePong=true
 // In minutes
 jssh.pingRate=2
+
+// In seconds (sleep time) 
+jssh.pingInterval=5000
+
 //message to send as pong - can be '' (nothing)
 jssh.pingMessage="pingpong"
 
