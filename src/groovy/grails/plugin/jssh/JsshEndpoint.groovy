@@ -106,9 +106,9 @@ class JsshEndpoint implements ServletContextListener {
 		// authentication stuff - system calls
 		if (data) {
 			host = data.hostname ?: ''
-			
+
 			if (data.port) {
-				port = data.port.toInteger() 
+				port = data.port.toInteger()
 			}
 
 			user = data.user ?: ''
@@ -120,14 +120,14 @@ class JsshEndpoint implements ServletContextListener {
 			}
 			if (data.pingRate) {
 				this.pingRate = data.pingRate.toInteger()
-			}	
+			}
 			if (data.pingInterval) {
 				this.pingInterval = data.pingInterval.toInteger()
-			}	
+			}
 			if (data.pingMessage) {
 				this.pingMessage = data.pingMessage
 			}
-				
+
 
 			// Initial call lets connect
 			def asyncProcess = new Thread({	sshConnect(user, userpass, host, usercommand, port, usersession)  } as Runnable )
@@ -334,7 +334,7 @@ class JsshEndpoint implements ServletContextListener {
 			usersession.basicRemote.sendText("SSH: Failed authentication user: ${username} on ${host} ${authType}")
 		}
 	}
-	
+
 	private void processConnection(Session usersession, String usercommand) {
 		StringBuilder catchup = new StringBuilder()
 		session.getOutputStream().write("${usercommand} \n".getBytes())
@@ -342,24 +342,25 @@ class JsshEndpoint implements ServletContextListener {
 		byte[] buffer = new byte[255]
 		int read;
 		int i=0
+		if (usersession.isOpen()) {
+			// Start pingpong
+			if (enablePong) {
+				def asyncProcess = new Thread({pingPong(usersession, pingRate, pingInterval, pingMessage)  } as Runnable )
+				asyncProcess.start()
+			}
 
-		// Start pingpong
-		if (enablePong) {
-			def asyncProcess = new Thread({pingPong(usersession, pingRate, pingInterval, pingMessage)  } as Runnable )
-			asyncProcess.start()
-		}
-
-		while (((read = input.read(buffer))>0)&&(usersession.isOpen()))   {
-			String out1 = new String(buffer, 0, read)
-			if (pauseLog) {
-				catchup.append(out1)
-			}else{
-				if (resumed) {
-					resumed = false
-					usersession.basicRemote.sendText(catchup as String)
-					catchup = new StringBuilder()
+			while ((read = input.read(buffer))>0) {
+				String out1 = new String(buffer, 0, read)
+				if (pauseLog) {
+					catchup.append(out1)
+				}else{
+					if (resumed) {
+						resumed = false
+						usersession.basicRemote.sendText(catchup as String)
+						catchup = new StringBuilder()
+					}
+					usersession.basicRemote.sendText(out1)
 				}
-				usersession.basicRemote.sendText(out1)
 			}
 		}
 	}
@@ -383,7 +384,7 @@ class JsshEndpoint implements ServletContextListener {
 			}
 		}
 	}
-	
+
 	private Date pongTime(Date trigger, Integer length) {
 		def later=trigger
 		use(TimeCategory) {
