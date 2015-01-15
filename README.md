@@ -261,6 +261,27 @@ hidePauseControl="NO"
 />
 ```
 
+Enabling backend ping-pong to front-end - to keep connection alive
+
+```
+<jssh:socketconnect 
+hostname="localhost" 
+username="MYUSER" 
+port="22"
+password="PASS" 
+userCommand="tail -f /tmp/test.log"
+enablePong="true"
+pingRate="1"
+pingInterval="50000"
+pingMessage=""
+divId="logs2"
+/>
+<div id="logs2"></div>
+```
+
+Above will send a blank message every 1 minute polling every 50 seconds change pingMessage to something else to show it is sending it, if you wish to test this.
+
+
 
 #### ajax/polling tag lib call
 ```gsp
@@ -397,6 +418,19 @@ If you are using jquery slider or bootstrap switch, using fontsawesome you could
 
 # Change information:
 ```
+0.28 :	Enabled backend pingpong, this will come in handy if you have a special network
+	 	circumstances where by you are using this plugin for example to tail -f a log 
+	 	file and if after a set time nothing is returned from backend - up till this 
+	 	release on my current work network connections were dropped.
+	 	Either enable the following options in your Config.groovy or call it when 
+	 	required when calling the socketconnect taglib
+	 	
+	 	enablePong="true"  //enable pingpong
+		pingRate="1"   //ever minute
+		pingInterval="50000" //sleep and try looking every 50 seconds
+		pingMessage=""  //do you really want to send a pong message?
+
+
 0.27-SNAPSHOT2 	:	Custom pingpong added to plugin , allowing you to define pingpong period / message.
 
 0.27-SNAPSHOT1	: 	Observation of log lines longer than screen caused previous release to extend line further than visible.

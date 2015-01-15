@@ -10,7 +10,7 @@ class ConnectSshController {
 		if (process.toString().toLowerCase().equals('yes')) {
 			render "index disabled"
 		}
-		def hideAuthBlock = config.hideAuthBlock 
+		def hideAuthBlock = config.hideAuthBlock
 		[hideAuthBlock:hideAuthBlock]
 	}
 	

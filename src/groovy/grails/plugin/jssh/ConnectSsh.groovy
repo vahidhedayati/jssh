@@ -18,6 +18,7 @@ class ConnectSsh {
 	Integer port=22
 	String userpass=""
 	String usercommand = ""
+	
 	StringBuilder output = new StringBuilder()
 	private SshClient ssh = new SshClient()
 	SessionChannelClient session

@@ -42,7 +42,9 @@ class JsshEndpoint implements ServletContextListener {
 
 	private final Logger log = LoggerFactory.getLogger(getClass().name)
 
-	//private GrailsApplication grailsApplication
+	private boolean enablePong = false
+	private Integer pingRate, pingInterval
+	private String pingMessage
 	private ConfigObject config
 
 	@Override
@@ -50,17 +52,12 @@ class JsshEndpoint implements ServletContextListener {
 		ServletContext servletContext = event.servletContext
 		final ServerContainer serverContainer = servletContext.getAttribute("javax.websocket.server.ServerContainer")
 		try {
-
-			// Adding this conflicts with listener added via plugin descriptor
-			// Whilst it works as run-app - in production this causes issues
 			if (Environment.current == Environment.DEVELOPMENT) {
 				serverContainer.addEndpoint(JsshEndpoint)
 			}
 
 			def ctx = servletContext.getAttribute(GA.APPLICATION_CONTEXT)
-
 			def grailsApplication = ctx.grailsApplication
-
 			config = grailsApplication.config.jssh
 
 			int defaultMaxSessionIdleTimeout = config.timeout ?: 0
@@ -75,11 +72,10 @@ class JsshEndpoint implements ServletContextListener {
 	public void contextDestroyed(ServletContextEvent servletContextEvent) {
 	}
 
-	String host = ""
-	String user = ""
-	Integer port=22
-	String userpass=""
-	String usercommand = ""
+	String host, user, userpass, usercommand
+
+	int port = 22
+
 	StringBuilder output = new StringBuilder()
 
 
@@ -98,11 +94,8 @@ class JsshEndpoint implements ServletContextListener {
 	@OnOpen
 	public String handleOpen(Session usersession) {
 		usersession.basicRemote.sendText('Attempting SSH Connection')
-
 		def ctx= SCH.servletContext.getAttribute(GA.APPLICATION_CONTEXT)
-
 		def grailsApplication = ctx.grailsApplication
-
 		config = grailsApplication.config.jssh
 	}
 
@@ -112,15 +105,32 @@ class JsshEndpoint implements ServletContextListener {
 		def data = JSON.parse(message)
 		// authentication stuff - system calls
 		if (data) {
-			host = data.hostname
-			user = data.user
-			userpass = data.password
-			usercommand = data.usercommand
+			host = data.hostname ?: ''
+			
 			if (data.port) {
-				port = data.port
+				port = data.port.toInteger() 
 			}
+
+			user = data.user ?: ''
+			userpass = data.password ?: ''
+			usercommand = data.usercommand ?: ''
+
+			if (data.enablePong) {
+				this.enablePong = data.enablePong.toBoolean()
+			}
+			if (data.pingRate) {
+				this.pingRate = data.pingRate.toInteger()
+			}	
+			if (data.pingInterval) {
+				this.pingInterval = data.pingInterval.toInteger()
+			}	
+			if (data.pingMessage) {
+				this.pingMessage = data.pingMessage
+			}
+				
+
 			// Initial call lets connect
-			def asyncProcess = new Thread({	sshConnect(user, userpass, host, usercommand, port as int, usersession)  } as Runnable )
+			def asyncProcess = new Thread({	sshConnect(user, userpass, host, usercommand, port, usersession)  } as Runnable )
 			asyncProcess.start()
 
 		} else{
@@ -210,17 +220,12 @@ class JsshEndpoint implements ServletContextListener {
 	}
 
 	private void sshControl(String usercommand, Session usersession) {
-		StringBuilder catchup = new StringBuilder()
+		//StringBuilder catchup = new StringBuilder()
 		Boolean newChann = false
 
 		String newchannel = config.NEWCONNPERTRANS ?: ''
 		String hideSessionCtrl = config.hideSessionCtrl ?: ''
 
-		//Enable custom ping-pong - on current work network / network drops connections
-		// regardless of socket timeout
-		boolean enablePong = config.enablePong.toBoolean() ?: false
-		int pingRate = config.pingRate ?: 2
-		String pingMessage = config.pingMessage ?: ''
 
 		if ((newchannel.equals('YES'))||((newSession)&&(sameSession==false))) {
 			newChann = true
@@ -246,122 +251,19 @@ class JsshEndpoint implements ServletContextListener {
 		def myMsgj = myMsg as JSON
 		usersession.basicRemote.sendText(myMsgj as String)
 		if ((cc>1)&&(newChann==false)) {
-			session.getOutputStream().write("${usercommand} \n".getBytes())
-			InputStream input = session.getInputStream()
-			byte[] buffer = new byte[255]
-			int read;
-			int i=0
-			//def pattern = ~/^\s+$/
-
-
-			// Start pingpong
-			if (enablePong) {
-				def asyncProcess = new Thread({pingPong(usersession, pingRate, pingMessage)  } as Runnable )
-				asyncProcess.start()
-			}
-
-
-			while((read = input.read(buffer))>0)  {
-
-				String out1 = new String(buffer, 0, read)
-				//def m = pattern.matcher(out1).matches()
-				//if (m==false) {
-
-				// Internal Ping-Pong
-
-				if (pauseLog) {
-					catchup.append(out1)
-				}else{
-					if (resumed) {
-						resumed = false
-						usersession.basicRemote.sendText(catchup as String)
-						catchup = new StringBuilder()
-					}
-					usersession.basicRemote.sendText(out1)
-				}
-				//}
-
-
-			}
+			processConnection(usersession, usercommand)
 		}else{
 			session = ssh.openSessionChannel()
 			SessionOutputReader sor = new SessionOutputReader(session)
 			if (session.requestPseudoTerminal("gogrid",80,24, 0 , 0, "")) {
 				if (session.startShell()) {
 					ChannelOutputStream out = session.getOutputStream()
-					session.getOutputStream().write("${usercommand} \n".getBytes())
-					InputStream input = session.getInputStream()
-					byte[] buffer = new byte[255]
-					int read;
-					int i=0
-					//def pattern = ~/^\s+$/
-
-					// Start pingpong
-					if (enablePong) {
-						def asyncProcess = new Thread({pingPong(usersession, pingRate, pingMessage)  } as Runnable )
-						asyncProcess.start()
-					}	
-
-					while((read = input.read(buffer)) > 0)  {
-						String out1 = new String(buffer, 0, read)
-						//def m = pattern.matcher(out1).matches()
-						//if (m==false) {
-						if (pauseLog) {
-							catchup.append(out1)
-						}else{
-							if (resumed) {
-								resumed = false
-								usersession.basicRemote.sendText(catchup as String)
-								catchup = new StringBuilder()
-							}
-							usersession.basicRemote.sendText(out1)
-						}
-						//}
-					}
+					processConnection(usersession, usercommand)
 				}
 			}
 		}
 		//session.close()
 	}
-
-
-
-
-	private void pingPong(Session usersession, Integer pingRate, String pingMessage) {
-		def now = new Date()
-		def pongIt = pongTime(now, pingRate)
-		boolean sendPong = false
-		while (sendPong==false) {
-			sleep(600)
-			now= new Date()
-			sendPong=pongInterval(now, pongIt)
-			if (sendPong) {
-				now= new Date()
-				pongIt = pongTime(now, pingRate)
-				usersession.basicRemote.sendText(pingMessage)
-				now = new Date()
-				sendPong=false
-			}
-		}
-	}
-
-	private Date pongTime(Date trigger, Integer length) {
-		def later=trigger
-		use(TimeCategory) {
-			later = trigger +length.minutes
-		}
-		return later
-	}
-
-	private Boolean pongInterval(Date trigger, Date expires) {
-		boolean yesis = false
-		if (trigger.after(expires)) {
-			yesis = true
-		}
-		return yesis
-	}
-
-
 
 	private void execCmd(String cmd, Session usersession) {
 		try {
@@ -432,4 +334,72 @@ class JsshEndpoint implements ServletContextListener {
 			usersession.basicRemote.sendText("SSH: Failed authentication user: ${username} on ${host} ${authType}")
 		}
 	}
+	
+	private void processConnection(Session usersession, String usercommand) {
+		StringBuilder catchup = new StringBuilder()
+		session.getOutputStream().write("${usercommand} \n".getBytes())
+		InputStream input = session.getInputStream()
+		byte[] buffer = new byte[255]
+		int read;
+		int i=0
+
+		// Start pingpong
+		if (enablePong) {
+			def asyncProcess = new Thread({pingPong(usersession, pingRate, pingInterval, pingMessage)  } as Runnable )
+			asyncProcess.start()
+		}
+
+		while (((read = input.read(buffer))>0)&&(usersession.isOpen()))   {
+			String out1 = new String(buffer, 0, read)
+			if (pauseLog) {
+				catchup.append(out1)
+			}else{
+				if (resumed) {
+					resumed = false
+					usersession.basicRemote.sendText(catchup as String)
+					catchup = new StringBuilder()
+				}
+				usersession.basicRemote.sendText(out1)
+			}
+		}
+	}
+
+	private void pingPong(Session usersession, Integer pingRate, Integer pingInterval, String pingMessage) {
+		if (usersession.isOpen()) {
+			def now = new Date()
+			def pongIt = pongTime(now, pingRate)
+			boolean sendPong = false
+			while (sendPong==false) {
+				sleep(pingInterval ?: 50000)
+				now= new Date()
+				sendPong=pongInterval(now, pongIt)
+				if (sendPong) {
+					now= new Date()
+					pongIt = pongTime(now, pingRate)
+					usersession.basicRemote.sendText(pingMessage)
+					now = new Date()
+					sendPong=false
+				}
+			}
+		}
+	}
+	
+	private Date pongTime(Date trigger, Integer length) {
+		def later=trigger
+		use(TimeCategory) {
+			later = trigger +length.minutes
+		}
+		return later
+	}
+
+	private Boolean pongInterval(Date trigger, Date expires) {
+		boolean yesis = false
+		if (trigger.after(expires)) {
+			yesis = true
+		}
+		return yesis
+	}
+
+
+
 }

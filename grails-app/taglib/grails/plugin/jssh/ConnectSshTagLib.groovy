@@ -56,6 +56,10 @@ class ConnectSshTagLib {
 		def template = attrs.remove('template')?.toString()
 		def port = attrs.remove('port')?.toString()
 		def divId = attrs.remove('divId')?.toString()
+		def enablePong = attrs.remove('enablePong')?.toString() ?: config.enablePong 
+		def pingRate = attrs.remove('pingRate')?.toString() ?: config.pingRate
+		def pingInterval = attrs.remove('pingInterval')?.toString() ?: config.pingInterval
+		def pingMessage = attrs.remove('pingMessage')?.toString() ?: config.pingMessage
 
 		String addAppName =  config.addAppName ?: 'YES'
 		
@@ -120,11 +124,11 @@ class ConnectSshTagLib {
 		}
 		
 
-		def model = [hideWhatsRunning:hideWhatsRunning, hideDiscoButton:hideDiscoButton,
-			hidePauseControl:hidePauseControl, hideSessionCtrl:hideSessionCtrl,
-			hideNewShellButton:hideNewShellButton, hideConsoleMenu:hideConsoleMenu, 
-			hideSendBlock:hideSendBlock, divId:divId, wshostname:wshostname, hostname:hostname, 
-			port:port, password:password, username:username, userCommand:userCommand, addAppName:addAppName]
+		def model = [hideWhatsRunning:hideWhatsRunning, hideDiscoButton:hideDiscoButton, hidePauseControl:hidePauseControl, 
+			hideSessionCtrl:hideSessionCtrl, hideNewShellButton:hideNewShellButton, hideConsoleMenu:hideConsoleMenu, 
+			hideSendBlock:hideSendBlock, wshostname:wshostname, hostname:hostname, port:port, addAppName:addAppName, 
+			username:username, password:password, userCommand:userCommand, divId:divId, enablePong:enablePong, pingRate:pingRate,
+			pingInterval:pingInterval, pingMessage: pingMessage ]
 		
 		
 		if (template) {
@@ -153,13 +157,10 @@ class ConnectSshTagLib {
 		if (!pagetitle) {
 			pagetitle="jssh J2SSH Websocket/Ajax plugin"
 		}
-
 		def gfolder = pluginbuddyService.returnAppVersion()
-		
 		Map model = [ hideAuthBlock:hideAuthBlock, attrs:attrs, loadtemplate:loadtemplate, input:input, 
 			port:port, username:username, password:password, hostname:hostname, userCommand:userCommand, 
 			pageid:pageid, pagetitle:pagetitle ]
-		
 		out << g.render(contextPath: pluginContextPath, template: "/connectSsh/${gfolder}/${file}", model: model)
 	}
 

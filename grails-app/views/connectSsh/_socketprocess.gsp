@@ -159,8 +159,9 @@ function toggleBlock(caller,called,calltext) {
 	
 	function processOpen${divId}(message) {
 		$('#messagesTextarea${divId}').append('Server Connect....\n');
-		webSocket${divId}.send(JSON.stringify({'user':"${username }",'password':"${password }", 'hostname':"${hostname }", 'port': "${port }", 'usercommand': "${userCommand}"}))
+		webSocket${divId}.send(JSON.stringify({'user':"${username }",'password':"${password }", 'hostname':"${hostname }", 'port': "${port }" ,'enablePong':"${enablePong }",'pingRate':"${pingRate }",'pingInterval':"${pingInterval }",'pingMessage':"${pingMessage }", 'usercommand': "${userCommand}"}))
 	}
+	
 
 	
 	function processMessage${divId}(message) {
