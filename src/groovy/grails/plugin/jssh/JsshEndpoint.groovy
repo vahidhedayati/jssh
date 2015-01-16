@@ -349,7 +349,12 @@ class JsshEndpoint implements ServletContextListener {
 
 	private void processConnection(Session usersession, String usercommand) {
 		StringBuilder catchup = new StringBuilder()
-		session.getOutputStream().write("${usercommand}".getBytes())
+		
+		if (!usercommand.endsWith('\n')) {
+			usercommand=usercommand+'\n'
+		}
+		
+		session.getOutputStream().write(usercommand.getBytes())
 		InputStream input = session.getInputStream()
 		byte[] buffer = new byte[255]
 		int read;
