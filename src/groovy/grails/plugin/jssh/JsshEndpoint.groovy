@@ -403,7 +403,7 @@ class JsshEndpoint implements ServletContextListener {
 	private void pingPong(Session usersession, Integer pingRate, Integer pingInterval, String pingMessage) {
 		if (usersession && usersession.isOpen()) {
 			def now = new Date()
-			def pongIt = pongTime(now, pingRate)
+			def pongIt = pongTime(usersession, now, pingRate)
 			boolean sendPong = false
 			while (sendPong==false) {
 				sleep(pingInterval ?: 50000)
