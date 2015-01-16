@@ -85,15 +85,11 @@
 	
 <div id="mySshOut${divId}">
 	<g:if test="${divId}">
-		<pre  class="logconsole-sm" id="preTextarea${divId}">
-		<code id="messagesTextarea${divId}">
-		</code>
+		<pre  class="logconsole-sm" id="messagesTextarea${divId}">
 		</pre>
 	</g:if>
 	<g:else>
-		<pre  class="logconsole-lg" id="preTextarea${divId}">
-		<code id="messagesTextarea${divId}">
-		</code>
+		<pre  class="logconsole-lg"  id="messagesTextarea${divId}">
 		</pre>
 	</g:else>
 </div>
@@ -175,9 +171,13 @@ function toggleBlock(caller,called,calltext) {
 			var jsonData=JSON.parse(message.data);
 			$('#connectionCount${divId}').html(jsonData.connCount);
 		}else{
-			
-			$('#messagesTextarea${divId}').append(escapeHtml(message.data));
-			scrollToBottom${divId}();
+			if (message.data == "ping") {
+				//console.log('Got ping, sending Pong');
+				webSocket${divId}.send('PONG');
+			}else{
+				$('#messagesTextarea${divId}').append(escapeHtml(message.data));
+				scrollToBottom${divId}();
+			}
 		}
 	}
 	
@@ -245,8 +245,8 @@ function toggleBlock(caller,called,calltext) {
 	}
 	
 	function scrollToBottom${divId}() {
-    	//$('#messagesTextarea${divId}').scrollTop($('#messagesTextarea${divId}')[0].scrollHeight);
-    	$('#preTextarea${divId}').scrollTop($('#preTextarea${divId}')[0].scrollHeight);
+    	$('#messagesTextarea${divId}').scrollTop($('#messagesTextarea${divId}')[0].scrollHeight);
+    	//$('#preTextarea${divId}').scrollTop($('#preTextarea${divId}')[0].scrollHeight);
 	}
 	
 

@@ -155,6 +155,9 @@ class JsshEndpoint implements ServletContextListener {
 			} else if  (message.equals('SAME_SESSION:-')) {
 				sameSession = true
 				newSession = false
+			}else if (message.equals('PONG')) {
+				//log.debug "We have a pong"
+				// Nothing to do - ping/pong controlled via user initial connector.
 			} else {
 				// Will return here conflicts with custom calls
 				// Ensure user can actually send stuff according to back-end config
@@ -349,7 +352,7 @@ class JsshEndpoint implements ServletContextListener {
 
 	private void processConnection(Session usersession, String usercommand) {
 		StringBuilder catchup = new StringBuilder()
-
+		
 		if (!usercommand.endsWith('\n')) {
 			usercommand=usercommand+'\n'
 		}
