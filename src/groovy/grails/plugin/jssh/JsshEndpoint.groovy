@@ -73,9 +73,7 @@ class JsshEndpoint implements ServletContextListener {
 	}
 
 	String host, user, userpass, usercommand
-
 	int port = 22
-
 	StringBuilder output = new StringBuilder()
 
 
@@ -87,9 +85,6 @@ class JsshEndpoint implements ServletContextListener {
 	private boolean resumed = false
 	private boolean newSession = false
 	private boolean sameSession = false
-	//private InputStream input
-
-
 
 	@OnOpen
 	public String handleOpen(Session usersession) {
@@ -128,10 +123,16 @@ class JsshEndpoint implements ServletContextListener {
 				this.pingMessage = data.pingMessage
 			}
 
-
 			// Initial call lets connect
-			def asyncProcess = new Thread({	sshConnect(user, userpass, host, usercommand, port, usersession)  } as Runnable )
+			def asyncProcess = new Thread({sshConnect(user, userpass, host, usercommand, port, usersession)} as Runnable )
 			asyncProcess.start()
+			sleep(1000)
+			def asyncProcess1 = new Thread({
+				if (enablePong) {
+					pingPong(usersession, pingRate, pingInterval, pingMessage)
+				}
+			} as Runnable )
+			asyncProcess1.start()
 
 		} else{
 			if  (message.equals('DISCO:-')) {
@@ -155,20 +156,26 @@ class JsshEndpoint implements ServletContextListener {
 				sameSession = true
 				newSession = false
 			} else {
-
-				//def hideSendBlock = config.hideSendBlock
 				// Will return here conflicts with custom calls
-				// Ensure user can actually send stuff according to backend config
-				//if ((!hideSendBlock)||(!hideSendBlock.equals('YES'))) {
-				def asyncProcess = new Thread({sshControl(message, usersession)  } as Runnable )
-				asyncProcess.start()
-				//}
+				// Ensure user can actually send stuff according to back-end config
+				if (config.security == "enabled")  {
+					if ((!config.hideSendBlock)||(!config.hideSendBlock.equals('YES')))  {
+						asyncProc(usersession,message)
+					}
+				}
+				// No security just do it
+				else{
+					asyncProc(usersession,message)
+				}
 			}
-
 		}
-
 	}
 
+	private void asyncProc(Session usersession, String message) {
+		def asyncProcess = new Thread({sshControl(message, usersession)} as Runnable )
+		asyncProcess.start()
+	}
+	
 	@OnClose
 	public void handeClose() {
 		//log.debug "Client is now disconnected."
@@ -225,25 +232,28 @@ class JsshEndpoint implements ServletContextListener {
 
 		String newchannel = config.NEWCONNPERTRANS ?: ''
 		String hideSessionCtrl = config.hideSessionCtrl ?: ''
-
-
-		if ((newchannel.equals('YES'))||((newSession)&&(sameSession==false))) {
-			newChann = true
-		}else if (newSession) {
-			newChann = true
-		}else if (sameSession) {
-			newChann = false
+		
+		if (config.security == "enabled") {
+			// Ensure user is not attempting to gain unauthorised access - 
+			// Check back-end config: ensure session control is enabled.
+			if ((newchannel.equals('YES'))||(hideSessionCtrl.equals('NO')&&(newSession)&&(sameSession==false))) {
+				newChann = true
+			}else if ((newSession)&&(hideSessionCtrl.equals('NO'))) {
+				newChann = true
+			}else if ((sameSession)&&(hideSessionCtrl.equals('NO'))) {
+				newChann = false
+			}
 		}
-		/*
-		 // Ensure user is not attempting to gain unauthorised access - check backend config ensure session control is enabled.
-		 if ((newchannel.equals('YES'))||(hideSessionCtrl.equals('NO')&&(newSession)&&(sameSession==false))) { 
-		 newChann = true
-		 }else if ((newSession)&&(hideSessionCtrl.equals('NO'))) {
-		 newChann = true
-		 }else if ((sameSession)&&(hideSessionCtrl.equals('NO'))) {
-		 newChann = false
-		 }
-		 */
+		// No security enabled - do as user asks.
+		else{
+			if ((newchannel.equals('YES'))||((newSession)&&(sameSession==false))) {
+				newChann = true
+			}else if (newSession) {
+				newChann = true
+			}else if (sameSession) {
+				newChann = false
+			}
+		}
 
 		def cc = ssh.getActiveChannelCount() ?: 1
 		def myMsg = [:]
@@ -289,7 +299,6 @@ class JsshEndpoint implements ServletContextListener {
 		String sshkeypass = config.KEYPASS ?: ''
 		String sshport = config.PORT ?: ''
 
-
 		String username = user ?: sshuser
 		String password = userpass ?: sshpass
 		int sshPort = port ?: sshport as Integer
@@ -300,6 +309,7 @@ class JsshEndpoint implements ServletContextListener {
 		properties.setHost(host)
 		properties.setPort(sshPort)
 		ssh.connect(properties, new IgnoreHostKeyVerification())
+		// User has a key authenticate using SSH Key
 		if (!password) {
 			PublicKeyAuthenticationClient pk = new PublicKeyAuthenticationClient()
 			pk.setUsername(username)
@@ -315,7 +325,9 @@ class JsshEndpoint implements ServletContextListener {
 			if (result == AuthenticationProtocolState.COMPLETE) {
 				isAuthenticated = true
 			}
-		}else{
+		}
+		// A password has been provided - attempt to ssh using password
+		else{
 			PasswordAuthenticationClient pwd = new PasswordAuthenticationClient()
 			pwd.setUsername(username)
 			pwd.setPassword(password)
@@ -337,18 +349,12 @@ class JsshEndpoint implements ServletContextListener {
 
 	private void processConnection(Session usersession, String usercommand) {
 		StringBuilder catchup = new StringBuilder()
-		session.getOutputStream().write("${usercommand} \n".getBytes())
+		session.getOutputStream().write("${usercommand}".getBytes())
 		InputStream input = session.getInputStream()
 		byte[] buffer = new byte[255]
 		int read;
 		int i=0
-		if (usersession.isOpen()) {
-			// Start pingpong
-			if (enablePong) {
-				def asyncProcess = new Thread({pingPong(usersession, pingRate, pingInterval, pingMessage)  } as Runnable )
-				asyncProcess.start()
-			}
-
+		if (usersession && usersession.isOpen()) {
 			while ((read = input.read(buffer))>0) {
 				String out1 = new String(buffer, 0, read)
 				if (pauseLog) {
@@ -356,17 +362,41 @@ class JsshEndpoint implements ServletContextListener {
 				}else{
 					if (resumed) {
 						resumed = false
-						usersession.basicRemote.sendText(catchup as String)
+						usersession.basicRemote.sendText(parseBash(catchup as String))
 						catchup = new StringBuilder()
 					}
-					usersession.basicRemote.sendText(out1)
+					usersession.basicRemote.sendText(parseBash(out1))
 				}
 			}
 		}
 	}
 
+	private String parseBash(String input) {
+
+		Map bashMap = [
+			'[1;30m' : '<span style="color:black">',
+			'[1;31m' : '<span style="color:red">',
+			'[1;32m' : '<span style="color:green">',
+			'[1;33m' : '<span style="color:yellow">',
+			'[1;34m' : '<span style="color:blue">',
+			'[1;35m' : '<span style="color:purple">',
+			'[1;36m' : '<span style="color:cyan">',
+			'[1;37m' : '<span style="color:white">',
+			'[m'   : '</span>',
+			'[0m'   : '</span>'
+		]
+
+		bashMap.each { k,v ->
+			if (input.contains(k)) {
+				//input = input.toString().replace(k, v)
+				input = input.replace(k,'')
+			}
+		}
+		return input
+	}
+
 	private void pingPong(Session usersession, Integer pingRate, Integer pingInterval, String pingMessage) {
-		if (usersession.isOpen()) {
+		if (usersession && usersession.isOpen()) {
 			def now = new Date()
 			def pongIt = pongTime(now, pingRate)
 			boolean sendPong = false
@@ -400,7 +430,4 @@ class JsshEndpoint implements ServletContextListener {
 		}
 		return yesis
 	}
-
-
-
 }
