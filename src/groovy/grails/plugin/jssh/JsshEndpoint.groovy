@@ -43,8 +43,7 @@ class JsshEndpoint implements ServletContextListener {
 	private final Logger log = LoggerFactory.getLogger(getClass().name)
 
 	private boolean enablePong = false
-	private Integer pingRate, pingInterval
-	private String pingMessage
+	private Integer pingRate
 	private ConfigObject config
 
 	@Override
@@ -116,21 +115,15 @@ class JsshEndpoint implements ServletContextListener {
 			if (data.pingRate) {
 				this.pingRate = data.pingRate.toInteger()
 			}
-			if (data.pingInterval) {
-				this.pingInterval = data.pingInterval.toInteger()
-			}
-			if (data.pingMessage) {
-				this.pingMessage = data.pingMessage
-			}
-
+			
 			// Initial call lets connect
 			def asyncProcess = new Thread({sshConnect(user, userpass, host, usercommand, port, usersession)} as Runnable )
 			asyncProcess.start()
 			sleep(1000)
 			def asyncProcess1 = new Thread({
 				if (enablePong) {
-					pingPong(usersession, pingRate, pingInterval, pingMessage)
-				}
+					pingPong(usersession, pingRate)
+			}
 			} as Runnable )
 			asyncProcess1.start()
 
@@ -403,43 +396,15 @@ class JsshEndpoint implements ServletContextListener {
 		return input
 	}
 
-	private void pingPong(Session usersession, Integer pingRate, Integer pingInterval, String pingMessage) {
+	private void pingPong(Session usersession, Integer pingRate) {
 		if (usersession && usersession.isOpen()) {
-			def now = new Date()
-			def pongIt = pongTime(usersession, now, pingRate)
 			boolean sendPong = false
-			while (sendPong==false) {
-				sleep(pingInterval ?: 50000)
-				now= new Date()
-				sendPong=pongInterval(usersession, now, pongIt)
-				if (sendPong) {
-					now= new Date()
-					pongIt = pongTime(usersession, now, pingRate)
-					usersession.basicRemote.sendText(pingMessage)
-					now = new Date()
-					sendPong=false
-				}
+			while ((sendPong==false)&&(usersession && usersession.isOpen())) {
+					sleep(pingRate ?: 60000)
+					usersession.basicRemote.sendText('ping')
 			}
 		}
 	}
 
-	private Date pongTime(Session usersession, Date trigger, Integer length) {
-		def later=trigger
-		if (usersession && usersession.isOpen()) {
-			use(TimeCategory) {
-				later = trigger +length.minutes
-			}
-		}
-		return later
-	}
-
-	private Boolean pongInterval(Session usersession, Date trigger, Date expires) {
-		boolean yesis = false
-		if (usersession && usersession.isOpen()) {
-			if (trigger.after(expires)) {
-				yesis = true
-			}
-		}
-		return yesis
-	}
+	
 }
