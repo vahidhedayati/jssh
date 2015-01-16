@@ -175,7 +175,7 @@ class JsshEndpoint implements ServletContextListener {
 		def asyncProcess = new Thread({sshControl(message, usersession)} as Runnable )
 		asyncProcess.start()
 	}
-	
+
 	@OnClose
 	public void handeClose() {
 		//log.debug "Client is now disconnected."
@@ -232,9 +232,9 @@ class JsshEndpoint implements ServletContextListener {
 
 		String newchannel = config.NEWCONNPERTRANS ?: ''
 		String hideSessionCtrl = config.hideSessionCtrl ?: ''
-		
+
 		if (config.security == "enabled") {
-			// Ensure user is not attempting to gain unauthorised access - 
+			// Ensure user is not attempting to gain unauthorised access -
 			// Check back-end config: ensure session control is enabled.
 			if ((newchannel.equals('YES'))||(hideSessionCtrl.equals('NO')&&(newSession)&&(sameSession==false))) {
 				newChann = true
@@ -349,11 +349,11 @@ class JsshEndpoint implements ServletContextListener {
 
 	private void processConnection(Session usersession, String usercommand) {
 		StringBuilder catchup = new StringBuilder()
-		
+
 		if (!usercommand.endsWith('\n')) {
 			usercommand=usercommand+'\n'
 		}
-		
+
 		session.getOutputStream().write(usercommand.getBytes())
 		InputStream input = session.getInputStream()
 		byte[] buffer = new byte[255]
@@ -408,10 +408,10 @@ class JsshEndpoint implements ServletContextListener {
 			while (sendPong==false) {
 				sleep(pingInterval ?: 50000)
 				now= new Date()
-				sendPong=pongInterval(now, pongIt)
+				sendPong=pongInterval(usersession, now, pongIt)
 				if (sendPong) {
 					now= new Date()
-					pongIt = pongTime(now, pingRate)
+					pongIt = pongTime(usersession, now, pingRate)
 					usersession.basicRemote.sendText(pingMessage)
 					now = new Date()
 					sendPong=false
@@ -420,18 +420,22 @@ class JsshEndpoint implements ServletContextListener {
 		}
 	}
 
-	private Date pongTime(Date trigger, Integer length) {
+	private Date pongTime(Session usersession, Date trigger, Integer length) {
 		def later=trigger
-		use(TimeCategory) {
-			later = trigger +length.minutes
+		if (usersession && usersession.isOpen()) {
+			use(TimeCategory) {
+				later = trigger +length.minutes
+			}
 		}
 		return later
 	}
 
-	private Boolean pongInterval(Date trigger, Date expires) {
+	private Boolean pongInterval(Session usersession, Date trigger, Date expires) {
 		boolean yesis = false
-		if (trigger.after(expires)) {
-			yesis = true
+		if (usersession && usersession.isOpen()) {
+			if (trigger.after(expires)) {
+				yesis = true
+			}
 		}
 		return yesis
 	}
