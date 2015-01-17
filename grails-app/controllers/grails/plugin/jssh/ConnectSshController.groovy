@@ -48,11 +48,20 @@ class ConnectSshController {
 		String hideNewShellButton = config.hideNewShellButton ?: 'YES'
 		
 		String addAppName =  config.addAppName ?: 'YES'
+		String jobName,jsshUser
+		if (!jobName) {
+			jobName=randService.randomise('job')
+		}
 		
+		if (!jsshUser) {
+			jsshUser=randService.randomise('jsshUser')
+		}
+		
+		boolean frontend = attrs.remove('frontend')?.toBoolean() ?: false
 		Map model= [hideNewShellButton:hideNewShellButton, hideWhatsRunning:hideWhatsRunning, hideDiscoButton:hideDiscoButton, 
 			hidePauseControl:hidePauseControl, hideSessionCtrl:hideSessionCtrl, hideConsoleMenu:hideConsoleMenu, hideSendBlock:hideSendBlock,
 			divId:divId, username:username, port:port, password:password, hostname:hostname, userCommand:userCommand, wshostname:wshostname, 
-			addAppName:addAppName]
+			addAppName:addAppName, jobName:jobName, jsshUser:jsshUser, frontend:frontend]
 		
 		if (template) {
 			model.put('template',template)

@@ -137,10 +137,10 @@ function toggleBlock(caller,called,calltext) {
 	}
 
 	<g:if test="${addAppName=='NO'}">
-		var wsurl="ws://${wshostname}/j2ssh"
+		var wsurl="ws://${wshostname}/j2ssh/${jobName}"
 	</g:if>
 	<g:else>
-		var wsurl="ws://${wshostname}/${meta(name:'app.name')}/j2ssh"	
+		var wsurl="ws://${wshostname}/${meta(name:'app.name')}/j2ssh/${jobName}"	
 	</g:else>
 	
 	
@@ -155,7 +155,7 @@ function toggleBlock(caller,called,calltext) {
 	
 	function processOpen${divId}(message) {
 		$('#messagesTextarea${divId}').append('Server Connect....\n');
-		webSocket${divId}.send(JSON.stringify({'user':"${username }",'password':"${password }", 'hostname':"${hostname }", 'port': "${port }" ,'enablePong':"${enablePong }",'pingRate':"${pingRate }",'pingInterval':"${pingInterval }",'pingMessage':"${pingMessage }", 'usercommand': "${userCommand}"}))
+		webSocket${divId}.send(JSON.stringify({'frontend':"${frontend}",'jsshUser':"${jsshUser}",'user':"${username}",'password':"${password}", 'hostname':"${hostname}", 'port': "${port }" ,'enablePong':"${enablePong }",'pingRate':"${pingRate }",'pingInterval':"${pingInterval }",'pingMessage':"${pingMessage }", 'usercommand': "${userCommand}"}))
 	}
 	
 

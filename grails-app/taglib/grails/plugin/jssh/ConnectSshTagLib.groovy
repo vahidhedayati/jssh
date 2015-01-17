@@ -1,15 +1,16 @@
 package grails.plugin.jssh
-class ConnectSshTagLib {
+class ConnectSshTagLib extends ConfService {
 	static namespace = "jssh"
 	def connectSsh
 	def jsshConfig
-	def grailsApplication
 	def pluginbuddyService
-
+	def randService
+	
 	private String hostname, username, userCommand, password, template, port
 	
 	private String wshostname, hideConsoleMenu, hideSendBlock, hideSessionCtrl,
-	hideWhatsRunning, hideDiscoButton, hidePauseControl, hideNewShellButton
+	hideWhatsRunning, hideDiscoButton, hidePauseControl, hideNewShellButton, jobName,
+	jsshUser
 
 	def chooseLayout =  { attrs ->
 		genericOpts(attrs)
@@ -72,12 +73,21 @@ class ConnectSshTagLib {
 		if (!userCommand) {
 			userCommand="echo \"\$USER has logged into \$HOST\""
 		}
+		if (!jobName) {
+			jobName=randService.randomise('job')
+		}
+		
+		if (!jsshUser) {
+			jsshUser=randService.randomise('jsshUser')
+		}
+		
+		boolean frontend = attrs.remove('frontend')?.toBoolean() ?: false
 		
 		def model = [hideWhatsRunning:hideWhatsRunning, hideDiscoButton:hideDiscoButton, hidePauseControl:hidePauseControl, 
 			hideSessionCtrl:hideSessionCtrl, hideNewShellButton:hideNewShellButton, hideConsoleMenu:hideConsoleMenu, 
 			hideSendBlock:hideSendBlock, wshostname:wshostname, hostname:hostname, port:port, addAppName:addAppName, 
 			username:username, password:password, userCommand:userCommand, divId:divId, 
-			enablePong:enablePong, pingRate:pingRate]
+			enablePong:enablePong, pingRate:pingRate, jobName:jobName, jsshUser:jsshUser, frontend:frontend]
 		
 		loadTemplate(template, "/connectSsh/socketprocess", model)	
 	}
@@ -126,6 +136,8 @@ class ConnectSshTagLib {
 			this.hideConsoleMenu = attrs.hideConsoleMenu
 		}
 		
+		this.jobName = attrs.remove('jobName')?.toString()
+		
 		if (!attrs.hideSendBlock) {
 			this.hideSendBlock = config.hideSendBlock ?: 'YES'
 		}else{
@@ -163,8 +175,4 @@ class ConnectSshTagLib {
 		}
 	}
 	
-	
-	private getConfig() {
-		grailsApplication.config?.jssh
-	}
 }
