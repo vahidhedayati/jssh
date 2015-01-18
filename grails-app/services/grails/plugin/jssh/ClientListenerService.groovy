@@ -1,7 +1,7 @@
 package grails.plugin.jssh
 
 
-import java.util.Set;
+import grails.converters.JSON
 
 import javax.websocket.ContainerProvider
 import javax.websocket.Session
@@ -134,7 +134,7 @@ public class ClientListenerService extends ConfService {
 	}
 
 
-	Session p_connect(String _uri, String _username, String room){
+	Session p_connect(String _uri, String _username, String room, Map map){
 		URI oUri
 		if(_uri){
 			oUri = URI.create(_uri+room);
@@ -143,7 +143,8 @@ public class ClientListenerService extends ConfService {
 		Session oSession
 		try{
 			oSession = container.connectToServer(JsshClientEndpoint.class, oUri)
-			oSession.basicRemote.sendText(CONNECTOR+_username)
+			//oSession.basicRemote.sendText(CONNECTOR+_username)
+			oSession.basicRemote.sendText((map as JSON).toString())
 		}catch(Exception e){
 			e.printStackTrace()
 			if(oSession && oSession.isOpen()){

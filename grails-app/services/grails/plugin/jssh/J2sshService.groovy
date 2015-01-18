@@ -105,14 +105,14 @@ class J2sshService extends ConfService {
 		def myMsgj = myMsg as JSON
 		userSession.basicRemote.sendText(myMsgj as String)
 		if ((cc>1)&&(newChann==false)) {
-			processConnection(ssh, session, userSession, usercommand)
+			processConnection(userSession, session, usercommand)
 		}else{
 			session = ssh.openSessionChannel()
 			SessionOutputReader sor = new SessionOutputReader(session)
 			if (session.requestPseudoTerminal("gogrid",80,24, 0 , 0, "")) {
 				if (session.startShell()) {
 					ChannelOutputStream out = session.getOutputStream()
-					processConnection(ssh, session, userSession, usercommand)
+					processConnection(userSession, session, usercommand)
 				}
 			}
 		}

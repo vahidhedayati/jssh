@@ -12,6 +12,7 @@ import javax.websocket.EndpointConfig
 import javax.websocket.OnClose
 import javax.websocket.OnError
 import javax.websocket.OnMessage
+import javax.websocket.OnOpen
 import javax.websocket.Session
 import javax.websocket.server.PathParam
 import javax.websocket.server.ServerContainer
@@ -23,31 +24,26 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import com.sshtools.j2ssh.SshClient
-import com.sshtools.j2ssh.authentication.AuthenticationProtocolState
-import com.sshtools.j2ssh.authentication.PasswordAuthenticationClient
-import com.sshtools.j2ssh.authentication.PublicKeyAuthenticationClient
 import com.sshtools.j2ssh.configuration.SshConnectionProperties
-import com.sshtools.j2ssh.connection.ChannelOutputStream
-import com.sshtools.j2ssh.connection.ChannelState
-import com.sshtools.j2ssh.io.IOStreamConnector
 import com.sshtools.j2ssh.session.SessionChannelClient
-import com.sshtools.j2ssh.session.SessionOutputReader
-import com.sshtools.j2ssh.transport.IgnoreHostKeyVerification
-import com.sshtools.j2ssh.transport.publickey.SshPrivateKey
-import com.sshtools.j2ssh.transport.publickey.SshPrivateKeyFile
 
 @WebListener
 @ServerEndpoint("/j2ssh/{job}")
 class JsshEndpoint implements ServletContextListener {
 	static final Set<Session> sshUsers = ([] as Set).asSynchronized()
-	
+
 	private final Logger log = LoggerFactory.getLogger(getClass().name)
-	
+
 	private boolean enablePong = false
 	private Integer pingRate
 	private ConfigObject config
 	private AuthService authService
 	private JsshService jsshService
+
+	private SshClient ssh = new SshClient()
+	private SessionChannelClient session
+	private SshConnectionProperties properties = null
+
 
 	@Override
 	public void contextInitialized(ServletContextEvent event) {
@@ -74,27 +70,17 @@ class JsshEndpoint implements ServletContextListener {
 	public void contextDestroyed(ServletContextEvent servletContextEvent) {
 	}
 
-	String host, user, userpass, usercommand
-	int port = 22
-	StringBuilder output = new StringBuilder()
-
-
-	private SshClient ssh = new SshClient()
-	private SessionChannelClient session
-	private SshConnectionProperties properties = null
-	
-	
+	@OnOpen
 	public void handleOpen(Session userSession,EndpointConfig c,@PathParam("job") String job) {
 		sshUsers.add(userSession)
-		
+
 		def ctx= SCH.servletContext.getAttribute(GA.APPLICATION_CONTEXT)
 		def grailsApplication = ctx.grailsApplication
 		config = grailsApplication.config.jssh
 		authService = ctx.authService
 		jsshService = ctx.jsshService
-
 		userSession.userProperties.put("job", job)
-		
+
 	}
 
 	@OnMessage
@@ -108,7 +94,6 @@ class JsshEndpoint implements ServletContextListener {
 		}
 	}
 
-	
 	@OnClose
 	public void handeClose() {
 		//log.debug "Client is now disconnected."
@@ -123,7 +108,7 @@ class JsshEndpoint implements ServletContextListener {
 		ssh.disconnect()
 	}
 
-	
 
-	
+
+
 }

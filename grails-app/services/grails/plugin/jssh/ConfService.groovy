@@ -5,22 +5,23 @@ package grails.plugin.jssh
 class ConfService {
 
 	static transactional  =  false
-	static final String CONNECTOR = "CONN:-";
-	static final String DISCONNECTOR = "DISCO:-";
-	static final String APP = "JsshEndpoint";
-	static final String VIEW = "connectSsh";
+	
+	public String CONNECTOR = "CONN:-"
+	public String DISCONNECTOR = "DISCO:-"
+	public String APP = "j2ssh"
+	public String VIEW = "connectSsh"
 	
 	def grailsApplication
 
-	boolean isConfigEnabled(String input) {
+	public boolean isConfigEnabled(String input) {
 		return Boolean.valueOf(input ?: false)
 	}
 
-	String getFrontend() {
+	public String getFrontend() {
 		return config.frontenduser ?: '_frontend'
 	}
 
-	String getAppName(){
+	public String getAppName(){
 		String addAppName = config.add.appName ?: 'yes'
 		if (addAppName) {
 			grailsApplication.metadata['app.name']+"/"

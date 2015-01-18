@@ -67,45 +67,55 @@ class ConnectSshTagLib extends ConfService {
 		socketOpts(attrs)
 		
 		boolean frontend = attrs.remove('frontend')?.toBoolean() ?: false
-		
+		String uri="ws://${wshostname}/${appName}/${APP}/"
+		if (addAppName=="no") {
+			uri="ws://${hostname}/${APP}/"
+		}
 		def model = [hideWhatsRunning:hideWhatsRunning, hideDiscoButton:hideDiscoButton, hidePauseControl:hidePauseControl, 
 			hideSessionCtrl:hideSessionCtrl, hideNewShellButton:hideNewShellButton, hideConsoleMenu:hideConsoleMenu, 
 			hideSendBlock:hideSendBlock, wshostname:wshostname, hostname:hostname, port:port, addAppName:addAppName, 
-			username:username, password:password, userCommand:userCommand, divId:divId, 
+			username:username, password:password, userCommand:userCommand, divId:divId, uri:uri,
 			enablePong:enablePong, pingRate:pingRate, jobName:jobName, jsshUser:jsshUser, frontend:frontend]
 		
 		loadTemplate(template, "/connectSsh/socketprocess", model)	
 	}
 
 	def conn = { attrs ->
+		
 		genericOpts(attrs)
 		socketOpts(attrs)
-		
+		String frontuser=jsshUser+frontend
 		boolean frontend = true
-		def model = [hideWhatsRunning:hideWhatsRunning, hideDiscoButton:hideDiscoButton, hidePauseControl:hidePauseControl,
-			hideSessionCtrl:hideSessionCtrl, hideNewShellButton:hideNewShellButton, hideConsoleMenu:hideConsoleMenu,
-			hideSendBlock:hideSendBlock, wshostname:wshostname, hostname:hostname, port:port, addAppName:addAppName,
-			username:username, password:password, userCommand:userCommand, divId:divId,
-			enablePong:enablePong, pingRate:pingRate, jobName:jobName, jsshUser:jsshUser, frontend:frontend]
-		if (!appName) {
-			appName = grailsApplication.metadata['app.name']
-		}
-
-	
-		if (!message) {
-			message = "testing"
-		}
-
 		String uri="ws://${wshostname}/${appName}/${APP}/"
 		if (addAppName=="no") {
 			uri="ws://${hostname}/${APP}/"
 		}
+		/*def model = [hideWhatsRunning:hideWhatsRunning, hideDiscoButton:hideDiscoButton, hidePauseControl:hidePauseControl,
+			hideSessionCtrl:hideSessionCtrl, hideNewShellButton:hideNewShellButton, hideConsoleMenu:hideConsoleMenu,
+			hideSendBlock:hideSendBlock, wshostname:wshostname, hostname:hostname, port:port, addAppName:addAppName,
+			username:username, password:password, userCommand:userCommand, divId:divId, frontuser:frontuser,uri:uri,
+			enablePong:enablePong, pingRate:pingRate, jobName:jobName, jsshUser:jsshUser, frontend:frontend, jsshApp: APP]
+		*/	
+		if (!appName) {
+			appName = grailsApplication.metadata['app.name']
+		}
 
+
+		
+        def connMap = [frontend: frontend, jsshUser: jsshUser, user: jsshUser, username:username, password: password, 
+			hostname: hostname, port: port, enablePong: enablePong, pingRate: pingRate, usercommand: userCommand,
+			divId:divId, jsshApp: APP, uri:uri, job: jobName,frontuser:frontuser, hideWhatsRunning:hideWhatsRunning,
+			hideDiscoButton:hideDiscoButton, hidePauseControl:hidePauseControl, hideSessionCtrl:hideSessionCtrl, 
+			hideNewShellButton:hideNewShellButton, hideConsoleMenu:hideConsoleMenu, hideSendBlock:hideSendBlock, 
+			wshostname:wshostname]
+		
+		loadTemplate(template,'/connectSsh/socketConnect', connMap)
+		
 		// Make a socket connection as actual main user (backend connection)
-		Session oSession = clientListenerService.p_connect(uri, jsshUser, jobName)
-
+		Session oSession = clientListenerService.p_connect(uri, jsshUser, jobName, connMap)
+	
 		// TODO
-		loadTemplate(attrs,'socketConnect', model)
+		//loadTemplate(attrs,'clientSocketConnect', model)
 		
 	}
 	
@@ -152,7 +162,7 @@ class ConnectSshTagLib extends ConfService {
 		this.jobName = attrs.remove('jobName')?.toString()
 		
 		if (!jobName) {
-			jobName=randService.randomise('job')
+			jobName=randService.shortRand('job')
 		}
 		
 		if (!attrs.hideSendBlock) {

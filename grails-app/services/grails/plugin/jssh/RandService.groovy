@@ -13,5 +13,7 @@ class RandService {
 			 System.currentTimeMillis()).toString()
 			 .replaceAll('[^a-zA-Z0-9[:space:]]','')
 	}
-	
+	String shortRand(String user) {
+		return (user+prng.nextLong()).replaceAll('[^a-zA-Z0-9[:space:]]','')
+	}
 }

@@ -25,6 +25,7 @@ public class ClientProcessService extends ConfService  {
 				checkMessage(userSession, username, msg)
 			}
 		}else if (message.startsWith('{')) {
+		println "----------- > ${message}"
 			JSONObject rmesg=JSON.parse(message)
 
 			checkMessage(userSession, username, rmesg)

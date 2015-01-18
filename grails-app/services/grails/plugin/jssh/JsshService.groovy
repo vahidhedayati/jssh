@@ -11,7 +11,6 @@ import com.sshtools.j2ssh.authentication.PublicKeyAuthenticationClient
 import com.sshtools.j2ssh.configuration.SshConnectionProperties
 import com.sshtools.j2ssh.connection.ChannelOutputStream
 import com.sshtools.j2ssh.connection.ChannelState
-import com.sshtools.j2ssh.io.IOStreamConnector
 import com.sshtools.j2ssh.session.SessionChannelClient
 import com.sshtools.j2ssh.session.SessionOutputReader
 import com.sshtools.j2ssh.transport.IgnoreHostKeyVerification
@@ -20,7 +19,7 @@ import com.sshtools.j2ssh.transport.publickey.SshPrivateKeyFile
 
 
 class JsshService extends ConfService {
-
+	
 	private boolean isAuthenticated = false
 	private boolean pauseLog = false
 	private boolean resumed = false
@@ -50,6 +49,8 @@ class JsshService extends ConfService {
 		} else if  (message.equals('SAME_SESSION:-')) {
 			sameSession = true
 			newSession = false
+		}else if (message.equals('PING')) {
+			pingPong(userSession)
 		}else if (message.equals('PONG')) {
 			//log.debug "We have a pong"
 			// Nothing to do - ping/pong controlled via user initial connector.
@@ -103,30 +104,31 @@ class JsshService extends ConfService {
 		def myMsgj = myMsg as JSON
 		userSession.basicRemote.sendText(myMsgj as String)
 		if ((cc>1)&&(newChann==false)) {
-			processConnection(ssh, session, userSession, usercommand)
+			processConnection(userSession, session,  usercommand)
 		}else{
 			session = ssh.openSessionChannel()
 			SessionOutputReader sor = new SessionOutputReader(session)
 			if (session.requestPseudoTerminal("gogrid",80,24, 0 , 0, "")) {
 				if (session.startShell()) {
 					ChannelOutputStream out = session.getOutputStream()
-					processConnection(ssh, session, userSession, usercommand)
+					processConnection(userSession, session, usercommand)
 				}
 			}
 		}
 		//session.close()
 	}
-
-	public void pingPong(Session userSession, Integer pingRate) {
+	
+	public void pingPong(Session userSession) {
+		int pingRate = userSession.userProperties.get("pingRate") as Integer
 		if (userSession && userSession.isOpen()) {
-			boolean sendPong = false
-			while ((sendPong==false)&&(userSession && userSession.isOpen())) {
+			def asyncProcess = new Thread({
 				sleep(pingRate ?: 60000)
 				userSession.basicRemote.sendText('ping')
-			}
+			} as Runnable )
+			asyncProcess.start()
 		}
 	}
-
+	
 
 	private void closeShell(SshClient ssh, SessionChannelClient session, Session userSession) {
 		def myMsg = [:]
@@ -169,8 +171,8 @@ class JsshService extends ConfService {
 		userSession.basicRemote.sendText('New shell created, console window : '+cc)
 	}
 
-	private void sshConnect(SshClient ssh, SessionChannelClient session,
-			SshConnectionProperties properties,  String user, String userpass,
+	private void sshConnect(SshClient ssh, SessionChannelClient session=null,
+			SshConnectionProperties properties=null,  String user, String userpass,
 		 String host, String usercommand, int port, Session userSession)  {
 
 		String sshuser = config.USER ?: ''
@@ -219,7 +221,15 @@ class JsshService extends ConfService {
 
 		// Evaluate the result
 		if (isAuthenticated) {
+			
+		//	if (enablePong) {
+			//	pingPong(userSession, pingRate)
+			//	def asyncProcess1 = new Thread({jsshService.pingPong(userSession, pingRate)} as Runnable )
+			//	asyncProcess1.start()
+			//}
+			
 			sshControl(ssh, session, usercommand, userSession)
+			
 		}else{
 			def authType = "using key file  "
 			if (password) { authType = "using password" }

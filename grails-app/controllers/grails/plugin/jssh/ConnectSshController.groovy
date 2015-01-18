@@ -1,8 +1,8 @@
 package grails.plugin.jssh
 
-class ConnectSshController {
+class ConnectSshController extends ConfService {
 	def connectSsh
-	def jsshConfig
+	//def jsshConfig
 	
 	
 	def index() {
@@ -57,11 +57,16 @@ class ConnectSshController {
 			jsshUser=randService.randomise('jsshUser')
 		}
 		
+		String uri="ws://${wshostname}/${appName}/${APP}/"
+		if (addAppName=="no") {
+			uri="ws://${hostname}/${APP}/"
+		}
+		
 		boolean frontend = attrs.remove('frontend')?.toBoolean() ?: false
 		Map model= [hideNewShellButton:hideNewShellButton, hideWhatsRunning:hideWhatsRunning, hideDiscoButton:hideDiscoButton, 
 			hidePauseControl:hidePauseControl, hideSessionCtrl:hideSessionCtrl, hideConsoleMenu:hideConsoleMenu, hideSendBlock:hideSendBlock,
 			divId:divId, username:username, port:port, password:password, hostname:hostname, userCommand:userCommand, wshostname:wshostname, 
-			addAppName:addAppName, jobName:jobName, jsshUser:jsshUser, frontend:frontend]
+			addAppName:addAppName, jobName:jobName, jsshUser:jsshUser, frontend:frontend, uri:uri]
 		
 		if (template) {
 			model.put('template',template)
@@ -109,9 +114,9 @@ class ConnectSshController {
 		}
 	}
 
-	private getConfig() { 
-		grailsApplication.config?.jssh
-	}
+	//private getConfig() { 
+	//	grailsApplication.config?.jssh
+	//}
 	
 	def resetOutput() { 
 		connectSsh.setOutput(new StringBuilder())
