@@ -4,7 +4,7 @@ class SshServers {
 	
 	SshServerGroups mygroup
 	
-	static belongsTo = [SshUser]
+	static belongsTo = [JsshUser]
 	
 	String hostName
 	String ipAddress

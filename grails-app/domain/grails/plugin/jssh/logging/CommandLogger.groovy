@@ -1,17 +1,16 @@
 package grails.plugin.jssh.logging
 
-class SshLogger {
+class CommandLogger {
 	
 		Date dateCreated
 		Date lastUpdated
 	  
-		static hasMany = [connections: ConnectionLogs, commands: CommandLogs]
+		static hasMany = [ commands: CommandLogs]
 	  
 		static constraints = {
 		}
 	  
 		static mapping = {
-		  connections cascade: 'all-delete-orphan'
 		  commands cascade: 'all-delete-orphan'
 		}
 	  

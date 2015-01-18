@@ -19,7 +19,7 @@ import com.sshtools.j2ssh.transport.publickey.SshPrivateKey
 import com.sshtools.j2ssh.transport.publickey.SshPrivateKeyFile
 
 
-class JsshService extends ConfService {
+class J2sshService extends ConfService {
 
 	private boolean isAuthenticated = false
 	private boolean pauseLog = false
@@ -27,6 +27,8 @@ class JsshService extends ConfService {
 	private boolean newSession = false
 	private boolean sameSession = false
 
+	def clientListenerService
+	
 	public processRequest(SshClient ssh, SessionChannelClient session,
 			SshConnectionProperties properties,Session userSession, String message) {
 
@@ -119,17 +121,20 @@ class JsshService extends ConfService {
 
 	public void pingPong(Session userSession, Integer pingRate) {
 		if (userSession && userSession.isOpen()) {
+			String user = userSession.userProperties.get("username") as String
 			boolean sendPong = false
 			while ((sendPong==false)&&(userSession && userSession.isOpen())) {
 				sleep(pingRate ?: 60000)
-				userSession.basicRemote.sendText('ping')
+				//userSession.basicRemote.sendText('ping')
+				clientListenerService.sendFrontEndPM(userSession, user,'ping')
 			}
 		}
 	}
 
 
 	private void closeShell(SshClient ssh, SessionChannelClient session, Session userSession) {
-		def myMsg = [:]
+		//def myMsg = [:]
+		String user = userSession.userProperties.get("username") as String
 		int timeout = 1000;
 		def cc = ssh.getActiveChannelCount() ?: 1
 		if (cc>1) {
@@ -140,9 +145,10 @@ class JsshService extends ConfService {
 			userSession.basicRemote.sendText('Only 1 shell - could not close master window - try closing session : '+cc)
 		}
 		def ncc = ssh.getActiveChannelCount() ?: 1
-		myMsg.put("connCount", ncc.toString())
-		def myMsgj = myMsg as JSON
-		userSession.basicRemote.sendText(myMsgj as String)
+		//myMsg.put("connCount", ncc.toString())
+		def myMsgj = (["connCount": ncc.toString()]as JSON)
+		//userSession.basicRemote.sendText(myMsgj as String)
+		clientListenerService.sendFrontEndPM(userSession, user, myMsgj as String)
 	}
 
 	private void asyncProc(SshClient ssh,  SessionChannelClient session, Session userSession, String message) {
@@ -152,7 +158,7 @@ class JsshService extends ConfService {
 
 	private void newShell(SshClient ssh, SessionChannelClient session, Session userSession) {
 		session = ssh.openSessionChannel()
-
+		String user = userSession.userProperties.get("username") as String
 		SessionOutputReader sor = new SessionOutputReader(session)
 		if (session.requestPseudoTerminal("gogrid",80,24, 0 , 0, "")) {
 			if (session.startShell()) {
@@ -165,8 +171,10 @@ class JsshService extends ConfService {
 		def myMsg = [:]
 		myMsg.put("connCount", cc.toString())
 		def myMsgj = myMsg as JSON
-		userSession.basicRemote.sendText(myMsgj as String)
-		userSession.basicRemote.sendText('New shell created, console window : '+cc)
+		//userSession.basicRemote.sendText(myMsgj as String)
+		//userSession.basicRemote.sendText('New shell created, console window : '+cc)
+		clientListenerService.sendFrontEndPM(userSession, user,myMsgj as String)
+		clientListenerService.sendFrontEndPM(userSession, user, 'New shell created, console window : '+cc)
 	}
 
 	private void sshConnect(SshClient ssh, SessionChannelClient session,
@@ -224,11 +232,13 @@ class JsshService extends ConfService {
 			def authType = "using key file  "
 			if (password) { authType = "using password" }
 			String failMessage = "SSH: Failed authentication user: ${username} on ${host} ${authType}"
-			userSession.basicRemote.sendText(failMessage)
+			//userSession.basicRemote.sendText(failMessage)
+			clientListenerService.sendFrontEndPM(userSession, user, failMessage)
 		}
 	}
 
 	private void processConnection(Session userSession, SessionChannelClient session, String usercommand) {
+		String user = userSession.userProperties.get("username") as String
 		StringBuilder catchup = new StringBuilder()
 
 		if (!usercommand.endsWith('\n')) {
@@ -249,9 +259,11 @@ class JsshService extends ConfService {
 					if (resumed) {
 						resumed = false
 						userSession.basicRemote.sendText(parseBash(catchup as String))
+						clientListenerService.sendFrontEndPM(userSession, user, catchup as String)
 						catchup = new StringBuilder()
 					}
-					userSession.basicRemote.sendText(parseBash(out1))
+					//userSession.basicRemote.sendText(parseBash(out1))
+					clientListenerService.sendFrontEndPM(userSession, user, catchup as String)
 				}
 			}
 		}
@@ -281,22 +293,4 @@ class JsshService extends ConfService {
 		return input
 	}
 
-	
-	/*
-		private void execCmd(SshClient ssh, SessionChannelClient session, String cmd, Session userSession) {
-			try {
-				session = ssh.openSessionChannel();
-				if ( session.executeCommand(cmd) )	{
-					IOStreamConnector output = new IOStreamConnector();
-					java.io.ByteArrayOutputStream bos =  new
-							java.io.ByteArrayOutputStream();
-					output.connect(session.getInputStream(), bos );
-					session.getState().waitForState(ChannelState.CHANNEL_CLOSED);
-					userSession.basicRemote.sendText(bos.toString())
-				}
-			}	  catch(Exception e)  {
-				log.debug "Exception : " + e.getMessage()
-			}
-		}
-	*/
 }

@@ -2,7 +2,9 @@ package grails.plugin.jssh.logging
 
 class ConnectionLogs {
 	
-	SshLogger log
+	ConnectionLogs conlog
+	CommandLogs comlog
+	
 	String user
 	String contents
 	Date dateCreated

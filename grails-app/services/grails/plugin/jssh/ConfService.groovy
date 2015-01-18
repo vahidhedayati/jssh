@@ -5,7 +5,11 @@ package grails.plugin.jssh
 class ConfService {
 
 	static transactional  =  false
-
+	static final String CONNECTOR = "CONN:-";
+	static final String DISCONNECTOR = "DISCO:-";
+	static final String APP = "JsshEndpoint";
+	static final String VIEW = "connectSsh";
+	
 	def grailsApplication
 
 	boolean isConfigEnabled(String input) {

@@ -2,7 +2,7 @@ package grails.plugin.jssh
 
 class SshServerGroups {
 	
-	SshUser user
+	JsshUser user
 	
 	String name
 	

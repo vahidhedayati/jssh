@@ -1,17 +1,20 @@
 package grails.plugin.jssh
+
+import javax.websocket.Session
+
 class ConnectSshTagLib extends ConfService {
 	static namespace = "jssh"
 	def connectSsh
 	def jsshConfig
 	def pluginbuddyService
 	def randService
-	
+	def clientListenerService
 	private String hostname, username, userCommand, password, template, port
 	
 	private String wshostname, hideConsoleMenu, hideSendBlock, hideSessionCtrl,
 	hideWhatsRunning, hideDiscoButton, hidePauseControl, hideNewShellButton, jobName,
-	jsshUser
-
+	jsshUser, divId, enablePong, pingRate, addAppName
+	
 	def chooseLayout =  { attrs ->
 		genericOpts(attrs)
 		def input = attrs.remove('input')?.toString()
@@ -63,24 +66,6 @@ class ConnectSshTagLib extends ConfService {
 		genericOpts(attrs)
 		socketOpts(attrs)
 		
-		def divId = attrs.remove('divId')?.toString()
-		def enablePong = attrs.remove('enablePong')?.toString() ?: config.enablePong
-		// In milliseconds how to long to wait before sending next ping 
-		def pingRate = attrs.remove('pingRate')?.toString() ?: config.pingRate ?: '60000'
-		
-		String addAppName =  config.addAppName ?: 'YES'
-		
-		if (!userCommand) {
-			userCommand="echo \"\$USER has logged into \$HOST\""
-		}
-		if (!jobName) {
-			jobName=randService.randomise('job')
-		}
-		
-		if (!jsshUser) {
-			jsshUser=randService.randomise('jsshUser')
-		}
-		
 		boolean frontend = attrs.remove('frontend')?.toBoolean() ?: false
 		
 		def model = [hideWhatsRunning:hideWhatsRunning, hideDiscoButton:hideDiscoButton, hidePauseControl:hidePauseControl, 
@@ -93,6 +78,34 @@ class ConnectSshTagLib extends ConfService {
 	}
 
 	def conn = { attrs ->
+		genericOpts(attrs)
+		socketOpts(attrs)
+		
+		boolean frontend = true
+		def model = [hideWhatsRunning:hideWhatsRunning, hideDiscoButton:hideDiscoButton, hidePauseControl:hidePauseControl,
+			hideSessionCtrl:hideSessionCtrl, hideNewShellButton:hideNewShellButton, hideConsoleMenu:hideConsoleMenu,
+			hideSendBlock:hideSendBlock, wshostname:wshostname, hostname:hostname, port:port, addAppName:addAppName,
+			username:username, password:password, userCommand:userCommand, divId:divId,
+			enablePong:enablePong, pingRate:pingRate, jobName:jobName, jsshUser:jsshUser, frontend:frontend]
+		if (!appName) {
+			appName = grailsApplication.metadata['app.name']
+		}
+
+	
+		if (!message) {
+			message = "testing"
+		}
+
+		String uri="ws://${wshostname}/${appName}/${APP}/"
+		if (addAppName=="no") {
+			uri="ws://${hostname}/${APP}/"
+		}
+
+		// Make a socket connection as actual main user (backend connection)
+		Session oSession = clientListenerService.p_connect(uri, jsshUser, jobName)
+
+		// TODO
+		loadTemplate(attrs,'socketConnect', model)
 		
 	}
 	
@@ -138,6 +151,10 @@ class ConnectSshTagLib extends ConfService {
 		
 		this.jobName = attrs.remove('jobName')?.toString()
 		
+		if (!jobName) {
+			jobName=randService.randomise('job')
+		}
+		
 		if (!attrs.hideSendBlock) {
 			this.hideSendBlock = config.hideSendBlock ?: 'YES'
 		}else{
@@ -173,6 +190,19 @@ class ConnectSshTagLib extends ConfService {
 		}else{
 			this.hideNewShellButton = attrs.hideNewShellButton
 		}
+		
+		this.jsshUser = attrs.remove('jsshUser')?.toString()
+		if (!jsshUser) {
+			jsshUser=randService.randomise('jsshUser')
+		}
+		
+		this.divId = attrs.remove('divId')?.toString()
+		this.enablePong = attrs.remove('enablePong')?.toString() ?: config.enablePong
+		// In milliseconds how to long to wait before sending next ping
+		this.pingRate = attrs.remove('pingRate')?.toString() ?: config.pingRate ?: '60000'
+		
+		this.addAppName =  config.addAppName ?: 'YES'
+		
 	}
 	
 }

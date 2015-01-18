@@ -102,7 +102,7 @@ class JsshEndpoint implements ServletContextListener {
 		def data = JSON.parse(message)
 		// authentication stuff - system calls
 		if (data) {
-			authService.authenticate(ssh, userSession, data)
+			authService.authenticate(sshUsers, ssh, session, properties, userSession, data)
 		} else{
 			jsshService.processRequest(ssh, session, properties, userSession,message)
 		}
