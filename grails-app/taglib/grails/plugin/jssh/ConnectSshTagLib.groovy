@@ -17,6 +17,9 @@ class ConnectSshTagLib extends ConfService {
 	
 	def chooseLayout =  { attrs ->
 		genericOpts(attrs)
+		def file = attrs.remove('file')?.toString()
+		def loadtemplate = attrs.remove('loadtemplate')?.toString()
+		
 		def input = attrs.remove('input')?.toString()
 		def pageid = attrs.remove('pageid')?.toString()
 		def pagetitle = attrs.remove('pagetitle')?.toString()
@@ -139,9 +142,9 @@ class ConnectSshTagLib extends ConfService {
 			userCommand="echo \"\$USER has logged into \$HOST\""
 		}
 		
-		if (!hostname) {
-			throwTagError("Tag is missing required attribute [hostname]")
-		}
+		//if (!hostname) {
+		//	throwTagError("Tag is missing required attribute [hostname]")
+		//}
 
 
 	}

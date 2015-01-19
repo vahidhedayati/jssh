@@ -2,6 +2,7 @@ package grails.plugin.jssh
 
 class ConnectSshController extends ConfService {
 	def connectSsh
+	def randService
 	//def jsshConfig
 	
 	
@@ -50,7 +51,7 @@ class ConnectSshController extends ConfService {
 		String addAppName =  config.addAppName ?: 'YES'
 		String jobName,jsshUser
 		if (!jobName) {
-			jobName=randService.randomise('job')
+			jobName=randService.shortRand('job')
 		}
 		
 		if (!jsshUser) {
@@ -62,7 +63,8 @@ class ConnectSshController extends ConfService {
 			uri="ws://${hostname}/${APP}/"
 		}
 		
-		boolean frontend = attrs.remove('frontend')?.toBoolean() ?: false
+		//boolean frontend = params.frontend.toBoolean() ?: false
+		boolean frontend = false
 		Map model= [hideNewShellButton:hideNewShellButton, hideWhatsRunning:hideWhatsRunning, hideDiscoButton:hideDiscoButton, 
 			hidePauseControl:hidePauseControl, hideSessionCtrl:hideSessionCtrl, hideConsoleMenu:hideConsoleMenu, hideSendBlock:hideSendBlock,
 			divId:divId, username:username, port:port, password:password, hostname:hostname, userCommand:userCommand, wshostname:wshostname, 

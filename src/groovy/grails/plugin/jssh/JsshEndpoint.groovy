@@ -97,15 +97,23 @@ class JsshEndpoint implements ServletContextListener {
 	@OnClose
 	public void handeClose() {
 		//log.debug "Client is now disconnected."
-		session.close()
-		ssh.disconnect()
+		if (session && session.isOpen()) {
+			session.close()
+		}
+		if (ssh && ssh.isConnected()) {
+			ssh.disconnect()
+		}
 	}
 
 	@OnError
 	public void handleError(Throwable t) {
 		t.printStackTrace()
-		session.close()
-		ssh.disconnect()
+		if (session.isOpen()) {
+			session.close()
+		}
+		if (ssh.isConnected()) {
+			ssh.disconnect()
+		}
 	}
 
 

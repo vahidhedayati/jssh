@@ -30,8 +30,12 @@ class JsshService extends ConfService {
 			SshConnectionProperties properties,Session userSession, String message) {
 
 		if  (message.equals('DISCO:-')) {
-			session.close()
-			ssh.disconnect()
+			if (session && session.isOpen()) {
+				session.close()
+			}
+			if (ssh && ssh.isConnected()) {
+				ssh.disconnect()
+			}
 		} else if  (message.equals('PAUSE:-')) {
 			pauseLog = true
 		} else if  (message.equals('RESUME:-')) {
@@ -52,11 +56,8 @@ class JsshService extends ConfService {
 		}else if (message.equals('PING')) {
 			pingPong(userSession)
 		}else if (message.equals('PONG')) {
-			//log.debug "We have a pong"
-			// Nothing to do - ping/pong controlled via user initial connector.
+			
 		} else {
-			// Will return here conflicts with custom calls
-			// Ensure user can actually send stuff according to back-end config
 			if (config.security == "enabled")  {
 				if ((!config.hideSendBlock)||(!config.hideSendBlock.equals('YES')))  {
 					asyncProc(ssh, session, userSession, message)
@@ -70,15 +71,11 @@ class JsshService extends ConfService {
 	}
 
 	public void sshControl(SshClient ssh, SessionChannelClient session, String usercommand, Session userSession) {
-		//StringBuilder catchup = new StringBuilder()
 		Boolean newChann = false
-
 		String newchannel = config.NEWCONNPERTRANS ?: ''
 		String hideSessionCtrl = config.hideSessionCtrl ?: ''
 
 		if (config.security == "enabled") {
-			// Ensure user is not attempting to gain unauthorised access -
-			// Check back-end config: ensure session control is enabled.
 			if ((newchannel.equals('YES'))||(hideSessionCtrl.equals('NO')&&(newSession)&&(sameSession==false))) {
 				newChann = true
 			}else if ((newSession)&&(hideSessionCtrl.equals('NO'))) {
@@ -87,7 +84,6 @@ class JsshService extends ConfService {
 				newChann = false
 			}
 		}
-		// No security enabled - do as user asks.
 		else{
 			if ((newchannel.equals('YES'))||((newSession)&&(sameSession==false))) {
 				newChann = true
@@ -128,7 +124,6 @@ class JsshService extends ConfService {
 			asyncProcess.start()
 		}
 	}
-	
 
 	private void closeShell(SshClient ssh, SessionChannelClient session, Session userSession) {
 		def myMsg = [:]
@@ -154,12 +149,10 @@ class JsshService extends ConfService {
 
 	private void newShell(SshClient ssh, SessionChannelClient session, Session userSession) {
 		session = ssh.openSessionChannel()
-
 		SessionOutputReader sor = new SessionOutputReader(session)
 		if (session.requestPseudoTerminal("gogrid",80,24, 0 , 0, "")) {
 			if (session.startShell()) {
 				ChannelOutputStream out = session.getOutputStream()
-
 			}
 		}
 
@@ -171,8 +164,7 @@ class JsshService extends ConfService {
 		userSession.basicRemote.sendText('New shell created, console window : '+cc)
 	}
 
-	private void sshConnect(SshClient ssh, SessionChannelClient session=null,
-			SshConnectionProperties properties=null,  String user, String userpass,
+	private void sshConnect(SshClient ssh, SessionChannelClient session=null, SshConnectionProperties properties=null,  String user, String userpass,
 		 String host, String usercommand, int port, Session userSession)  {
 
 		String sshuser = config.USER ?: ''
@@ -221,15 +213,7 @@ class JsshService extends ConfService {
 
 		// Evaluate the result
 		if (isAuthenticated) {
-			
-		//	if (enablePong) {
-			//	pingPong(userSession, pingRate)
-			//	def asyncProcess1 = new Thread({jsshService.pingPong(userSession, pingRate)} as Runnable )
-			//	asyncProcess1.start()
-			//}
-			
 			sshControl(ssh, session, usercommand, userSession)
-			
 		}else{
 			def authType = "using key file  "
 			if (password) { authType = "using password" }
@@ -268,7 +252,6 @@ class JsshService extends ConfService {
 	}
 
 	private String parseBash(String input) {
-
 		Map bashMap = [
 			'[1;30m' : '<span style="color:black">',
 			'[1;31m' : '<span style="color:red">',
@@ -281,7 +264,6 @@ class JsshService extends ConfService {
 			'[m'   : '</span>',
 			'[0m'   : '</span>'
 		]
-
 		bashMap.each { k,v ->
 			if (input.contains(k)) {
 				//input = input.toString().replace(k, v)

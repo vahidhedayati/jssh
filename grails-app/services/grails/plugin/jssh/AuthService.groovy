@@ -51,11 +51,19 @@ class AuthService {
 	private void singleUser(SshClient ssh, SessionChannelClient session=null,
 			SshConnectionProperties properties=null,Session userSession) {
 		// Initial call lets connect
-		def asyncProcess = new Thread({ jsshService.sshConnect(ssh, session, properties, user, userpass, 
+		boolean go = true
+		try {
+			def asyncProcess = new Thread({ jsshService.sshConnect(ssh, session, properties, user, userpass, 
 				host, usercommand, port, userSession)
 			} as Runnable )
 		asyncProcess.start()
-		if (enablePong) {
+		
+		} catch (Exception e) {
+			go = false
+		//	e.printStackTrace()
+		}
+		
+		if (enablePong && go ) {
 			jsshService.pingPong(userSession)
 		}
 	}
