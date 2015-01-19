@@ -42,10 +42,10 @@ class AuthService {
 		}
 	}
 
-	private void multiUser(Set<Session> sshUsers, SshClient ssh, SessionChannelClient session=null,
-			SshConnectionProperties properties=null,Session userSession) {
-		j2sshService.sshConnect(sshUsers, ssh, session, properties, user, userpass, host, usercommand,
-				port, userSession)
+	private void multiUser(Set<Session> sshUsers, SshClient ssh, SessionChannelClient session=null, 
+		SshConnectionProperties properties=null,Session userSession) {
+		
+		j2sshService.sshConnect(sshUsers, ssh, session, properties, user, userpass, host, usercommand, port, userSession)
 	}
 
 	private void singleUser(SshClient ssh, SessionChannelClient session=null,
@@ -53,8 +53,7 @@ class AuthService {
 		// Initial call lets connect
 		boolean go = true
 		try {
-			def asyncProcess = new Thread({ jsshService.sshConnect(ssh, session, properties, user, userpass,
-				host, usercommand, port, userSession)
+			def asyncProcess = new Thread({ jsshService.sshConnect(ssh, session, properties, user, userpass, host, usercommand, port, userSession)
 			} as Runnable )
 			asyncProcess.start()
 

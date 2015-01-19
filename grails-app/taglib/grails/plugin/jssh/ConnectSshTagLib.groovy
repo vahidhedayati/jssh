@@ -103,7 +103,7 @@ class ConnectSshTagLib extends ConfService {
 			appName = grailsApplication.metadata['app.name']
 		}
 
-		def connMap = [frontend: frontend,  user: username, username:username, password: password,
+		def connMap = [frontend: frontend,  backuser: cuser, user: username, username:username, password: password,
 			hostname: hostname, port: port, enablePong: enablePong, pingRate: pingRate, usercommand: userCommand,
 			divId:divId, jsshApp: APP, uri:uri, job: jobName, frontuser:frontuser, hideWhatsRunning:hideWhatsRunning,
 			hideDiscoButton:hideDiscoButton, hidePauseControl:hidePauseControl, hideSessionCtrl:hideSessionCtrl,

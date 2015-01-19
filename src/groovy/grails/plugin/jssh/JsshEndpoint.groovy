@@ -94,21 +94,38 @@ class JsshEndpoint extends ConfService implements ServletContextListener {
 	public void handleMessage(String message, Session userSession) {
 		String username = userSession.userProperties.get("username") as String
 		String job  =  userSession.userProperties.get("job") as String
+		println "--- WE HAVE MSG: ${message}"
 		if (message.startsWith('/pm')) {
+			
 			def values = parseInput("/pm ",message)
 
 			String user = values.user as String
 			String msg = values.msg as String
+			//messagingService.privateMessage(sshUsers, userSession, user,msg)
+			//println "__ PARSING PM SENDING MSG"
+			//messagingService.forwardMessage( user,msg)
+			
+			println "A msg from $username for $user -------------------------- WOOOT"
+			if (user != username) {
 			messagingService.privateMessage(sshUsers, userSession, user,msg)
+			}else{
+				println "Messaging yourself?"
+			}
 		}else{
 			def data = JSON.parse(message)
 			if (data) {
 				authService.authenticate(sshUsers, ssh, session, properties, userSession, data)
 			} else{
-				boolean frontend = data.frontend.toBoolean()
+				boolean frontend =  false
+				if (data.frontend) {
+					frontend =  data.frontend.toBoolean() ?: false
+				}	
+				
 				if (frontend) {
+					println "---NEW $frontend j2ssh.processRequest"
 					j2sshService.processRequest(sshUsers, ssh, session, properties, userSession,message)
 				}else{
+					println "---OLD $frontend jssh.processRequest"
 					jsshService.processRequest(ssh, session, properties, userSession,message)
 				}
 			}

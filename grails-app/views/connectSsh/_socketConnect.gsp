@@ -5,6 +5,7 @@
 
 	var loggedInUsers=[];
 	var user="${user }";
+	var backuser='${backuser}';
 	var uri="${uri}";
 	var webSocket${divId}=new WebSocket(uri);
 	webSocket${divId}.onopen=function(message) {processOpen${divId}(message);};
@@ -20,7 +21,8 @@
 		webSocket${divId}.send(JSON.stringify({'frontend':"${frontend}",'jsshUser':"${frontuser}"}))
 	}
 		function processMessage${divId}(message) {
-
+			//console.log(JSON.stringify(message));
+			//console.log(message);
 		var json;
 		try {
 	  		json = JSON.parse(message.data);
@@ -77,14 +79,15 @@
     }
     
 	function sendMessage${divId}() {
-		if (textMessage.value!="close") {
-		
+		if (textMessage${divId}.value!="close") {
+			
 			if ((textMessage${divId}.value.indexOf('\n')>-1) || (textMessage${divId}.value.indexOf('\r')>-1) ) {
 				actOnEachLine(textMessage${divId}, function(line) {
-   					webSocket${divId}.send(line);
+   					webSocket${divId}.send('/pm '+backuser+','+line);
 				});
 			}else{
-				webSocket${divId}.send(textMessage${divId}.value);
+				console.log('/pm '+backuser+','+textMessage${divId}.value);
+				webSocket${divId}.send('/pm '+backuser+','+textMessage${divId}.value);
 			}
 			
 			$('#whatCommand${divId}').html(textMessage${divId}.value);

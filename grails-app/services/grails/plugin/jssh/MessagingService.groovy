@@ -17,6 +17,7 @@ class MessagingService extends ConfService  {
 	def forwardMessage(String username, String message) {
 		Session user = usersSession(username)
 		if (user) {
+			println "== found ${username} sending $message"
 			user.basicRemote.sendText(message)
 		}
 	}

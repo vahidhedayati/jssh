@@ -16,11 +16,13 @@ public class ClientProcessService extends ConfService  {
 	public void processResponse(Session userSession, String message) {
 		String username = userSession.userProperties.get("username") as String
 		boolean disco = true
+		println "PROCESS HAS MESSAGE : "+message
 		if (message.startsWith("/pm")) {
 
 			def values = parseInput("/pm ",message)
 			String user = values.user as String
 			String msg = values.msg as String
+			println "___ WE HAVE A PM ${msg} for $user"
 			messagingService.forwardMessage(user,msg)
 
 		}else if (message.startsWith('{')) {
@@ -68,6 +70,10 @@ public class ClientProcessService extends ConfService  {
 			}else{
 				clientListenerService.sendFEPM(userSession, username, message)
 			}
+		}else{
+		println "SENDING ALL OTHER MESSAGES TO ${username} $message"
+		//clientListenerService.sendBackPM(username,message)
+		clientListenerService.sendBackEndPM(userSession, username, message)
 		}
 	}
 
