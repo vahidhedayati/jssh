@@ -1,5 +1,7 @@
 package grails.plugin.jssh
 
+import java.util.Map;
+
 import grails.converters.JSON
 
 import javax.websocket.Session
@@ -12,9 +14,11 @@ import com.sshtools.j2ssh.session.SessionChannelClient
 
 
 class AuthService {
+
 	def randService
 	def jsshService
 	def j2sshService
+
 	private String host, user, userpass, usercommand
 	private int port = 22
 	private boolean enablePong
@@ -29,40 +33,36 @@ class AuthService {
 
 		verifyGeneric(data)
 		userSession.userProperties.put("pingRate", pingRate)
-		
 		if (frontend) {
 			multiUser(sshUsers, ssh, session, properties, userSession)
 		}else{
-			singleUser(ssh, session, properties, userSession)
+			if (user) {
+				singleUser(ssh, session, properties, userSession)
+			}
 		}
-
 	}
 
 	private void multiUser(Set<Session> sshUsers, SshClient ssh, SessionChannelClient session=null,
 			SshConnectionProperties properties=null,Session userSession) {
-			//TODO
-			j2sshService.sshConnect(ssh, session, properties, user, userpass, host, usercommand,
+		j2sshService.sshConnect(sshUsers, ssh, session, properties, user, userpass, host, usercommand,
 				port, userSession)
-			//if (enablePong) {
-			//	j2sshService.pingPong(userSession, pingRate)
-			//}
-	}		
-				
+	}
+
 	private void singleUser(SshClient ssh, SessionChannelClient session=null,
 			SshConnectionProperties properties=null,Session userSession) {
 		// Initial call lets connect
 		boolean go = true
 		try {
-			def asyncProcess = new Thread({ jsshService.sshConnect(ssh, session, properties, user, userpass, 
+			def asyncProcess = new Thread({ jsshService.sshConnect(ssh, session, properties, user, userpass,
 				host, usercommand, port, userSession)
 			} as Runnable )
-		asyncProcess.start()
-		
+			asyncProcess.start()
+
 		} catch (Exception e) {
 			go = false
-		//	e.printStackTrace()
+			//	e.printStackTrace()
 		}
-		
+
 		if (enablePong && go ) {
 			jsshService.pingPong(userSession)
 		}

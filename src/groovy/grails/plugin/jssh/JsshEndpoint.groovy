@@ -1,6 +1,8 @@
 package grails.plugin.jssh
 
 
+import java.util.Map;
+
 import grails.converters.JSON
 import grails.util.Environment
 
@@ -29,16 +31,19 @@ import com.sshtools.j2ssh.session.SessionChannelClient
 
 @WebListener
 @ServerEndpoint("/j2ssh/{job}")
-class JsshEndpoint implements ServletContextListener {
-	static final Set<Session> sshUsers = ([] as Set).asSynchronized()
+class JsshEndpoint extends ConfService implements ServletContextListener {
+
 
 	private final Logger log = LoggerFactory.getLogger(getClass().name)
 
 	private boolean enablePong = false
 	private Integer pingRate
 	private ConfigObject config
+
 	private AuthService authService
 	private JsshService jsshService
+	private J2sshService j2sshService
+	private MessagingService messagingService
 
 	private SshClient ssh = new SshClient()
 	private SessionChannelClient session
@@ -79,20 +84,37 @@ class JsshEndpoint implements ServletContextListener {
 		config = grailsApplication.config.jssh
 		authService = ctx.authService
 		jsshService = ctx.jsshService
+		j2sshService = ctx.j2sshService
+		messagingService = ctx.messagingService
 		userSession.userProperties.put("job", job)
 
 	}
 
 	@OnMessage
 	public void handleMessage(String message, Session userSession) {
-		def data = JSON.parse(message)
-		// authentication stuff - system calls
-		if (data) {
-			authService.authenticate(sshUsers, ssh, session, properties, userSession, data)
-		} else{
-			jsshService.processRequest(ssh, session, properties, userSession,message)
+		String username = userSession.userProperties.get("username") as String
+		String job  =  userSession.userProperties.get("job") as String
+		if (message.startsWith('/pm')) {
+			def values = parseInput("/pm ",message)
+
+			String user = values.user as String
+			String msg = values.msg as String
+			messagingService.privateMessage(sshUsers, userSession, user,msg)
+		}else{
+			def data = JSON.parse(message)
+			if (data) {
+				authService.authenticate(sshUsers, ssh, session, properties, userSession, data)
+			} else{
+				boolean frontend = data.frontend.toBoolean()
+				if (frontend) {
+					j2sshService.processRequest(sshUsers, ssh, session, properties, userSession,message)
+				}else{
+					jsshService.processRequest(ssh, session, properties, userSession,message)
+				}
+			}
 		}
 	}
+
 
 	@OnClose
 	public void handeClose() {

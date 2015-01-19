@@ -18,12 +18,12 @@ import org.slf4j.LoggerFactory
 
 @ClientEndpoint
 public class JsshClientEndpoint  {
-	 
+
 	private final Logger log = LoggerFactory.getLogger(getClass().name)
 	private Session userSession = null
 	private String job = null
 	private ClientProcessService clientProcessService
-	
+
 	@OnOpen
 	public void handleOpen(Session userSession,EndpointConfig c,@PathParam("job") String job) {
 		this.userSession = userSession
@@ -31,20 +31,20 @@ public class JsshClientEndpoint  {
 		def ctx= SCH.servletContext.getAttribute(GA.APPLICATION_CONTEXT)
 		clientProcessService = ctx.clientProcessService
 	}
-	
+
 	@OnClose
 	public void onClose(final Session userSession, final CloseReason reason) {
 		this.userSession = null
 	}
 
 	@OnMessage
-    public void onMessage(String message, Session userSession){
-        try {
+	public void onMessage(String message, Session userSession){
+		try {
 			clientProcessService.processResponse(userSession,message)
-        } catch (IOException ex) {
-            ex.printStackTrace()
-        }
-    }
+		} catch (IOException ex) {
+			ex.printStackTrace()
+		}
+	}
 
 	@OnError
 	public void handleError(Throwable t) {
@@ -54,7 +54,7 @@ public class JsshClientEndpoint  {
 	public void sendMessage(final String message) {
 		userSession.basicRemote.sendText(message)
 	}
-	
+
 	public Session returnSession() {
 		return userSession
 	}

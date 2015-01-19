@@ -11,7 +11,6 @@ import com.sshtools.j2ssh.authentication.PublicKeyAuthenticationClient
 import com.sshtools.j2ssh.configuration.SshConnectionProperties
 import com.sshtools.j2ssh.connection.ChannelOutputStream
 import com.sshtools.j2ssh.connection.ChannelState
-import com.sshtools.j2ssh.io.IOStreamConnector
 import com.sshtools.j2ssh.session.SessionChannelClient
 import com.sshtools.j2ssh.session.SessionOutputReader
 import com.sshtools.j2ssh.transport.IgnoreHostKeyVerification
@@ -28,8 +27,8 @@ class J2sshService extends ConfService {
 	private boolean sameSession = false
 
 	def clientListenerService
-	
-	public processRequest(SshClient ssh, SessionChannelClient session,
+
+	public processRequest(Set<Session> sshUsers, SshClient ssh, SessionChannelClient session,
 			SshConnectionProperties properties,Session userSession, String message) {
 
 		if  (message.equals('DISCO:-')) {
@@ -60,17 +59,17 @@ class J2sshService extends ConfService {
 			// Ensure user can actually send stuff according to back-end config
 			if (config.security == "enabled")  {
 				if ((!config.hideSendBlock)||(!config.hideSendBlock.equals('YES')))  {
-					asyncProc(ssh, session, userSession, message)
+					asyncProc(sshUsers, ssh, session, userSession, message)
 				}
 			}
 			// No security just do it
 			else{
-				asyncProc(ssh, session, userSession, message)
+				asyncProc(sshUsers, ssh, session, userSession, message)
 			}
 		}
 	}
 
-	public void sshControl(SshClient ssh, SessionChannelClient session, String usercommand, Session userSession) {
+	public void sshControl(Set<Session> sshUsers, SshClient ssh, SessionChannelClient session, String usercommand, Session userSession) {
 		//StringBuilder catchup = new StringBuilder()
 		Boolean newChann = false
 
@@ -105,14 +104,14 @@ class J2sshService extends ConfService {
 		def myMsgj = myMsg as JSON
 		userSession.basicRemote.sendText(myMsgj as String)
 		if ((cc>1)&&(newChann==false)) {
-			processConnection(userSession, session, usercommand)
+			processConnection(sshUsers, userSession, session, usercommand)
 		}else{
 			session = ssh.openSessionChannel()
 			SessionOutputReader sor = new SessionOutputReader(session)
 			if (session.requestPseudoTerminal("gogrid",80,24, 0 , 0, "")) {
 				if (session.startShell()) {
 					ChannelOutputStream out = session.getOutputStream()
-					processConnection(userSession, session, usercommand)
+					processConnection(sshUsers, userSession, session, usercommand)
 				}
 			}
 		}
@@ -151,8 +150,8 @@ class J2sshService extends ConfService {
 		clientListenerService.sendFrontEndPM(userSession, user, myMsgj as String)
 	}
 
-	private void asyncProc(SshClient ssh,  SessionChannelClient session, Session userSession, String message) {
-		def asyncProcess = new Thread({sshControl(ssh, session, message, userSession)} as Runnable )
+	private void asyncProc(Set<Session> sshUsers, SshClient ssh,  SessionChannelClient session, Session userSession, String message) {
+		def asyncProcess = new Thread({sshControl(sshUsers, ssh, session, message, userSession)} as Runnable )
 		asyncProcess.start()
 	}
 
@@ -177,9 +176,9 @@ class J2sshService extends ConfService {
 		clientListenerService.sendFrontEndPM(userSession, user, 'New shell created, console window : '+cc)
 	}
 
-	private void sshConnect(SshClient ssh, SessionChannelClient session,
+	private void sshConnect(Set<Session> sshUsers, SshClient ssh, SessionChannelClient session,
 			SshConnectionProperties properties,  String user, String userpass,
-		 String host, String usercommand, int port, Session userSession)  {
+			String host, String usercommand, int port, Session userSession)  {
 
 		String sshuser = config.USER ?: ''
 		String sshpass = config.PASS ?: ''
@@ -224,20 +223,27 @@ class J2sshService extends ConfService {
 				isAuthenticated = true
 			}
 		}
-
 		// Evaluate the result
 		if (isAuthenticated) {
-			sshControl(ssh, session, usercommand, userSession)
+			def asyncProcess = new Thread({
+				sleep(700)
+				sshControl(sshUsers, ssh, session, usercommand, userSession)
+			} as Runnable )
+			asyncProcess.start()
+
+
+
+
 		}else{
 			def authType = "using key file  "
 			if (password) { authType = "using password" }
 			String failMessage = "SSH: Failed authentication user: ${username} on ${host} ${authType}"
 			//userSession.basicRemote.sendText(failMessage)
-			clientListenerService.sendFrontEndPM(userSession, user, failMessage)
+			clientListenerService.sendFrontEndPM( sshUsers,userSession, user, failMessage)
 		}
 	}
 
-	private void processConnection(Session userSession, SessionChannelClient session, String usercommand) {
+	private void processConnection(Set<Session> sshUsers, Session userSession, SessionChannelClient session, String usercommand) {
 		String user = userSession.userProperties.get("username") as String
 		StringBuilder catchup = new StringBuilder()
 
@@ -259,11 +265,11 @@ class J2sshService extends ConfService {
 					if (resumed) {
 						resumed = false
 						userSession.basicRemote.sendText(parseBash(catchup as String))
-						clientListenerService.sendFrontEndPM(userSession, user, catchup as String)
+
+						clientListenerService.sendFrontEndPM(sshUsers,userSession, user, catchup as String)
 						catchup = new StringBuilder()
 					}
-					//userSession.basicRemote.sendText(parseBash(out1))
-					clientListenerService.sendFrontEndPM(userSession, user, catchup as String)
+					clientListenerService.sendFrontEndPM(sshUsers, userSession, user, parseBash(out1))
 				}
 			}
 		}

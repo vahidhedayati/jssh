@@ -4,26 +4,23 @@
 <g:javascript>
 
 	var loggedInUsers=[];
-	// VH
 	var user="${user }";
 	var uri="${uri}";
-	console.log('--${divId }');
 	var webSocket${divId}=new WebSocket(uri);
 	webSocket${divId}.onopen=function(message) {processOpen${divId}(message);};
 	webSocket${divId}.onclose=function(message) {processClose${divId}(message);};
 	webSocket${divId}.onerror=function(message) {processError${divId}(message);};
-	webSocket${divId}.onmessage=function(message) {processMessage(${divId}message);	};
-
+	webSocket${divId}.onmessage=function(message) {processMessage${divId}(message);	};
 
 	var userList=[];
 	
 	
 	function processOpen${divId}(message) {
-		$('#messagesTextarea${divId}').append('Server Connect....\n');
-		webSocket${divId}.send(JSON.stringify({'frontend':"${frontend}",'jsshUser':"${frontuser}",'user':"${username}",'password':"${password}", 'hostname':"${hostname}", 'port': "${port }" ,	'enablePong':"${enablePong }",'pingRate':"${pingRate }", 'usercommand': "${userCommand}"}))
+		$('#messagesTextarea${divId}').append('Client Socket connected to Socket Server....\n');
+		webSocket${divId}.send(JSON.stringify({'frontend':"${frontend}",'jsshUser':"${frontuser}"}))
 	}
 		function processMessage${divId}(message) {
-		console.log('--'+message);
+
 		var json;
 		try {
 	  		json = JSON.parse(message.data);
@@ -31,12 +28,10 @@
 	  		json = null;
 		}
 		if(json) {
-			console.log('2 --'+JSON.stringify(message.data));
 			var jsonData=JSON.parse(message.data);
 			$('#connectionCount${divId}').html(jsonData.connCount);
 		}else{
 			if (message.data == "ping") {
-				//console.log('Got ping, sending Pong');
 				webSocket${divId}.send('PONG');
 			}else{
 				$('#messagesTextarea${divId}').append(escapeHtml(message.data));
@@ -131,10 +126,6 @@
 		return ison;
 	}	
 
-	
-	
-		
-	
 	
 	window.onbeforeunload = function() {
 		webSocket${divId}.onclose = function() { }

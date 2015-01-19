@@ -10,16 +10,16 @@ class ConnectSshTagLib extends ConfService {
 	def randService
 	def clientListenerService
 	private String hostname, username, userCommand, password, template, port
-	
+
 	private String wshostname, hideConsoleMenu, hideSendBlock, hideSessionCtrl,
 	hideWhatsRunning, hideDiscoButton, hidePauseControl, hideNewShellButton, jobName,
 	jsshUser, divId, enablePong, pingRate, addAppName
-	
+
 	def chooseLayout =  { attrs ->
 		genericOpts(attrs)
 		def file = attrs.remove('file')?.toString()
 		def loadtemplate = attrs.remove('loadtemplate')?.toString()
-		
+
 		def input = attrs.remove('input')?.toString()
 		def pageid = attrs.remove('pageid')?.toString()
 		def pagetitle = attrs.remove('pagetitle')?.toString()
@@ -36,11 +36,11 @@ class ConnectSshTagLib extends ConfService {
 			pageid:pageid, pagetitle:pagetitle ]
 		out << g.render(contextPath: pluginContextPath, template: "/connectSsh/${gfolder}/${file}", model: model)
 	}
-	
+
 	def ajaxconnect =  { attrs ->
-	
+
 		genericOpts(attrs)
-		
+
 		if (username) {
 			connectSsh.setUser(username)
 		}
@@ -51,77 +51,74 @@ class ConnectSshTagLib extends ConfService {
 
 		connectSsh.setHost(hostname)
 		connectSsh.setUsercommand(userCommand)
-		
+
 		session.referrer = request.getHeader('referer')
-		
+
 		def asyncProcess = new Thread({	connectSsh.ssh(jsshConfig)  } as Runnable )
 		asyncProcess.start()
-		
+
 		def input = connectSsh.output
-		
+
 		Map model = [input:input, port:port, hostname:hostname, userCommand:userCommand]
-		
+
 		loadTemplate(template, '/connectSsh/process', model)
 	}
 
 	def socketconnect =  { attrs ->
-		
+
 		genericOpts(attrs)
 		socketOpts(attrs)
-		
+
 		boolean frontend = attrs.remove('frontend')?.toBoolean() ?: false
 		String uri="ws://${wshostname}/${appName}/${APP}/"
 		if (addAppName=="no") {
 			uri="ws://${hostname}/${APP}/"
 		}
-		def model = [hideWhatsRunning:hideWhatsRunning, hideDiscoButton:hideDiscoButton, hidePauseControl:hidePauseControl, 
-			hideSessionCtrl:hideSessionCtrl, hideNewShellButton:hideNewShellButton, hideConsoleMenu:hideConsoleMenu, 
-			hideSendBlock:hideSendBlock, wshostname:wshostname, hostname:hostname, port:port, addAppName:addAppName, 
+		def model = [hideWhatsRunning:hideWhatsRunning, hideDiscoButton:hideDiscoButton, hidePauseControl:hidePauseControl,
+			hideSessionCtrl:hideSessionCtrl, hideNewShellButton:hideNewShellButton, hideConsoleMenu:hideConsoleMenu,
+			hideSendBlock:hideSendBlock, wshostname:wshostname, hostname:hostname, port:port, addAppName:addAppName,
 			username:username, password:password, userCommand:userCommand, divId:divId, uri:uri,
 			enablePong:enablePong, pingRate:pingRate, jobName:jobName, jsshUser:jsshUser, frontend:frontend]
-		
-		loadTemplate(template, "/connectSsh/socketprocess", model)	
+
+		loadTemplate(template, "/connectSsh/socketprocess", model)
 	}
 
+	// NEW : Client / Server SSH Model - Server or Master being backend SSH connection / client being websocket client
+	// That listens to Websocket server/master that sends connection info back to client
+
 	def conn = { attrs ->
-		
+
 		genericOpts(attrs)
 		socketOpts(attrs)
-		String frontuser=jsshUser+frontend
+
+		def cuser= jsshUser
+		String frontuser=cuser+frontend
 		boolean frontend = true
 		String uri="ws://${wshostname}/${appName}/${APP}/"
 		if (addAppName=="no") {
 			uri="ws://${hostname}/${APP}/"
 		}
-		/*def model = [hideWhatsRunning:hideWhatsRunning, hideDiscoButton:hideDiscoButton, hidePauseControl:hidePauseControl,
-			hideSessionCtrl:hideSessionCtrl, hideNewShellButton:hideNewShellButton, hideConsoleMenu:hideConsoleMenu,
-			hideSendBlock:hideSendBlock, wshostname:wshostname, hostname:hostname, port:port, addAppName:addAppName,
-			username:username, password:password, userCommand:userCommand, divId:divId, frontuser:frontuser,uri:uri,
-			enablePong:enablePong, pingRate:pingRate, jobName:jobName, jsshUser:jsshUser, frontend:frontend, jsshApp: APP]
-		*/	
+
 		if (!appName) {
 			appName = grailsApplication.metadata['app.name']
 		}
 
-
-		
-        def connMap = [frontend: frontend, jsshUser: jsshUser, user: jsshUser, username:username, password: password, 
+		def connMap = [frontend: frontend,  user: username, username:username, password: password,
 			hostname: hostname, port: port, enablePong: enablePong, pingRate: pingRate, usercommand: userCommand,
-			divId:divId, jsshApp: APP, uri:uri, job: jobName,frontuser:frontuser, hideWhatsRunning:hideWhatsRunning,
-			hideDiscoButton:hideDiscoButton, hidePauseControl:hidePauseControl, hideSessionCtrl:hideSessionCtrl, 
-			hideNewShellButton:hideNewShellButton, hideConsoleMenu:hideConsoleMenu, hideSendBlock:hideSendBlock, 
+			divId:divId, jsshApp: APP, uri:uri, job: jobName, frontuser:frontuser, hideWhatsRunning:hideWhatsRunning,
+			hideDiscoButton:hideDiscoButton, hidePauseControl:hidePauseControl, hideSessionCtrl:hideSessionCtrl,
+			hideNewShellButton:hideNewShellButton, hideConsoleMenu:hideConsoleMenu, hideSendBlock:hideSendBlock,
 			wshostname:wshostname]
-		
+
+		connMap.put('jsshUser', frontuser)
 		loadTemplate(template,'/connectSsh/socketConnect', connMap)
-		
-		// Make a socket connection as actual main user (backend connection)
-		Session oSession = clientListenerService.p_connect(uri, jsshUser, jobName, connMap)
-	
-		// TODO
-		//loadTemplate(attrs,'clientSocketConnect', model)
-		
+
+		connMap.remove('jsshUser')
+		connMap.put('jsshUser', cuser)
+		Session oSession = clientListenerService.p_connect(uri, cuser, jobName, connMap)
+
 	}
-	
+
 	private void loadTemplate(String template, String pluginTemplate, Map model) {
 		if (template) {
 			out << g.render(template:template, model: model)
@@ -129,7 +126,7 @@ class ConnectSshTagLib extends ConfService {
 			out << g.render(contextPath: pluginContextPath, template:pluginTemplate, model: model)
 		}
 	}
-	
+
 	private void genericOpts(attrs) {
 		this.hostname = attrs.remove('hostname')?.toString()
 		this.username = attrs.remove('username')?.toString()
@@ -137,37 +134,32 @@ class ConnectSshTagLib extends ConfService {
 		this.password = attrs.remove('password')?.toString()
 		this.template = attrs.remove('template')?.toString()
 		this.port = attrs.remove('port')?.toString()
-		
+
 		if (!userCommand) {
 			userCommand="echo \"\$USER has logged into \$HOST\""
 		}
-		
-		//if (!hostname) {
-		//	throwTagError("Tag is missing required attribute [hostname]")
-		//}
-
 
 	}
-	
+
 	private void socketOpts(attrs) {
 		if (!attrs.wshostname) {
 			this.wshostname = config.wshostname ?: 'localhost:8080'
 		}else{
 			this.wshostname = attrs.wshostname
 		}
-		
+
 		if (!attrs.hideConsoleMenu) {
 			this.hideConsoleMenu = config.hideConsoleMenu ?: 'NO'
 		}else{
 			this.hideConsoleMenu = attrs.hideConsoleMenu
 		}
-		
+
 		this.jobName = attrs.remove('jobName')?.toString()
-		
+
 		if (!jobName) {
 			jobName=randService.shortRand('job')
 		}
-		
+
 		if (!attrs.hideSendBlock) {
 			this.hideSendBlock = config.hideSendBlock ?: 'YES'
 		}else{
@@ -203,19 +195,19 @@ class ConnectSshTagLib extends ConfService {
 		}else{
 			this.hideNewShellButton = attrs.hideNewShellButton
 		}
-		
+
 		this.jsshUser = attrs.remove('jsshUser')?.toString()
 		if (!jsshUser) {
 			jsshUser=randService.randomise('jsshUser')
 		}
-		
+
 		this.divId = attrs.remove('divId')?.toString()
 		this.enablePong = attrs.remove('enablePong')?.toString() ?: config.enablePong
 		// In milliseconds how to long to wait before sending next ping
 		this.pingRate = attrs.remove('pingRate')?.toString() ?: config.pingRate ?: '60000'
-		
+
 		this.addAppName =  config.addAppName ?: 'YES'
-		
+
 	}
-	
+
 }

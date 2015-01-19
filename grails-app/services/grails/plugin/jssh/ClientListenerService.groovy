@@ -1,6 +1,8 @@
 package grails.plugin.jssh
 
 
+import java.util.Set;
+
 import grails.converters.JSON
 
 import javax.websocket.ContainerProvider
@@ -57,12 +59,28 @@ public class ClientListenerService extends ConfService {
 		}
 	}
 
-	
-	def sendFrontEndPM(Session userSession, String user,String message) {
-		def found=findUser(user+frontend)
-		userSession.basicRemote.sendText("/pm ${user+frontend},${message}")
+	def sendFrontEndPM(Set<Session> sshUsers, Session userSession, String user,String message) {
+		if (user && (!user.endsWith(frontend))) {
+			user=user+frontend
+		}
+		def found=findUser(sshUsers, user)
+		if (found) {
+			userSession.basicRemote.sendText("/pm ${user},${message}")
+		}else{
+			log.error "COULD NOT FIND ${user} : $message "
+		}
 	}
-
+	
+	def sendFEPM(Session userSession, String user,String message) {
+		if (user && (!user.endsWith(frontend))) {
+			user=user+frontend
+		}
+		if (user) {
+			
+		userSession.basicRemote.sendText("/pm ${user},${message}")
+		}
+	}
+	
 	def sendBackPM(Set<Session> sshUsers, String user,String message) {
 		if (user.endsWith(frontend)) {
 			user=user.substring(0,user.indexOf(frontend))
@@ -93,21 +111,6 @@ public class ClientListenerService extends ConfService {
 		userSession.basicRemote.sendText("/pm ${user},${message}")
 	}
 
-	def sendPM(Session userSession, String user,String message) {
-		String username = userSession.userProperties.get("username") as String
-		boolean found
-
-		found=findUser(user)
-		if (found) {
-			userSession.basicRemote.sendText("/pm ${user},${message}")
-		}
-		if (!user.endsWith(frontend)) {
-			found=findUser(user+frontend)
-			if (found) {
-				sendFrontEndPM(userSession,user, message )
-			}
-		}
-	}
 
 	boolean findUser(Set<Session> sshUsers, String username) {
 		boolean found = false
@@ -143,7 +146,6 @@ public class ClientListenerService extends ConfService {
 		Session oSession
 		try{
 			oSession = container.connectToServer(JsshClientEndpoint.class, oUri)
-			//oSession.basicRemote.sendText(CONNECTOR+_username)
 			oSession.basicRemote.sendText((map as JSON).toString())
 		}catch(Exception e){
 			e.printStackTrace()
@@ -167,7 +169,5 @@ public class ClientListenerService extends ConfService {
 		}
 		return _oSession
 	}
-
-
 
 }

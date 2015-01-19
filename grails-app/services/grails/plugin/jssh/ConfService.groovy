@@ -1,16 +1,18 @@
 package grails.plugin.jssh
 
+import javax.websocket.Session
+
 
 
 class ConfService {
 
 	static transactional  =  false
-	
+
 	public String CONNECTOR = "CONN:-"
 	public String DISCONNECTOR = "DISCO:-"
 	public String APP = "j2ssh"
 	public String VIEW = "connectSsh"
-	
+
 	def grailsApplication
 
 	public boolean isConfigEnabled(String input) {
@@ -24,13 +26,14 @@ class ConfService {
 	public String getAppName(){
 		String addAppName = config.add.appName ?: 'yes'
 		if (addAppName) {
-			grailsApplication.metadata['app.name']+"/"
+			grailsApplication.metadata['app.name']
 		}else{
 			return
 		}
 	}
 
-	
+	static final Set<Session> sshUsers = ([] as Set).asSynchronized()
+
 	public Map<String, String> parseInput(String mtype,String message){
 		def p1 = mtype
 		def mu = message.substring(p1.length(),message.length())
@@ -53,6 +56,6 @@ class ConfService {
 	def getConfig() {
 		grailsApplication?.config?.jssh
 	}
-	
+
 
 }

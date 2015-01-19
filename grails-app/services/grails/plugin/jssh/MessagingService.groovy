@@ -14,9 +14,11 @@ class MessagingService extends ConfService  {
 		}
 	}
 
-	def messageUser(Session userSession,Map msg) {
-		def myMsgj = (msg as JSON).toString()
-		sendMsg(userSession, myMsgj)
+	def forwardMessage(String username, String message) {
+		Session user = usersSession(username)
+		if (user) {
+			user.basicRemote.sendText(message)
+		}
 	}
 
 	def privateMessage(Set<Session> sshUsers, Session userSession,String user,String msg) {
@@ -42,5 +44,31 @@ class MessagingService extends ConfService  {
 			log.error ("onMessage failed", e)
 		}
 	}
+
+
+	Session usersSession(String username) {
+		Session userSession
+		try {
+			synchronized (sshUsers) {
+				sshUsers?.each { crec->
+					if (crec && crec.isOpen()) {
+						def cuser = crec.userProperties.get("username").toString()
+						if (cuser.equals(username)) {
+							userSession=crec
+						}
+					}
+				}
+			}
+		} catch (IOException e) {
+			log.error ("onMessage failed", e)
+		}
+		return userSession
+	}
+
+	def messageUser(Session userSession,Map msg) {
+		def myMsgj = (msg as JSON).toString()
+		sendMsg(userSession, myMsgj)
+	}
+
 
 }
