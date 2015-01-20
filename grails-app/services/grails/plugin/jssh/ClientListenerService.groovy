@@ -11,7 +11,7 @@ import javax.websocket.Session
 public class ClientListenerService extends ConfService {
 
 
-	def sendArrayPM(Set<Session> sshUsers, Session userSession, String job,String message) {
+	def sendArrayPM(Session userSession, String job,String message) {
 		try {
 			synchronized (sshUsers) {
 				sshUsers?.each { crec->
@@ -39,7 +39,7 @@ public class ClientListenerService extends ConfService {
 		}
 	}
 
-	def sendJobMessage(Set<Session> sshUsers, String job,String message) {
+	def sendJobMessage(String job,String message) {
 		try {
 			synchronized (sshUsers) {
 				sshUsers?.each { crec->
@@ -59,18 +59,18 @@ public class ClientListenerService extends ConfService {
 		}
 	}
 
-	def sendFrontEndPM(Set<Session> sshUsers, Session userSession, String user,String message) {
+	def sendFrontEndPM(Session userSession, String user,String message) {
 		if (user && (!user.endsWith(frontend))) {
 			user=user+frontend
 		}
-		def found=findUser(sshUsers, user)
+		def found=findUser( user)
 		if (found) {
 			userSession.basicRemote.sendText("/pm ${user},${message}")
 		}else{
 			log.error "COULD NOT FIND ${user} : $message "
 		}
 	}
-	
+
 	def sendFEPM(Session userSession, String user,String message) {
 		if (user && (!user.endsWith(frontend))) {
 			user=user+frontend
@@ -79,7 +79,7 @@ public class ClientListenerService extends ConfService {
 			userSession.basicRemote.sendText("/pm ${user},${message}")
 		}
 	}
-	
+
 	def sendBackPM(String user,String message) {
 		if (user.endsWith(frontend)) {
 			user=user.substring(0,user.indexOf(frontend))
@@ -102,30 +102,8 @@ public class ClientListenerService extends ConfService {
 			log.error ("onMessage failed", e)
 		}
 	}
-	
-	def sendBackPM(Set<Session> sshUsers, String user,String message) {
-		if (user.endsWith(frontend)) {
-			user=user.substring(0,user.indexOf(frontend))
-		}
-		try {
-			synchronized (sshUsers) {
-				sshUsers?.each { crec->
-					if (crec && crec.isOpen()) {
-						String cuser = crec.userProperties.get("username") as String
-						String cjob =  crec.userProperties.get("job") as String
-						boolean found = false
-						if (user==cuser) {
-							crec.basicRemote.sendText("${message}")
-						}
-					}
-				}
-			}
 
-		} catch (IOException e) {
-			log.error ("onMessage failed", e)
-		}
-	}
-	
+
 	def sendBackEndPM(Session userSession, String user,String message) {
 		if (user.endsWith(frontend)) {
 			user=user.substring(0,user.indexOf(frontend))
@@ -133,8 +111,21 @@ public class ClientListenerService extends ConfService {
 		userSession.basicRemote.sendText("/pm ${user},${message}")
 	}
 
+	def sendBackEndFM(String user,String message) {
+		if (user.endsWith(frontend)) {
+			user=user.substring(0,user.indexOf(frontend))
+		}
+		String fend = user
+		if (!user.endsWith(frontend)) {
+			fend=user+frontend
+		}
+		Session cuser = usersSession(fend)
+		String user1 = cuser.userProperties.get("username") as String
+		cuser.basicRemote.sendText("/fm ${user},${message}")
+	}
 
-	boolean findUser(Set<Session> sshUsers, String username) {
+
+	boolean findUser(String username) {
 		boolean found = false
 		try {
 			synchronized (sshUsers) {
@@ -158,7 +149,24 @@ public class ClientListenerService extends ConfService {
 		userSession.basicRemote.sendText(message)
 	}
 
-
+	Session usersSession(String username) {
+		Session userSession
+		try {
+			synchronized (sshUsers) {
+				sshUsers?.each { crec->
+					if (crec && crec.isOpen()) {
+						def cuser = crec.userProperties.get("username").toString()
+						if (cuser.equals(username)) {
+							userSession=crec
+						}
+					}
+				}
+			}
+		} catch (IOException e) {
+			log.error ("onMessage failed", e)
+		}
+		return userSession
+	}
 	Session p_connect(String _uri, String _username, String room, Map map){
 		URI oUri
 		if(_uri){

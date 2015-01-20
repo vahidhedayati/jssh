@@ -17,12 +17,11 @@ class MessagingService extends ConfService  {
 	def forwardMessage(String username, String message) {
 		Session user = usersSession(username)
 		if (user) {
-			println "== found ${username} sending $message"
 			user.basicRemote.sendText(message)
 		}
 	}
 
-	def privateMessage(Set<Session> sshUsers, Session userSession,String user,String msg) {
+	def privateMessage(Session userSession,String user,String msg) {
 		String urecord = userSession.userProperties.get("username") as String
 		Boolean found = false
 		try {

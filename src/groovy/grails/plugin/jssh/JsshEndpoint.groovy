@@ -21,6 +21,7 @@ import javax.websocket.server.ServerContainer
 import javax.websocket.server.ServerEndpoint
 
 import org.codehaus.groovy.grails.web.context.ServletContextHolder as SCH
+import org.codehaus.groovy.grails.web.json.JSONObject;
 import org.codehaus.groovy.grails.web.servlet.GrailsApplicationAttributes as GA
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -36,8 +37,6 @@ class JsshEndpoint extends ConfService implements ServletContextListener {
 
 	private final Logger log = LoggerFactory.getLogger(getClass().name)
 
-	private boolean enablePong = false
-	private Integer pingRate
 	private ConfigObject config
 
 	private AuthService authService
@@ -49,6 +48,10 @@ class JsshEndpoint extends ConfService implements ServletContextListener {
 	private SessionChannelClient session
 	private SshConnectionProperties properties = null
 
+	private String host, user, userpass, usercommand
+	private int port = 22
+	private boolean enablePong
+	private int pingRate
 
 	@Override
 	public void contextInitialized(ServletContextEvent event) {
@@ -94,65 +97,95 @@ class JsshEndpoint extends ConfService implements ServletContextListener {
 	public void handleMessage(String message, Session userSession) {
 		String username = userSession.userProperties.get("username") as String
 		String job  =  userSession.userProperties.get("job") as String
-		println "--- WE HAVE MSG: ${message}"
 		if (message.startsWith('/pm')) {
-			
 			def values = parseInput("/pm ",message)
-
 			String user = values.user as String
 			String msg = values.msg as String
-			//messagingService.privateMessage(sshUsers, userSession, user,msg)
-			//println "__ PARSING PM SENDING MSG"
-			//messagingService.forwardMessage( user,msg)
-			
-			println "A msg from $username for $user -------------------------- WOOOT"
 			if (user != username) {
-			messagingService.privateMessage(sshUsers, userSession, user,msg)
+				messagingService.privateMessage(userSession, user,msg)
 			}else{
-				println "Messaging yourself?"
+				log.error "Messaging yourself?"
 			}
+		}else if  (message.startsWith('/fm')) {
+			def values = parseInput("/fm ",message)
+			String user = values.user as String
+			String msg = values.msg as String
+			//if (user  != username) {
+			//j2sshService.processRequest(ssh, session,properties,  userSession,msg)
+			//j2sshService.processConnection(  userSession,  session, msg)
+			//}
+
 		}else{
 			def data = JSON.parse(message)
 			if (data) {
-				authService.authenticate(sshUsers, ssh, session, properties, userSession, data)
+				if (data.client) {
+
+					String jsshUser = data.jsshUser ?: randService.randomise('jsshUser')
+					userSession.userProperties.put("username", jsshUser)
+					boolean frontend = data.frontend.toBoolean()
+
+				}else{
+					authService.authenticate(ssh, session, properties, userSession, data)
+
+				}
 			} else{
 				boolean frontend =  false
 				if (data.frontend) {
 					frontend =  data.frontend.toBoolean() ?: false
-				}	
-				
+				}
+
 				if (frontend) {
-					println "---NEW $frontend j2ssh.processRequest"
-					j2sshService.processRequest(sshUsers, ssh, session, properties, userSession,message)
+					j2sshService.processRequest(ssh, session, properties, userSession,message)
 				}else{
-					println "---OLD $frontend jssh.processRequest"
 					jsshService.processRequest(ssh, session, properties, userSession,message)
 				}
 			}
+
 		}
 	}
 
+	private void verifyGeneric(JSONObject data) {
+		this.host = data.hostname ?: ''
+		//this.port
 
+		if (data.port) {
+			this.port = data.port.toInteger()
+		}
+		this.user = data.user ?: ''
+		this.userpass = data.password ?: ''
+		this.usercommand = data.usercommand ?: ''
+
+		if (data.enablePong) {
+			this.enablePong = data.enablePong?.toBoolean()
+		}
+
+		if (data.pingRate) {
+			this.pingRate = data.pingRate?.toInteger() ?: '60000'
+		}
+	}
 	@OnClose
 	public void handeClose() {
 		//log.debug "Client is now disconnected."
-		if (session && session.isOpen()) {
-			session.close()
-		}
-		if (ssh && ssh.isConnected()) {
-			ssh.disconnect()
-		}
+		/*
+		 if (session && session.isOpen()) {
+		 session.close()
+		 }
+		 if (ssh && ssh.isConnected()) {
+		 ssh.disconnect()
+		 }
+		 */
 	}
 
 	@OnError
 	public void handleError(Throwable t) {
 		t.printStackTrace()
-		if (session.isOpen()) {
-			session.close()
-		}
-		if (ssh.isConnected()) {
-			ssh.disconnect()
-		}
+		/*
+		 if (session.isOpen()) {
+		 session.close()
+		 }
+		 if (ssh.isConnected()) {
+		 ssh.disconnect()
+		 }*/
 	}
 
 

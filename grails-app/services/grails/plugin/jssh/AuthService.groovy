@@ -24,7 +24,7 @@ class AuthService {
 	private boolean enablePong
 	private int pingRate
 
-	public void authenticate(Set<Session> sshUsers, SshClient ssh, SessionChannelClient session=null,
+	public void authenticate(SshClient ssh, SessionChannelClient session=null,
 			SshConnectionProperties properties=null,Session userSession, JSONObject data) {
 
 		String jsshUser = data.jsshUser ?: randService.randomise('jsshUser')
@@ -34,7 +34,7 @@ class AuthService {
 		verifyGeneric(data)
 		userSession.userProperties.put("pingRate", pingRate)
 		if (frontend) {
-			multiUser(sshUsers, ssh, session, properties, userSession)
+			multiUser(ssh, session, properties, userSession)
 		}else{
 			if (user) {
 				singleUser(ssh, session, properties, userSession)
@@ -42,10 +42,30 @@ class AuthService {
 		}
 	}
 
-	private void multiUser(Set<Session> sshUsers, SshClient ssh, SessionChannelClient session=null, 
-		SshConnectionProperties properties=null,Session userSession) {
-		
-		j2sshService.sshConnect(sshUsers, ssh, session, properties, user, userpass, host, usercommand, port, userSession)
+	private void multiUser(SshClient ssh, SessionChannelClient session=null,
+			SshConnectionProperties properties=null,Session userSession) {
+
+		Map resSet = j2sshService.sshConnect(ssh, session, properties, user, userpass, host, usercommand, port, userSession)
+
+		boolean isAuthenticated = false
+		SshClient ssh2
+		SshConnectionProperties properties2
+		SessionChannelClient session2
+		if (resSet) {
+			isAuthenticated = resSet.isAuthenticated
+			ssh2  = resSet.ssh
+			properties2 = resSet.properties
+			session2 = resSet.session
+
+		}
+		if (isAuthenticated) {
+			//def asyncProcess = new Thread({
+			//sleep(1700)
+			//j2sshService.sshControl(ssh2, session2, usercommand, userSession)
+			//} as Runnable )
+			//asyncProcess.start()
+		}
+
 	}
 
 	private void singleUser(SshClient ssh, SessionChannelClient session=null,

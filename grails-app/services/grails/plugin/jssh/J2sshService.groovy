@@ -28,7 +28,7 @@ class J2sshService extends ConfService {
 
 	def clientListenerService
 
-	public processRequest(Set<Session> sshUsers, SshClient ssh, SessionChannelClient session,
+	public processRequest(SshClient ssh, SessionChannelClient session,
 			SshConnectionProperties properties,Session userSession, String message) {
 
 		if  (message.equals('DISCO:-')) {
@@ -59,23 +59,23 @@ class J2sshService extends ConfService {
 			// Ensure user can actually send stuff according to back-end config
 			if (config.security == "enabled")  {
 				if ((!config.hideSendBlock)||(!config.hideSendBlock.equals('YES')))  {
-					asyncProc(sshUsers, ssh, session, userSession, message)
+					asyncProc(ssh, session, userSession, message)
 				}
 			}
 			// No security just do it
 			else{
-				asyncProc(sshUsers, ssh, session, userSession, message)
+				asyncProc(ssh, session, userSession, message)
 			}
 		}
 	}
 
-	public void sshControl(Set<Session> sshUsers, SshClient ssh, SessionChannelClient session, String usercommand, Session userSession) {
+	public void sshControl(SshClient ssh, SessionChannelClient session, String usercommand, Session userSession) {
 		//StringBuilder catchup = new StringBuilder()
 		Boolean newChann = false
 
 		String newchannel = config.NEWCONNPERTRANS ?: ''
 		String hideSessionCtrl = config.hideSessionCtrl ?: ''
-
+		String user = userSession.userProperties.get("username") as String
 		if (config.security == "enabled") {
 			// Ensure user is not attempting to gain unauthorised access -
 			// Check back-end config: ensure session control is enabled.
@@ -102,16 +102,17 @@ class J2sshService extends ConfService {
 		def myMsg = [:]
 		myMsg.put("connCount", cc.toString())
 		def myMsgj = myMsg as JSON
-		userSession.basicRemote.sendText(myMsgj as String)
+		//userSession.basicRemote.sendText(myMsgj as String)
+		//	clientListenerService.sendFrontEndPM(userSession, user,myMsgj as String)
 		if ((cc>1)&&(newChann==false)) {
-			processConnection(sshUsers, userSession, session, usercommand)
+			processConnection(userSession, session, usercommand)
 		}else{
 			session = ssh.openSessionChannel()
 			SessionOutputReader sor = new SessionOutputReader(session)
 			if (session.requestPseudoTerminal("gogrid",80,24, 0 , 0, "")) {
 				if (session.startShell()) {
 					ChannelOutputStream out = session.getOutputStream()
-					processConnection(sshUsers, userSession, session, usercommand)
+					processConnection(userSession, session, usercommand)
 				}
 			}
 		}
@@ -144,14 +145,12 @@ class J2sshService extends ConfService {
 			userSession.basicRemote.sendText('Only 1 shell - could not close master window - try closing session : '+cc)
 		}
 		def ncc = ssh.getActiveChannelCount() ?: 1
-		//myMsg.put("connCount", ncc.toString())
 		def myMsgj = (["connCount": ncc.toString()]as JSON)
-		//userSession.basicRemote.sendText(myMsgj as String)
-		clientListenerService.sendFrontEndPM(userSession, user, myMsgj as String)
+		//	clientListenerService.sendFrontEndPM(userSession, user, myMsgj as String)
 	}
 
-	private void asyncProc(Set<Session> sshUsers, SshClient ssh,  SessionChannelClient session, Session userSession, String message) {
-		def asyncProcess = new Thread({sshControl(sshUsers, ssh, session, message, userSession)} as Runnable )
+	private void asyncProc(SshClient ssh,  SessionChannelClient session, Session userSession, String message) {
+		def asyncProcess = new Thread({sshControl(ssh, session, message, userSession)} as Runnable )
 		asyncProcess.start()
 	}
 
@@ -170,13 +169,11 @@ class J2sshService extends ConfService {
 		def myMsg = [:]
 		myMsg.put("connCount", cc.toString())
 		def myMsgj = myMsg as JSON
-		//userSession.basicRemote.sendText(myMsgj as String)
-		//userSession.basicRemote.sendText('New shell created, console window : '+cc)
-		clientListenerService.sendFrontEndPM(userSession, user,myMsgj as String)
-		clientListenerService.sendFrontEndPM(userSession, user, 'New shell created, console window : '+cc)
+		//clientListenerService.sendFrontEndPM(userSession, user,myMsgj as String)
+		//clientListenerService.sendFrontEndPM(userSession, user, 'New shell created, console window : '+cc)
 	}
 
-	private void sshConnect(Set<Session> sshUsers, SshClient ssh, SessionChannelClient session,
+	private Map sshConnect(SshClient ssh, SessionChannelClient session,
 			SshConnectionProperties properties,  String user, String userpass,
 			String host, String usercommand, int port, Session userSession)  {
 
@@ -225,25 +222,20 @@ class J2sshService extends ConfService {
 		}
 		// Evaluate the result
 		if (isAuthenticated) {
-			def asyncProcess = new Thread({
-				sleep(700)
-				sshControl(sshUsers, ssh, session, usercommand, userSession)
-			} as Runnable )
-			asyncProcess.start()
-
-
-
-
+			sleep(1200)
+			newShell( ssh, session, userSession)
+			sshControl(ssh, session, usercommand, userSession)
 		}else{
 			def authType = "using key file  "
 			if (password) { authType = "using password" }
 			String failMessage = "SSH: Failed authentication user: ${username} on ${host} ${authType}"
 			//userSession.basicRemote.sendText(failMessage)
-			clientListenerService.sendFrontEndPM( sshUsers,userSession, user, failMessage)
+			clientListenerService.sendFrontEndPM( userSession, user, failMessage)
 		}
+		return [isAuthenticated: isAuthenticated, ssh:ssh, session:session, properties: properties]
 	}
 
-	private void processConnection(Set<Session> sshUsers, Session userSession, SessionChannelClient session, String usercommand) {
+	private void processConnection(Session userSession, SessionChannelClient session, String usercommand) {
 		String user = userSession.userProperties.get("username") as String
 		StringBuilder catchup = new StringBuilder()
 
@@ -266,10 +258,10 @@ class J2sshService extends ConfService {
 						resumed = false
 						userSession.basicRemote.sendText(parseBash(catchup as String))
 
-						clientListenerService.sendFrontEndPM(sshUsers,userSession, user, catchup as String)
+						clientListenerService.sendFrontEndPM(userSession, user, catchup as String)
 						catchup = new StringBuilder()
 					}
-					clientListenerService.sendFrontEndPM(sshUsers, userSession, user, parseBash(out1))
+					clientListenerService.sendFrontEndPM(userSession, user, parseBash(out1))
 				}
 			}
 		}
