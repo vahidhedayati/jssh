@@ -83,11 +83,11 @@
 			
 			if ((textMessage${divId}.value.indexOf('\n')>-1) || (textMessage${divId}.value.indexOf('\r')>-1) ) {
 				actOnEachLine(textMessage${divId}, function(line) {
-   					webSocket${divId}.send('/pm '+backuser+','+line);
+   					webSocket${divId}.send('/fm '+backuser+','+line);
 				});
 			}else{
 				console.log('/pm '+backuser+','+textMessage${divId}.value);
-				webSocket${divId}.send('/pm '+backuser+','+textMessage${divId}.value);
+				webSocket${divId}.send('/fm '+backuser+','+textMessage${divId}.value);
 			}
 			
 			$('#whatCommand${divId}').html(textMessage${divId}.value);
