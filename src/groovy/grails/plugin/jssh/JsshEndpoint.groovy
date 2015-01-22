@@ -28,6 +28,26 @@ import com.sshtools.j2ssh.SshClient
 import com.sshtools.j2ssh.configuration.SshConnectionProperties
 import com.sshtools.j2ssh.session.SessionChannelClient
 
+/*
+ * Vahid Hedayati
+ * Jan 2015 - Major changes to Jssh WebSocket End Point
+ * It now handles two types of websocket connections
+ * The primary being older method which is a direct websocket connection to Jssh libraries.
+ * 
+ * Latter method has complicated things from my point of view since a lot of things has now broken due to this change
+ * The change in short performs two socket connections 1 being front-end webpage 2nd being backend connection
+ * 
+ * The connection was initially done via taglib to the backend socket but was changed to allow interaction between the backend and frontend
+ * The initial connection that is made via the tag lib passes the entire JSON string to EndPoint - 
+ * EndPoint - in this segment: 
+ *   Master (backend) does connection and processes commands sent via front-end
+	  if (bfrontend) {
+			userSession.basicRemote.sendText("${message}")
+	  }
+ * Around line 183 or so the forwards entire JSON to JsshClientEndPoint which is picked up by ClientProcessService
+ * Right yes its crazy stuff but works  
+ * 	  
+ */
 @WebListener
 @ServerEndpoint("/j2ssh/{job}")
 class JsshEndpoint extends ConfService implements ServletContextListener {
@@ -95,7 +115,9 @@ class JsshEndpoint extends ConfService implements ServletContextListener {
 	public void handleMessage(String message, Session userSession) {
 		String username = userSession.userProperties.get("username") as String
 		String job  =  userSession.userProperties.get("job") as String
-		
+		if (config.debug == "on") {
+			println "@onMessage: $message"
+		}
 		// Standard Private Messages
 		if (message.startsWith('/pm')) {
 			def values = parseInput("/pm ",message)
@@ -107,8 +129,7 @@ class JsshEndpoint extends ConfService implements ServletContextListener {
 				log.error "Messaging yourself?"
 			}
 			
-		// New action type frontend message 
-		// Sent only from FrontEnd when user triggers a command to be sent
+		// NEW Sent only from FrontEnd when user triggers a command to be sent
 		}else if  (message.startsWith('/fm')) {
 			def values = parseInput("/fm ",message)
 			String user = values.user as String
@@ -119,22 +140,37 @@ class JsshEndpoint extends ConfService implements ServletContextListener {
 				messagingService.forwardMessage(user,"/bm $user,$msg")
 			}
 			
+		
 		// All other actions	
 		}else{
 			def data = JSON.parse(message)
 			boolean bfrontend =  false
 			if (data.frontend) {
 				bfrontend =  data.frontend.toBoolean() ?: false
-				String jsshUser = data.jsshUser ?: randService.randomise('jsshUser')
-				userSession.userProperties.put("username", jsshUser)
+				if (!username) {
+					String jsshUser = data.jsshUser 
+					if (jsshUser) {
+						userSession.userProperties.put("username", jsshUser)
+					}
+				}
 			}
 			if (data) {
 				if (bfrontend) {
 					if (!data.client) {
-						userSession.basicRemote.sendText("${message}")
+						// 	Disconnect both the front-end and backend -
+						if  (data.DISCO == "true") {
+							messagingService.sendBackPM(username, message)
+							userSession.close()
+						}else{	
+							userSession.basicRemote.sendText("${message}")
+						}
 					}
 				}else{
-					authService.authenticate(ssh, session, properties, userSession, data)
+					if  (data.DISCO == "true") {
+						userSession.close()
+					}else{	
+						authService.authenticate(ssh, session, properties, userSession, data)
+					}
 				}
 			} else{
 
@@ -173,14 +209,12 @@ class JsshEndpoint extends ConfService implements ServletContextListener {
 	
 	@OnClose
 	public void handeClose() {
-
 		if (session && session.isOpen()) {
 			session.close()
 		}
 		if (ssh && ssh.isConnected()) {
 			ssh.disconnect()
 		}
-
 	}
 
 	@OnError

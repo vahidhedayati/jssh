@@ -54,7 +54,9 @@ public class ClientProcessService extends ConfService  {
 				j2sshService.closeShell( ssh,  ss,  userSession)
 			} as Runnable )
 			asyncProcess.start()
-
+		}else if  (message.startsWith('DISCO:-')) {
+			//println "WE HAVE A DISCO MAN IN BACKS END ${username}"
+			userSession.close()
 		}else if (message.startsWith('{')) {
 			JSONObject rmesg=JSON.parse(message)
 			String actionthis=''

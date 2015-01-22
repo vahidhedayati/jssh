@@ -7,6 +7,8 @@
 	var user="${user }";
 	var backuser='${backuser}';
 	var uri="${uri}";
+	var divId="${divId}";
+	
 	var webSocket${divId}=new WebSocket(uri);
 	webSocket${divId}.onopen=function(message) {processOpen${divId}(message);};
 	webSocket${divId}.onclose=function(message) {processClose${divId}(message);};
@@ -53,7 +55,8 @@
 	function NewShell${divId}() {
 		webSocket${divId}.send("NEW_SHELL:-");
     }
-    	function CloseShell${divId}() {
+    
+    function CloseShell${divId}() {
 		webSocket${divId}.send("CLOSE_SHELL:-");
     }
     
@@ -66,7 +69,8 @@
     }
     
 	function closeConnection${divId}() {
-		webSocket${divId}.send("DISCO:-");
+		//webSocket${divId}.send("DISCO:-");
+		webSocket${divId}.send(JSON.stringify({ 'frontend':"true",'DISCO':"true"}));
 		webSocket${divId}.onclose = function() { }
         webSocket${divId}.close();
         if (divId=="Basic") {
@@ -80,13 +84,11 @@
     
 	function sendMessage${divId}() {
 		if (textMessage${divId}.value!="close") {
-			
 			if ((textMessage${divId}.value.indexOf('\n')>-1) || (textMessage${divId}.value.indexOf('\r')>-1) ) {
 				actOnEachLine(textMessage${divId}, function(line) {
    					webSocket${divId}.send('/fm '+backuser+','+line);
 				});
 			}else{
-				console.log('/fm '+backuser+','+textMessage${divId}.value);
 				webSocket${divId}.send('/fm '+backuser+','+textMessage${divId}.value);
 			}
 			

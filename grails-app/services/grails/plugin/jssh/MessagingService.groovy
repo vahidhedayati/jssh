@@ -115,7 +115,28 @@ class MessagingService extends ConfService  {
 		}
 	}
 
-	
+	def sendBackPM(String user,String message) {
+		if (user.endsWith(frontend)) {
+			user=user.substring(0,user.indexOf(frontend))
+		}
+		try {
+			synchronized (sshUsers) {
+				sshUsers?.each { crec->
+					if (crec && crec.isOpen()) {
+						String cuser = crec.userProperties.get("username") as String
+						String cjob =  crec.userProperties.get("job") as String
+						boolean found = false
+						if (user==cuser) {
+							crec.basicRemote.sendText("${message}")
+						}
+					}
+				}
+			}
+
+		} catch (IOException e) {
+			log.error ("onMessage failed", e)
+		}
+	}
 	Session usersSession(String username) {
 		Session userSession
 		try {
@@ -194,28 +215,7 @@ class MessagingService extends ConfService  {
 	/*
 	 * No longer required  required
 
-	def sendBackPM(String user,String message) {
-		if (user.endsWith(frontend)) {
-			user=user.substring(0,user.indexOf(frontend))
-		}
-		try {
-			synchronized (sshUsers) {
-				sshUsers?.each { crec->
-					if (crec && crec.isOpen()) {
-						String cuser = crec.userProperties.get("username") as String
-						String cjob =  crec.userProperties.get("job") as String
-						boolean found = false
-						if (user==cuser) {
-							crec.basicRemote.sendText("${message}")
-						}
-					}
-				}
-			}
-
-		} catch (IOException e) {
-			log.error ("onMessage failed", e)
-		}
-	}
+	
 
   
 	def sendBackEndPM(Session userSession, String user,String message) {

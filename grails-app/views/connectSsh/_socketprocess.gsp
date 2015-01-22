@@ -6,7 +6,9 @@
 		$("#mySshBox${divId}").html(msg);
 		$("#mySshOut${divId}").html('');
 	}
-
+	
+ 	var divId="${divId}";
+ 	
 	var webSocket${divId}=new WebSocket('${uri}');
 	var THRESHOLD = 10240;
 	var chr=0;
@@ -66,7 +68,8 @@
     }
     
 	function closeConnection${divId}() {
-		webSocket${divId}.send("DISCO:-");
+		//webSocket${divId}.send("DISCO:-");
+		webSocket${divId}.send(JSON.stringify({ 'frontend':"false",'DISCO':"true"}));
 		webSocket${divId}.onclose = function() { }
         webSocket${divId}.close();
         if (divId=="Basic") {
