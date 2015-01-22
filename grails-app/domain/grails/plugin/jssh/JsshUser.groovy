@@ -5,7 +5,7 @@ import grails.plugin.jssh.logging.ConnectionLogs
 
 class JsshUser {
 	
-	CommandLogs comlog
+	//CommandLogs comlog
 	ConnectionLogs conlog
 	
 	String username
