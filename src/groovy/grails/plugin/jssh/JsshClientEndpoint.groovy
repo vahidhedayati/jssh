@@ -29,7 +29,10 @@ public class JsshClientEndpoint  extends ConfService {
 		this.userSession = userSession
 		this.job = job
 		def ctx= SCH.servletContext.getAttribute(GA.APPLICATION_CONTEXT)
+		
 		clientProcessService = ctx.clientProcessService
+		//userSession.userProperties.put("job", job)
+		
 	}
 
 	@OnClose

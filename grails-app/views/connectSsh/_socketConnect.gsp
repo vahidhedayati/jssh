@@ -8,6 +8,7 @@
 	var backuser='${backuser}';
 	var uri="${uri}";
 	var divId="${divId}";
+	console.log('---------->'+uri);
 	
 	var webSocket${divId}=new WebSocket(uri);
 	webSocket${divId}.onopen=function(message) {processOpen${divId}(message);};
@@ -133,7 +134,8 @@
 
 	
 	window.onbeforeunload = function() {
-		webSocket${divId}.onclose = function() { }
-		webSocket${divId}.close();
+		//webSocket${divId}.onclose = function() { }
+		webSocket${divId}.send(JSON.stringify({ 'frontend':"true",'DISCO':"true"}));
+		//webSocket${divId}.close();
 	}
 </g:javascript>

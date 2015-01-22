@@ -10,10 +10,10 @@ public class ClientListenerService extends ConfService {
 
 	def messagingService
 
-	Session p_connect(String _uri, String _username, String room, Map map){
+	Session p_connect(String _uri, String username,  Map map){
 		URI oUri
 		if(_uri){
-			oUri = URI.create(_uri+room);
+			oUri = URI.create(_uri);
 		}
 		def container = ContainerProvider.getWebSocketContainer()
 		Session oSession
@@ -27,7 +27,7 @@ public class ClientListenerService extends ConfService {
 			}
 			return null
 		}
-		oSession.userProperties.put("username", _username)
+		oSession.userProperties.put("username", username)
 		return  oSession
 	}
 

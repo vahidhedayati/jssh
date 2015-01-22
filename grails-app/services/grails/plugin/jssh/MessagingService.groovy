@@ -52,6 +52,10 @@ class MessagingService extends ConfService  {
 				sshUsers?.each { crec->
 					if (crec && crec.isOpen()) {
 						def cuser = crec.userProperties.get("username").toString()
+						if (config.debug == "on") {
+							def cjob = crec.userProperties.get("job").toString()
+							println "sshUsers: ${cuser} ${cjob}"
+						}
 						if (cuser.equals(username)) {
 							found = true
 						}

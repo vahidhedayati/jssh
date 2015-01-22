@@ -55,7 +55,6 @@ public class ClientProcessService extends ConfService  {
 			} as Runnable )
 			asyncProcess.start()
 		}else if  (message.startsWith('DISCO:-')) {
-			//println "WE HAVE A DISCO MAN IN BACKS END ${username}"
 			userSession.close()
 		}else if (message.startsWith('{')) {
 			JSONObject rmesg=JSON.parse(message)

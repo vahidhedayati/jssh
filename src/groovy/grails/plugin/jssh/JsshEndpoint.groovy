@@ -37,16 +37,6 @@ import com.sshtools.j2ssh.session.SessionChannelClient
  * Latter method has complicated things from my point of view since a lot of things has now broken due to this change
  * The change in short performs two socket connections 1 being front-end webpage 2nd being backend connection
  * 
- * The connection was initially done via taglib to the backend socket but was changed to allow interaction between the backend and frontend
- * The initial connection that is made via the tag lib passes the entire JSON string to EndPoint - 
- * EndPoint - in this segment: 
- *   Master (backend) does connection and processes commands sent via front-end
-	  if (bfrontend) {
-			userSession.basicRemote.sendText("${message}")
-	  }
- * Around line 183 or so the forwards entire JSON to JsshClientEndPoint which is picked up by ClientProcessService
- * Right yes its crazy stuff but works  
- * 	  
  */
 @WebListener
 @ServerEndpoint("/j2ssh/{job}")
@@ -99,7 +89,6 @@ class JsshEndpoint extends ConfService implements ServletContextListener {
 	@OnOpen
 	public void handleOpen(Session userSession,EndpointConfig c,@PathParam("job") String job) {
 		sshUsers.add(userSession)
-
 		def ctx= SCH.servletContext.getAttribute(GA.APPLICATION_CONTEXT)
 		def grailsApplication = ctx.grailsApplication
 		config = grailsApplication.config.jssh
@@ -148,7 +137,8 @@ class JsshEndpoint extends ConfService implements ServletContextListener {
 			if (data.frontend) {
 				bfrontend =  data.frontend.toBoolean() ?: false
 				if (!username) {
-					String jsshUser = data.jsshUser 
+					String jsshUser = data.jsshUser
+				
 					if (jsshUser) {
 						userSession.userProperties.put("username", jsshUser)
 					}

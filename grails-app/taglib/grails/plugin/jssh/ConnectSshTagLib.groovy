@@ -92,6 +92,7 @@ class ConnectSshTagLib extends ConfService {
 		socketOpts(attrs)
 
 		def cuser= jsshUser
+		def cjob = jobName
 		String frontuser=cuser+frontend
 		boolean frontend = true
 		String uri="ws://${wshostname}/${appName}/${APP}/"
@@ -99,13 +100,14 @@ class ConnectSshTagLib extends ConfService {
 			uri="ws://${hostname}/${APP}/"
 		}
 
+		uri = uri + cjob
 		if (!appName) {
 			appName = grailsApplication.metadata['app.name']
 		}
 
 		def connMap = [frontend: frontend,  backuser: cuser, user: username, username:username, password: password,
 			hostname: hostname, port: port, enablePong: enablePong, pingRate: pingRate, usercommand: userCommand,
-			divId:divId, jsshApp: APP, uri:uri, job: jobName, frontuser:frontuser, hideWhatsRunning:hideWhatsRunning,
+			divId:divId, jsshApp: APP, uri:uri, job: cjob, frontuser:frontuser, hideWhatsRunning:hideWhatsRunning,
 			hideDiscoButton:hideDiscoButton, hidePauseControl:hidePauseControl, hideSessionCtrl:hideSessionCtrl,
 			hideNewShellButton:hideNewShellButton, hideConsoleMenu:hideConsoleMenu, hideSendBlock:hideSendBlock,
 			wshostname:wshostname]
@@ -115,7 +117,7 @@ class ConnectSshTagLib extends ConfService {
 
 		connMap.remove('jsshUser')
 		connMap.put('jsshUser', cuser)
-		Session oSession = clientListenerService.p_connect(uri, cuser, jobName, connMap)
+		Session oSession = clientListenerService.p_connect(uri, cuser, connMap)
 
 	}
 
