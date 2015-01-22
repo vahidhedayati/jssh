@@ -17,7 +17,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 @ClientEndpoint
-public class JsshClientEndpoint  {
+public class JsshClientEndpoint  extends ConfService {
 
 	private final Logger log = LoggerFactory.getLogger(getClass().name)
 	private Session userSession = null

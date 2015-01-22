@@ -12,7 +12,14 @@ import com.sshtools.j2ssh.SshClient
 import com.sshtools.j2ssh.configuration.SshConnectionProperties
 import com.sshtools.j2ssh.session.SessionChannelClient
 
-
+/*
+ * Vahid Hedayati 
+ * AuthService was originally set up as a way of determining what type of socket connection
+ *  it was and then defining which jssh service to connect to 
+ *  client/server changed to push info back to processService to do connection
+ *  have a look for multiUser in processService which used to be all in here.
+ *   
+ */
 class AuthService {
 
 	def randService
@@ -29,44 +36,13 @@ class AuthService {
 
 		String jsshUser = data.jsshUser ?: randService.randomise('jsshUser')
 		userSession.userProperties.put("username", jsshUser)
-		boolean frontend = data.frontend.toBoolean()
-
 		verifyGeneric(data)
 		userSession.userProperties.put("pingRate", pingRate)
-		if (frontend) {
-			multiUser(ssh, session, properties, userSession)
-		}else{
-			if (user) {
-				singleUser(ssh, session, properties, userSession)
-			}
+		if (user) {
+			singleUser(ssh, session, properties, userSession)
 		}
 	}
 
-	private void multiUser(SshClient ssh, SessionChannelClient session=null,
-			SshConnectionProperties properties=null,Session userSession) {
-
-		Map resSet = j2sshService.sshConnect(ssh, session, properties, user, userpass, host, usercommand, port, userSession)
-
-		boolean isAuthenticated = false
-		SshClient ssh2
-		SshConnectionProperties properties2
-		SessionChannelClient session2
-		if (resSet) {
-			isAuthenticated = resSet.isAuthenticated
-			ssh2  = resSet.ssh
-			properties2 = resSet.properties
-			session2 = resSet.session
-
-		}
-		if (isAuthenticated) {
-			//def asyncProcess = new Thread({
-			//sleep(1700)
-			//j2sshService.sshControl(ssh2, session2, usercommand, userSession)
-			//} as Runnable )
-			//asyncProcess.start()
-		}
-
-	}
 
 	private void singleUser(SshClient ssh, SessionChannelClient session=null,
 			SshConnectionProperties properties=null,Session userSession) {

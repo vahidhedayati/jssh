@@ -86,7 +86,7 @@
    					webSocket${divId}.send('/fm '+backuser+','+line);
 				});
 			}else{
-				console.log('/pm '+backuser+','+textMessage${divId}.value);
+				console.log('/fm '+backuser+','+textMessage${divId}.value);
 				webSocket${divId}.send('/fm '+backuser+','+textMessage${divId}.value);
 			}
 			

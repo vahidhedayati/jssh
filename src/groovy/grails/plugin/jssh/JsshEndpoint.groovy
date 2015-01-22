@@ -1,8 +1,6 @@
 package grails.plugin.jssh
 
 
-import java.util.Map;
-
 import grails.converters.JSON
 import grails.util.Environment
 
@@ -21,7 +19,7 @@ import javax.websocket.server.ServerContainer
 import javax.websocket.server.ServerEndpoint
 
 import org.codehaus.groovy.grails.web.context.ServletContextHolder as SCH
-import org.codehaus.groovy.grails.web.json.JSONObject;
+import org.codehaus.groovy.grails.web.json.JSONObject
 import org.codehaus.groovy.grails.web.servlet.GrailsApplicationAttributes as GA
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -97,56 +95,65 @@ class JsshEndpoint extends ConfService implements ServletContextListener {
 	public void handleMessage(String message, Session userSession) {
 		String username = userSession.userProperties.get("username") as String
 		String job  =  userSession.userProperties.get("job") as String
+		
+		// Standard Private Messages
 		if (message.startsWith('/pm')) {
 			def values = parseInput("/pm ",message)
 			String user = values.user as String
 			String msg = values.msg as String
 			if (user != username) {
-				messagingService.privateMessage(userSession, user,msg)
+				messagingService.privateMessage(userSession, user,msg,'/pm')
 			}else{
 				log.error "Messaging yourself?"
 			}
+			
+		// New action type frontend message 
+		// Sent only from FrontEnd when user triggers a command to be sent
 		}else if  (message.startsWith('/fm')) {
 			def values = parseInput("/fm ",message)
 			String user = values.user as String
 			String msg = values.msg as String
-			//if (user  != username) {
-			//j2sshService.processRequest(ssh, session,properties,  userSession,msg)
-			//j2sshService.processConnection(  userSession,  session, msg)
-			//}
-
+			if (msg.startsWith('{')) {
+				messagingService.forwardMessage(user,msg)
+			}else{
+				messagingService.forwardMessage(user,"/bm $user,$msg")
+			}
+			
+		// All other actions	
 		}else{
 			def data = JSON.parse(message)
+			boolean bfrontend =  false
+			if (data.frontend) {
+				bfrontend =  data.frontend.toBoolean() ?: false
+				String jsshUser = data.jsshUser ?: randService.randomise('jsshUser')
+				userSession.userProperties.put("username", jsshUser)
+			}
 			if (data) {
-				if (data.client) {
-
-					String jsshUser = data.jsshUser ?: randService.randomise('jsshUser')
-					userSession.userProperties.put("username", jsshUser)
-					boolean frontend = data.frontend.toBoolean()
-
+				if (bfrontend) {
+					if (!data.client) {
+						userSession.basicRemote.sendText("${message}")
+					}
 				}else{
 					authService.authenticate(ssh, session, properties, userSession, data)
-
 				}
 			} else{
-				boolean frontend =  false
-				if (data.frontend) {
-					frontend =  data.frontend.toBoolean() ?: false
-				}
 
-				if (frontend) {
-					j2sshService.processRequest(ssh, session, properties, userSession,message)
-				}else{
+				/* New websocket Client/Server Method
+				 * Master (backend) does connection and processes commands sent via front-end
+				 */
+				if (bfrontend) {
+					userSession.basicRemote.sendText("${message}")
+				}
+				// OLDER Websocket Method which does all processing via 1 connection
+				else{
 					jsshService.processRequest(ssh, session, properties, userSession,message)
 				}
 			}
-
 		}
 	}
 
 	private void verifyGeneric(JSONObject data) {
 		this.host = data.hostname ?: ''
-		//this.port
 
 		if (data.port) {
 			this.port = data.port.toInteger()
@@ -163,32 +170,27 @@ class JsshEndpoint extends ConfService implements ServletContextListener {
 			this.pingRate = data.pingRate?.toInteger() ?: '60000'
 		}
 	}
+	
 	@OnClose
 	public void handeClose() {
-		//log.debug "Client is now disconnected."
-		/*
-		 if (session && session.isOpen()) {
-		 session.close()
-		 }
-		 if (ssh && ssh.isConnected()) {
-		 ssh.disconnect()
-		 }
-		 */
+
+		if (session && session.isOpen()) {
+			session.close()
+		}
+		if (ssh && ssh.isConnected()) {
+			ssh.disconnect()
+		}
+
 	}
 
 	@OnError
 	public void handleError(Throwable t) {
 		t.printStackTrace()
-		/*
-		 if (session.isOpen()) {
-		 session.close()
-		 }
-		 if (ssh.isConnected()) {
-		 ssh.disconnect()
-		 }*/
+		if (session && session.isOpen()) {
+			session.close()
+		}
+		if (ssh && ssh.isConnected()) {
+			ssh.disconnect()
+		}
 	}
-
-
-
-
 }

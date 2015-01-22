@@ -26,8 +26,8 @@ class J2sshService extends ConfService {
 	private boolean newSession = false
 	private boolean sameSession = false
 
-	def clientListenerService
-
+	def messagingService
+	
 	public processRequest(SshClient ssh, SessionChannelClient session,
 			SshConnectionProperties properties,Session userSession, String message) {
 
@@ -59,20 +59,18 @@ class J2sshService extends ConfService {
 			// Ensure user can actually send stuff according to back-end config
 			if (config.security == "enabled")  {
 				if ((!config.hideSendBlock)||(!config.hideSendBlock.equals('YES')))  {
-					asyncProc(ssh, session, userSession, message)
+					sshControl(ssh, session, message, userSession)
 				}
 			}
 			// No security just do it
 			else{
-				asyncProc(ssh, session, userSession, message)
+				sshControl(ssh, session, message, userSession)
 			}
 		}
 	}
 
 	public void sshControl(SshClient ssh, SessionChannelClient session, String usercommand, Session userSession) {
-		//StringBuilder catchup = new StringBuilder()
 		Boolean newChann = false
-
 		String newchannel = config.NEWCONNPERTRANS ?: ''
 		String hideSessionCtrl = config.hideSessionCtrl ?: ''
 		String user = userSession.userProperties.get("username") as String
@@ -102,8 +100,7 @@ class J2sshService extends ConfService {
 		def myMsg = [:]
 		myMsg.put("connCount", cc.toString())
 		def myMsgj = myMsg as JSON
-		//userSession.basicRemote.sendText(myMsgj as String)
-		//	clientListenerService.sendFrontEndPM(userSession, user,myMsgj as String)
+		//messagingService.sendFrontEndPM(userSession, user,myMsgj as String)
 		if ((cc>1)&&(newChann==false)) {
 			processConnection(userSession, session, usercommand)
 		}else{
@@ -116,7 +113,6 @@ class J2sshService extends ConfService {
 				}
 			}
 		}
-		//session.close()
 	}
 
 	public void pingPong(Session userSession, Integer pingRate) {
@@ -126,14 +122,14 @@ class J2sshService extends ConfService {
 			while ((sendPong==false)&&(userSession && userSession.isOpen())) {
 				sleep(pingRate ?: 60000)
 				//userSession.basicRemote.sendText('ping')
-				clientListenerService.sendFrontEndPM(userSession, user,'ping')
+				messagingService.sendFrontEndPM(userSession, user,'ping')
 			}
 		}
 	}
 
 
 	private void closeShell(SshClient ssh, SessionChannelClient session, Session userSession) {
-		//def myMsg = [:]
+
 		String user = userSession.userProperties.get("username") as String
 		int timeout = 1000;
 		def cc = ssh.getActiveChannelCount() ?: 1
@@ -146,15 +142,11 @@ class J2sshService extends ConfService {
 		}
 		def ncc = ssh.getActiveChannelCount() ?: 1
 		def myMsgj = (["connCount": ncc.toString()]as JSON)
-		//	clientListenerService.sendFrontEndPM(userSession, user, myMsgj as String)
+		//	messagingService.sendFrontEndPM(userSession, user, myMsgj as String)
 	}
 
-	private void asyncProc(SshClient ssh,  SessionChannelClient session, Session userSession, String message) {
-		def asyncProcess = new Thread({sshControl(ssh, session, message, userSession)} as Runnable )
-		asyncProcess.start()
-	}
 
-	private void newShell(SshClient ssh, SessionChannelClient session, Session userSession) {
+	private SessionChannelClient newShell(SshClient ssh, SessionChannelClient session, Session userSession) {
 		session = ssh.openSessionChannel()
 		String user = userSession.userProperties.get("username") as String
 		SessionOutputReader sor = new SessionOutputReader(session)
@@ -169,8 +161,9 @@ class J2sshService extends ConfService {
 		def myMsg = [:]
 		myMsg.put("connCount", cc.toString())
 		def myMsgj = myMsg as JSON
-		//clientListenerService.sendFrontEndPM(userSession, user,myMsgj as String)
-		//clientListenerService.sendFrontEndPM(userSession, user, 'New shell created, console window : '+cc)
+		//messagingService.sendFrontEndPM(userSession, user,myMsgj as String)
+		//messagingService.sendFrontEndPM(userSession, user, 'New shell created, console window : '+cc)
+		return session
 	}
 
 	private Map sshConnect(SshClient ssh, SessionChannelClient session,
@@ -222,15 +215,17 @@ class J2sshService extends ConfService {
 		}
 		// Evaluate the result
 		if (isAuthenticated) {
-			sleep(1200)
-			newShell( ssh, session, userSession)
-			sshControl(ssh, session, usercommand, userSession)
+			def asyncProcess = new Thread({
+				sleep(1200)
+				//newShell( ssh, session, userSession)
+				sshControl(ssh, session, usercommand, userSession)
+			} as Runnable )
+			asyncProcess.start()
 		}else{
 			def authType = "using key file  "
 			if (password) { authType = "using password" }
 			String failMessage = "SSH: Failed authentication user: ${username} on ${host} ${authType}"
-			//userSession.basicRemote.sendText(failMessage)
-			clientListenerService.sendFrontEndPM( userSession, user, failMessage)
+			messagingService.sendFrontEndPM( userSession, user, failMessage)
 		}
 		return [isAuthenticated: isAuthenticated, ssh:ssh, session:session, properties: properties]
 	}
@@ -256,12 +251,10 @@ class J2sshService extends ConfService {
 				}else{
 					if (resumed) {
 						resumed = false
-						userSession.basicRemote.sendText(parseBash(catchup as String))
-
-						clientListenerService.sendFrontEndPM(userSession, user, catchup as String)
+						messagingService.sendFrontEndPM2(userSession, user, catchup as String)
 						catchup = new StringBuilder()
 					}
-					clientListenerService.sendFrontEndPM(userSession, user, parseBash(out1))
+					messagingService.sendFrontEndPM2(userSession, user, parseBash(out1))
 				}
 			}
 		}

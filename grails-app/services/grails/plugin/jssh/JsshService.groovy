@@ -18,8 +18,14 @@ import com.sshtools.j2ssh.transport.publickey.SshPrivateKey
 import com.sshtools.j2ssh.transport.publickey.SshPrivateKeyFile
 
 
+/*
+ *  Vahid Hedayati Jan 2015
+ *  JsshService which deals with Websocket connections
+ *  This is the traditional / older method which has no client / server modelling
+ *  Data is instead passed through a load of async calls.
+ */
 class JsshService extends ConfService {
-	
+
 	private boolean isAuthenticated = false
 	private boolean pauseLog = false
 	private boolean resumed = false
@@ -56,7 +62,7 @@ class JsshService extends ConfService {
 		}else if (message.equals('PING')) {
 			pingPong(userSession)
 		}else if (message.equals('PONG')) {
-			
+
 		} else {
 			if (config.security == "enabled")  {
 				if ((!config.hideSendBlock)||(!config.hideSendBlock.equals('YES')))  {
@@ -111,13 +117,15 @@ class JsshService extends ConfService {
 				}
 			}
 		}
-		//session.close()
 	}
-	
+
 	public void pingPong(Session userSession) {
 		int pingRate = userSession.userProperties.get("pingRate") as Integer
 		if (userSession && userSession.isOpen()) {
 			def asyncProcess = new Thread({
+				if (config.debug == "on") {
+					log.debug "Ping being sent from backend to front end "
+				}
 				sleep(pingRate ?: 60000)
 				userSession.basicRemote.sendText('ping')
 			} as Runnable )
@@ -165,7 +173,7 @@ class JsshService extends ConfService {
 	}
 
 	private void sshConnect(SshClient ssh, SessionChannelClient session=null, SshConnectionProperties properties=null,  String user, String userpass,
-		 String host, String usercommand, int port, Session userSession)  {
+			String host, String usercommand, int port, Session userSession)  {
 
 		String sshuser = config.USER ?: ''
 		String sshpass = config.PASS ?: ''
@@ -273,22 +281,22 @@ class JsshService extends ConfService {
 		return input
 	}
 
-	
+
 	/*
-		private void execCmd(SshClient ssh, SessionChannelClient session, String cmd, Session userSession) {
-			try {
-				session = ssh.openSessionChannel();
-				if ( session.executeCommand(cmd) )	{
-					IOStreamConnector output = new IOStreamConnector();
-					java.io.ByteArrayOutputStream bos =  new
-							java.io.ByteArrayOutputStream();
-					output.connect(session.getInputStream(), bos );
-					session.getState().waitForState(ChannelState.CHANNEL_CLOSED);
-					userSession.basicRemote.sendText(bos.toString())
-				}
-			}	  catch(Exception e)  {
-				log.debug "Exception : " + e.getMessage()
-			}
-		}
-	*/
+	 private void execCmd(SshClient ssh, SessionChannelClient session, String cmd, Session userSession) {
+	 try {
+	 session = ssh.openSessionChannel();
+	 if ( session.executeCommand(cmd) )	{
+	 IOStreamConnector output = new IOStreamConnector();
+	 java.io.ByteArrayOutputStream bos =  new
+	 java.io.ByteArrayOutputStream();
+	 output.connect(session.getInputStream(), bos );
+	 session.getState().waitForState(ChannelState.CHANNEL_CLOSED);
+	 userSession.basicRemote.sendText(bos.toString())
+	 }
+	 }	  catch(Exception e)  {
+	 log.debug "Exception : " + e.getMessage()
+	 }
+	 }
+	 */
 }
