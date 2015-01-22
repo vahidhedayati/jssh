@@ -52,7 +52,11 @@ Refer to ConnectSshTagLib.groovy within plugin
 
 Define a template= if you wish to override default _process.gsp template from loading
 
-#### [Websockets tag lib call](https://github.com/vahidhedayati/jssh/wiki/websocket-taglib-call)
+##### [New Client/Server Websocket SSH tag lib call](https://github.com/vahidhedayati/jssh/wiki/Websocket-client-server-taglib-call)
+
+##### [Websockets tag lib call](https://github.com/vahidhedayati/jssh/wiki/websocket-taglib-call)
+
+
 
 ##### [Socket taglib with pingpong](https://github.com/vahidhedayati/jssh/wiki/socket-taglib-with-pingpong)
 
