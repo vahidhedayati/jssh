@@ -51,20 +51,12 @@
 			<btn  class="btn btn-danger btn-xs" onclick="closeConnection${divId}()" title="Close SSH Connection">Close connection</btn>
 		</g:if>
 		
-		<g:if test="${((!hideNewShellButton) || (!hideNewShellButton.equals('YES')))}">
-			<btn  class="btn btn-success btn-xs" onclick="NewShell${divId}()" title="New Shell">New Shell</btn>
-			<btn  class="btn btn-primary btn-xs" onclick="CloseShell${divId}()" title="New Shell">Close Shell</btn>
-		</g:if>	
-			
+	
 		<g:if test="${((!hidePauseControl) || (!hidePauseControl.equals('YES')))}">	
 			<btn  class="btn btn-warning btn-xs" onclick="Pause${divId}()" title="Pause SSH Connection">Pause</btn>
 			<btn  class="btn btn-success btn-xs" onclick="Resume${divId}()" title="Resume SSH Connection">Resume</btn>
 		</g:if>
 	
-		<g:if test="${((!hideSessionCtrl) || (!hideSessionCtrl.equals('YES')))}">		
-			<btn  class="btn btn-danger btn-xs " onclick="NewSess${divId}()" title="New SSH Login per command sent">New CONN_PT</btn>
-			<btn  class="btn btn-primary btn-xs" onclick="SameSess${divId}()" title="Same SSH Login per command sent">Same CONN_PT</btn>
-		</g:if>
 	</g:if>	
 	<g:else>
 		<g:if test="${((!hideWhatsRunning) || (!hideWhatsRunning.equals('YES')))}">

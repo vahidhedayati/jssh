@@ -1,5 +1,5 @@
 
-<g:render template="/connectSsh/sshLayout"/>
+<g:render template="/connectSsh/sshConnectLayout"/>
 
 <g:javascript>
 
