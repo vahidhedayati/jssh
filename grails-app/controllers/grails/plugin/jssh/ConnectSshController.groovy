@@ -4,7 +4,8 @@ class ConnectSshController extends ConfService {
 	def connectSsh
 	def randService
 	//def jsshConfig
-	
+	Map menuMap = ['index':'Socket method', 'ajaxpoll':'Ajax poll', 
+		'socketremote':'RemoteForm Websocket', 'scsocket':'NEW: Websocket Client/Server']
 	
 	def index() {
 		def process = config.disable.login ?: 'NO'
@@ -12,7 +13,7 @@ class ConnectSshController extends ConfService {
 			render "index disabled"
 		}
 		def hideAuthBlock = config.hideAuthBlock
-		[hideAuthBlock:hideAuthBlock]
+		[hideAuthBlock:hideAuthBlock, process:process, menuMap:menuMap]
 	}
 	
 	
@@ -21,6 +22,7 @@ class ConnectSshController extends ConfService {
 		if (process.toString().toLowerCase().equals('yes')) {
 			render "socketremote disabled"
 		}
+		[process:process, menuMap:menuMap]
 	}
 
 	def ajaxpoll() {
@@ -28,7 +30,18 @@ class ConnectSshController extends ConfService {
 		if (process.toString().toLowerCase().equals('yes')) {
 			render "ajaxpoll disabled"
 		}
+		[process:process, menuMap:menuMap]
 	}
+
+	
+	def scsocket() {
+		def process = config.disable.login ?: 'NO'
+		if (process.toString().toLowerCase().equals('yes')) {
+			render "ajaxpoll disabled"
+		}
+		[process:process, menuMap:menuMap]
+	}
+
 	
 	def socketprocess() {
 		String hostname = params.hostname ?: 'localhost'
@@ -81,6 +94,18 @@ class ConnectSshController extends ConfService {
 				render (view: "/connectSsh/choose", model:model)
 			}
 		}
+	}
+	
+	def scsocketconnect(String jsshUser, String hostname, String username, String userCommand, 
+		String port, String password, String divId, String sshTitle) {
+		if (!divId) {
+			divId = randService.shortRand('divId')
+		}
+		if (!sshTitle) {
+			sshTitle = "Jssh Websocket[Server/Client] SSH Connection"
+		}
+		[jsshUser: jsshUser, hostname: hostname, username: username, userCommand:userCommand, 
+			password: password, divId: divId, sshTitle: sshTitle]
 	}
 	
 	def process() {

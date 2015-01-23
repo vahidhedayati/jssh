@@ -1,6 +1,5 @@
 package grails.plugin.jssh
 
-import grails.plugin.jssh.logging.CommandLogs
 import grails.plugin.jssh.logging.ConnectionLogs
 
 class JsshUser {
@@ -15,7 +14,7 @@ class JsshUser {
     static constraints = {
 		username blank: false, unique: true
 		conlog nullable: true
-		comlog nullable: true
+		//comlog nullable: true
     }
 	
 	static mapping = { 

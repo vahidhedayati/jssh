@@ -23,9 +23,7 @@ class J2sshService extends ConfService {
 	private boolean isAuthenticated = false
 	private boolean pauseLog = false
 	private boolean resumed = false
-	private boolean newSession = false
-	private boolean sameSession = false
-
+	
 	def messagingService
 	
 	public processRequest(SshClient ssh, SessionChannelClient session,
@@ -39,21 +37,8 @@ class J2sshService extends ConfService {
 		} else if  (message.equals('RESUME:-')) {
 			pauseLog = false
 			resumed = true
-		} else if  (message.equals('NEW_SESSION:-')) {
-			newSession = true
-			sameSession = false
-		} else if  (message.equals('NEW_SHELL:-')) {
-			newShell(ssh, session, userSession)
-			sameSession = true
 		}else if (message.equals('CLOSE_SHELL:-')) {
 			closeShell(ssh, session, userSession)
-			sameSession = true
-		} else if  (message.equals('SAME_SESSION:-')) {
-			sameSession = true
-			newSession = false
-		}else if (message.equals('PONG')) {
-			//log.debug "We have a pong"
-			// Nothing to do - ping/pong controlled via user initial connector.
 		} else {
 			// Will return here conflicts with custom calls
 			// Ensure user can actually send stuff according to back-end config
@@ -77,23 +62,19 @@ class J2sshService extends ConfService {
 		if (config.security == "enabled") {
 			// Ensure user is not attempting to gain unauthorised access -
 			// Check back-end config: ensure session control is enabled.
-			if ((newchannel.equals('YES'))||(hideSessionCtrl.equals('NO')&&(newSession)&&(sameSession==false))) {
+			if ((newchannel.equals('YES'))||(hideSessionCtrl.equals('NO'))) {
 				newChann = true
-			}else if ((newSession)&&(hideSessionCtrl.equals('NO'))) {
+			}else if ((hideSessionCtrl.equals('NO'))) {
 				newChann = true
-			}else if ((sameSession)&&(hideSessionCtrl.equals('NO'))) {
+			}else if ((hideSessionCtrl.equals('NO'))) {
 				newChann = false
 			}
 		}
 		// No security enabled - do as user asks.
 		else{
-			if ((newchannel.equals('YES'))||((newSession)&&(sameSession==false))) {
+			if (newchannel.equals('YES')) {
 				newChann = true
-			}else if (newSession) {
-				newChann = true
-			}else if (sameSession) {
-				newChann = false
-			}
+			}	
 		}
 
 		def cc = ssh.getActiveChannelCount() ?: 1
@@ -121,7 +102,6 @@ class J2sshService extends ConfService {
 			boolean sendPong = false
 			while ((sendPong==false)&&(userSession && userSession.isOpen())) {
 				sleep(pingRate ?: 60000)
-				//userSession.basicRemote.sendText('ping')
 				messagingService.sendFrontEndPM(userSession, user,'ping')
 			}
 		}
@@ -258,30 +238,6 @@ class J2sshService extends ConfService {
 				}
 			}
 		}
-	}
-
-	private String parseBash(String input) {
-
-		Map bashMap = [
-			'[1;30m' : '<span style="color:black">',
-			'[1;31m' : '<span style="color:red">',
-			'[1;32m' : '<span style="color:green">',
-			'[1;33m' : '<span style="color:yellow">',
-			'[1;34m' : '<span style="color:blue">',
-			'[1;35m' : '<span style="color:purple">',
-			'[1;36m' : '<span style="color:cyan">',
-			'[1;37m' : '<span style="color:white">',
-			'[m'   : '</span>',
-			'[0m'   : '</span>'
-		]
-
-		bashMap.each { k,v ->
-			if (input.contains(k)) {
-				//input = input.toString().replace(k, v)
-				input = input.replace(k,'')
-			}
-		}
-		return input
 	}
 
 }

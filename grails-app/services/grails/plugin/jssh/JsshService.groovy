@@ -259,29 +259,6 @@ class JsshService extends ConfService {
 		}
 	}
 
-	private String parseBash(String input) {
-		Map bashMap = [
-			'[1;30m' : '<span style="color:black">',
-			'[1;31m' : '<span style="color:red">',
-			'[1;32m' : '<span style="color:green">',
-			'[1;33m' : '<span style="color:yellow">',
-			'[1;34m' : '<span style="color:blue">',
-			'[1;35m' : '<span style="color:purple">',
-			'[1;36m' : '<span style="color:cyan">',
-			'[1;37m' : '<span style="color:white">',
-			'[m'   : '</span>',
-			'[0m'   : '</span>'
-		]
-		bashMap.each { k,v ->
-			if (input.contains(k)) {
-				//input = input.toString().replace(k, v)
-				input = input.replace(k,'')
-			}
-		}
-		return input
-	}
-
-
 	/*
 	 private void execCmd(SshClient ssh, SessionChannelClient session, String cmd, Session userSession) {
 	 try {

@@ -5,11 +5,7 @@
     	<meta name='layout' content="ajssh"/>
     </g:if>
     <g:else>
-    	 <asset:stylesheet href="jssh.css" />
-    	 <asset:stylesheet href="bootstrap.min.css" />
-    	 
-    	 <asset:javascript src="jquery.min.js"/>
-    	 <asset:javascript src="jssh.js"/>
+	<g:render template="/assets" />
     </g:else>
   <title><g:message code="jssh.title.label" args="[entityName]"  default="j2ssh Ajax/Poll"/></title>
 </head>
