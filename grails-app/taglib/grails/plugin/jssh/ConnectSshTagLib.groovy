@@ -15,28 +15,6 @@ class ConnectSshTagLib extends ConfService {
 	hideWhatsRunning, hideDiscoButton, hidePauseControl, hideNewShellButton, jobName,
 	jsshUser, divId, enablePong, pingRate, addAppName
 
-	def chooseLayout =  { attrs ->
-		genericOpts(attrs)
-		def file = attrs.remove('file')?.toString()
-		def loadtemplate = attrs.remove('loadtemplate')?.toString()
-
-		def input = attrs.remove('input')?.toString()
-		def pageid = attrs.remove('pageid')?.toString()
-		def pagetitle = attrs.remove('pagetitle')?.toString()
-		def hideAuthBlock = attrs.remove('hideAuthBlock')?.toString()
-		if (!pageid) {
-			pageid="jssh"
-		}
-		if (!pagetitle) {
-			pagetitle="jssh J2SSH Websocket/Ajax plugin"
-		}
-		def gfolder = pluginbuddyService.returnAppVersion()
-		Map model = [ hideAuthBlock:hideAuthBlock, attrs:attrs, loadtemplate:loadtemplate, input:input,
-			port:port, username:username, password:password, hostname:hostname, userCommand:userCommand,
-			pageid:pageid, pagetitle:pagetitle ]
-		out << g.render(contextPath: pluginContextPath, template: "/connectSsh/${gfolder}/${file}", model: model)
-	}
-
 	def ajaxconnect =  { attrs ->
 
 		genericOpts(attrs)
@@ -137,6 +115,9 @@ class ConnectSshTagLib extends ConfService {
 		this.template = attrs.remove('template')?.toString()
 		this.port = attrs.remove('port')?.toString()
 
+		if (!username) {
+			username = config.USER
+		}
 		if (!userCommand) {
 			userCommand="echo \"\$USER has logged into \$HOST\""
 		}

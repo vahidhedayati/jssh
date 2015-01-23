@@ -24,15 +24,22 @@ toggleBlock('#authCtrl','.authList','AUTHENTICATION');
 		
 		<div class='col-sm-3'>
 		<div class='form-group'>
-			<label for="password">SSH Password:</label>
+			<label for="password">SSH Pass:</label>
 	 		<g:passwordField name="password" placeholder="password?" class="form-control form-fixer"/>
 		</div>
 		</div>
 		
-		<div class='col-sm-3'>
+		<div class='col-sm-2'>
 		<div class='form-group'>
-			<label for="hostname">SSH Hostname:</label>
-			<g:textField name="hostname" placeholder="hostname?" class="form-control form-fixer"/>
+			<label for="hostname">Hostname:</label>
+			<g:textField name="hostname" placeholder="localhost" value="localhost" class="form-control form-fixer"/>
+		</div>
+		</div>
+		
+			<div class='col-sm-2'>
+		<div class='form-group'>
+			<label for="password">Port:</label>
+	 		<g:textField name="port" placeholder="22" value="22" class="form-control form-fixer"/>
 		</div>
 		</div>
 	</div>
@@ -43,7 +50,7 @@ toggleBlock('#authCtrl','.authList','AUTHENTICATION');
 			<div class='col-sm-12'>
     		<div class='form-group'>
 				<label for="execcommand">Execute Command:</label>		
-				<textarea name="command" id="console" placeholder="Line separated commands to execute"></textarea>
+				<textarea name="userCommand" id="console" placeholder="Line separated commands to execute"></textarea>
 			</div>
 			</div>
 		</div>

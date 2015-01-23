@@ -12,9 +12,9 @@
 
 <div class="btn btn-block"><h5>Socket client/Server SSH Configuration/command</h5></div>
 
-		<g:form	name="urlParams" class="form-horizontal" method="post" action="scsocketconnect">
+		<g:form	name="urlParams" class="form-horizontal" method="post" action="process">
 	<g:render template="/connectSsh/connectBox"/>
-	
+	<input type="hidden" name="view" value="scsocketconnect">
 	<div class='row'>
 		<div class='col-sm-5'>
 		<div class='form-group'>

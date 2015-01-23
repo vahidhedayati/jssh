@@ -26,7 +26,7 @@
 <div class="container">
 <g:render template="/connectSsh/navbar"/>
 
-	<jssh:conn hostname="${hostname}" username="${username}" 
+	<jssh:ajaxconnect hostname="${hostname}" username="${username}" 
 port="${port}"
 password="${password}" 
 userCommand="${userCommand.encodeAsJavaScript()}"
@@ -34,6 +34,7 @@ jsshUser = "${jsshUser}"
 divId="${divId}"
 />
 <div id="${divId}"></div>
+
 </div>
 </body>
 </html>
