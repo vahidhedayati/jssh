@@ -28,6 +28,14 @@ public class ClientListenerService extends ConfService {
 			return null
 		}
 		oSession.userProperties.put("username", username)
+		oSession.userProperties.put("jUser", map.jUser)
+		oSession.userProperties.put("conLogId", map.conLogId)
+		oSession.userProperties.put("conloggerId", map.conloggerId)
+		oSession.userProperties.put("comloggerId", map.comloggerId)
+		if (map.hosts) {
+			oSession.userProperties.put("hosts", map.hosts)
+		}
+		
 		return  oSession
 	}
 

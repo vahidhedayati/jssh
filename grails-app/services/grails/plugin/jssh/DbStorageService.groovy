@@ -12,15 +12,12 @@ class DbStorageService extends ConfService {
 
 	def dnsService
 	
-
-	
 	public Map<String,String> addJsshUser(String username, SshServers server, String groupId=null) {
 		JsshUser user
-		ConnectionLogger addlog
 		JsshUser.withTransaction {
 			user = JsshUser.findByUsername(username)
 			if (!user) {
-				addlog = addLog()
+				ConnectionLogger addlog = addLog()
 				SshServerGroups ssg
 				if (groupId) {
 					ssg = SshServerGroups.get(groupId)
@@ -33,7 +30,7 @@ class DbStorageService extends ConfService {
 				}
 			}
 		}
-		return [ user: user.id as String, conId: addlog.id as String ]
+		return [ user: user.id as String, conId: user.conlog.id as String ]
 	}
 	
 	public SshServers  addServer(String hostName,  String port) {
@@ -98,10 +95,9 @@ class DbStorageService extends ConfService {
 	}
 	
 	public String storeConnection(String hostName, String port, String user,  String sshUser, String conId = null) {
-		ConnectionLogger conlog
 		ConnectionLogs logInstance
 		ConnectionLogs.withTransaction {
-			
+			ConnectionLogger conlog
 			if (conId) {
 				conlog = ConnectionLogger.get(conId)
 			}else{

@@ -8,7 +8,7 @@
 	var backuser='${backuser}';
 	var uri="${uri}";
 	var divId="${divId}";
-	console.log('---------->'+uri);
+	
 	
 	var webSocket${divId}=new WebSocket(uri);
 	webSocket${divId}.onopen=function(message) {processOpen${divId}(message);};

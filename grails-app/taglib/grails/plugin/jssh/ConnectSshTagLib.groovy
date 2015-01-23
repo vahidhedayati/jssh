@@ -16,6 +16,8 @@ class ConnectSshTagLib extends ConfService {
 	def clientListenerService
 	def dbStorageService
 	
+	private ArrayList hosts 
+	
 	private String hostname, username, userCommand, password, template, port
 
 	private String wshostname, hideConsoleMenu, hideSendBlock, hideSessionCtrl,
@@ -77,7 +79,10 @@ class ConnectSshTagLib extends ConfService {
 	def conn = { attrs ->
 
 		socketOpts(attrs)
-
+		
+		// Only register commands and transactions from new conn method
+		genDb(username, hosts, hostname, jsshUser, userCommand, port)
+		
 		def cuser= jsshUser
 		
 		def cjob = jobName
@@ -92,25 +97,43 @@ class ConnectSshTagLib extends ConfService {
 		if (!appName) {
 			appName = grailsApplication.metadata['app.name']
 		}
-
+		
 		def connMap = [frontend: frontend,  backuser: cuser, user: username, username:username, password: password,
-			hostname: hostname, port: port, enablePong: enablePong, pingRate: pingRate, usercommand: userCommand,
+			port: port, enablePong: enablePong, pingRate: pingRate, usercommand: userCommand,
 			divId:divId, jsshApp: APP, uri:uri, job: cjob, frontuser:frontuser, hideWhatsRunning:hideWhatsRunning,
 			hideDiscoButton:hideDiscoButton, hidePauseControl:hidePauseControl, hideSessionCtrl:hideSessionCtrl,
 			hideNewShellButton:hideNewShellButton, hideConsoleMenu:hideConsoleMenu, hideSendBlock:hideSendBlock,
 			wshostname:wshostname]
-
+		
 		connMap.put('jsshUser', frontuser)
-		loadTemplate(template,'/connectSsh/socketConnect', connMap)
-
+		if (hostname) {
+			connMap.put('hostname', hostname)
+			loadTemplate(template,'/connectSsh/socketConnect', connMap)
+			loadBackEnd(uri, connMap, cuser)
+		}
+		// TODO -
+		/*	
+		if (hosts) {
+			hosts.each { hostn ->
+				connMap.put('hostname', hostn)
+				loadTemplate(template,'/connectSsh/socketConnect', connMap)
+				loadBackEnd(uri, connMap, cuser)
+			}
+		}
+		*/
+	}
+	
+	private void loadBackEnd(String uri, Map connMap, String cuser) {
 		connMap.remove('jsshUser')
 		connMap.put('jsshUser', cuser)
 		connMap.put('jUser', jUser)
 		connMap.put('conLogId', conLogId)
 		connMap.put('conloggerId', conloggerId)
 		connMap.put('comloggerId', comloggerId)
+		if (hosts) {
+			connMap.put('hosts', hosts)
+		}
 		Session oSession = clientListenerService.p_connect(uri, cuser, connMap)
-
 	}
 
 	private void loadTemplate(String template, String pluginTemplate, Map model) {
@@ -122,7 +145,14 @@ class ConnectSshTagLib extends ConfService {
 	}
 
 	private void genericOpts(attrs) {
-		this.hostname = attrs.remove('hostname')?.toString() ?: 'localhost'
+		if (attrs.hostname && (!attrs.hosts)) { 
+			this.hostname = attrs.remove('hostname')?.toString() ?: 'localhost'
+		}
+		
+		if (attrs.hosts instanceof ArrayList) {
+			this.hosts = attrs.hostname
+		}	
+		
 		this.username = attrs.remove('username')?.toString() ?: config.USER ?: ''
 		this.userCommand = attrs.remove('userCommand') ?: "echo \"\$USER has logged into \$HOST\""
 		this.password = attrs.remove('password')?.toString()
@@ -198,16 +228,25 @@ class ConnectSshTagLib extends ConfService {
 
 		this.addAppName =  config.addAppName ?: 'YES'
 
-		genDb(username, hostname, jsshUser, userCommand, port)
+		
 	}
 
-	private void genDb(String sshUser, String hostname, String username, String userCommand, String port) {
-		SshServers server = dbStorageService.addServer(hostname, port)
-		Map<String,String> jU = dbStorageService.addJsshUser(username, server)
-		this.jUser = jU.user 
-		this.conLogId = jU.conId
+	private void genDb(String sshUser, ArrayList hosts, String hostname, String username, String userCommand, String port) {
+		if (hosts) {
+			hosts.each { host ->
+				addUserHost(host, port, username)
+			}
+		}else{
+			addUserHost(hostname, port, username)
+		}
 		this.conloggerId = dbStorageService.storeConnection(hostname, port, username, sshUser, conLogId)
 		this.comloggerId = dbStorageService.storeCommand(userCommand, username, conLogId, sshUser)
-		 
+	}
+	
+	private void addUserHost(String hostname, String port, String username) {
+		SshServers server = dbStorageService.addServer(hostname, port)
+		Map<String,String> jU = dbStorageService.addJsshUser(username, server)
+		this.jUser = jU.user
+		this.conLogId = jU.conId
 	}
 }

@@ -25,7 +25,7 @@ public class ClientProcessService extends ConfService  {
 	def messagingService
 	def j2sshService
 	def authService
-
+	def dbStorageService
 	private SshClient ssh = new SshClient()
 	private SessionChannelClient session
 
@@ -48,12 +48,20 @@ public class ClientProcessService extends ConfService  {
 			def values = parseInput("/fm ",message)
 			String user = values.user as String
 			String msg = values.msg as String
+			
+			// New Websocket Client connection register store 
+			// each new command input from frontend
+			String comloggerId = userSession.userProperties.get("comloggerId") as String
+			String conloggerId = userSession.userProperties.get("conloggerId") as String
+			dbStorageService.storeCommand(msg, user, conloggerId, username, comloggerId)
+			 
 			def asyncProcess = new Thread({
 				SessionChannelClient ss = j2sshService.newShell( ssh,  session, userSession)
 				j2sshService.processConnection(userSession, ss, msg)
 				j2sshService.closeShell( ssh,  ss,  userSession)
 			} as Runnable )
 			asyncProcess.start()
+			
 		}else if  (message.startsWith('DISCO:-')) {
 			userSession.close()
 		}else if (message.startsWith('{')) {
