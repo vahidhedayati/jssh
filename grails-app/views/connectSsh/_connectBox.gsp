@@ -9,20 +9,20 @@ toggleBlock('#authCtrl','.authList','AUTHENTICATION');
 </g:javascript>
 <div class="authList" style="display: none;">	
 	<div class='row'>
-	<div class='col-sm-3'>
+	<div class='col-sm-2'>
 		<div class='form-group'>
 	 		<label for="username">JSSH User:</label>
 			<g:textField name="jsshUser" placeholder="Jssh Username" class="form-control form-fixer"/>
 		</div>
 		</div>
-		<div class='col-sm-3'>
+		<div class='col-sm-2'>
 		<div class='form-group'>
 	 		<label for="username">SSH Username:</label>
 			<g:textField name="username" placeholder="Username?" class="form-control form-fixer"/>
 		</div>
 		</div>
 		
-		<div class='col-sm-3'>
+		<div class='col-sm-2'>
 		<div class='form-group'>
 			<label for="password">SSH Pass:</label>
 	 		<g:passwordField name="password" placeholder="password?" class="form-control form-fixer"/>

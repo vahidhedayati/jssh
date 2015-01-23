@@ -5,9 +5,10 @@ class ConnectionLogger {
 		Date dateCreated
 		Date lastUpdated
 	  
-		static hasMany = [connections: ConnectionLogs]
+		static hasMany = [connections: ConnectionLogs, commands: CommandLogs]
 	  
 		static constraints = {
+			commands nullable: true
 		}
 	  
 		static mapping = {

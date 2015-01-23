@@ -2,11 +2,12 @@ package grails.plugin.jssh.logging
 
 class CommandLogs {
 
-	CommandLogs comlog
-	
-	static hasMany = [connections: ConnectionLogs]
+	CommandLogger comlog
+	ConnectionLogger conlog
 	
 	String user
+	String sshUser
+	
 	String contents
 	Date dateCreated
   

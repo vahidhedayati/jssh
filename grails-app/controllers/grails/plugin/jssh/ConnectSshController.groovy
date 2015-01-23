@@ -49,7 +49,7 @@ class ConnectSshController extends ConfService {
 			divId = randService.shortRand('divId')
 		}
 		if (!sshTitle) {
-			sshTitle = "Jssh Websocket[Server/Client] SSH Connection"
+			sshTitle = "Grails Jssh plugin: ${view}"
 		}
 		
 		Map map =  [jsshUser: jsshUser, hostname: hostname, username: username, userCommand:userCommand,

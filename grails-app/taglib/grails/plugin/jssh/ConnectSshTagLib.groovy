@@ -1,20 +1,29 @@
+
+
 package grails.plugin.jssh
+
+import grails.plugin.jssh.logging.CommandLogger
 
 import javax.websocket.Session
 
 class ConnectSshTagLib extends ConfService {
 	static namespace = "jssh"
+	
 	def connectSsh
 	def jsshConfig
 	def pluginbuddyService
 	def randService
 	def clientListenerService
+	def dbStorageService
+	
 	private String hostname, username, userCommand, password, template, port
 
 	private String wshostname, hideConsoleMenu, hideSendBlock, hideSessionCtrl,
 	hideWhatsRunning, hideDiscoButton, hidePauseControl, hideNewShellButton, jobName,
 	jsshUser, divId, enablePong, pingRate, addAppName
 
+	private String jUser, conLogId, conloggerId, comloggerId
+	
 	def ajaxconnect =  { attrs ->
 
 		genericOpts(attrs)
@@ -44,7 +53,6 @@ class ConnectSshTagLib extends ConfService {
 
 	def socketconnect =  { attrs ->
 
-		genericOpts(attrs)
 		socketOpts(attrs)
 
 		boolean frontend = attrs.remove('frontend')?.toBoolean() ?: false
@@ -61,15 +69,17 @@ class ConnectSshTagLib extends ConfService {
 		loadTemplate(template, "/connectSsh/socketprocess", model)
 	}
 
-	// NEW : Client / Server SSH Model - Server or Master being backend SSH connection / client being websocket client
-	// That listens to Websocket server/master that sends connection info back to client
+	/* NEW : Client / Server SSH Model - Server or Master being backend SSH connection / client 
+	*  being websocket client
+	* That listens to Websocket server/master that sends connection info back to client
+	*/
 
 	def conn = { attrs ->
 
-		genericOpts(attrs)
 		socketOpts(attrs)
 
 		def cuser= jsshUser
+		
 		def cjob = jobName
 		String frontuser=cuser+frontend
 		boolean frontend = true
@@ -95,6 +105,10 @@ class ConnectSshTagLib extends ConfService {
 
 		connMap.remove('jsshUser')
 		connMap.put('jsshUser', cuser)
+		connMap.put('jUser', jUser)
+		connMap.put('conLogId', conLogId)
+		connMap.put('conloggerId', conloggerId)
+		connMap.put('comloggerId', comloggerId)
 		Session oSession = clientListenerService.p_connect(uri, cuser, connMap)
 
 	}
@@ -108,23 +122,16 @@ class ConnectSshTagLib extends ConfService {
 	}
 
 	private void genericOpts(attrs) {
-		this.hostname = attrs.remove('hostname')?.toString()
-		this.username = attrs.remove('username')?.toString()
-		this.userCommand = attrs.remove('userCommand')
+		this.hostname = attrs.remove('hostname')?.toString() ?: 'localhost'
+		this.username = attrs.remove('username')?.toString() ?: config.USER ?: ''
+		this.userCommand = attrs.remove('userCommand') ?: "echo \"\$USER has logged into \$HOST\""
 		this.password = attrs.remove('password')?.toString()
 		this.template = attrs.remove('template')?.toString()
-		this.port = attrs.remove('port')?.toString()
-
-		if (!username) {
-			username = config.USER
-		}
-		if (!userCommand) {
-			userCommand="echo \"\$USER has logged into \$HOST\""
-		}
-
+		this.port = attrs.remove('port')?.toString() ?: '22'
 	}
 
 	private void socketOpts(attrs) {
+		genericOpts(attrs)
 		if (!attrs.wshostname) {
 			this.wshostname = config.wshostname ?: 'localhost:8080'
 		}else{
@@ -183,7 +190,7 @@ class ConnectSshTagLib extends ConfService {
 		if (!jsshUser) {
 			jsshUser=randService.randomise('jsshUser')
 		}
-
+		
 		this.divId = attrs.remove('divId')?.toString()
 		this.enablePong = attrs.remove('enablePong')?.toString() ?: config.enablePong
 		// In milliseconds how to long to wait before sending next ping
@@ -191,6 +198,16 @@ class ConnectSshTagLib extends ConfService {
 
 		this.addAppName =  config.addAppName ?: 'YES'
 
+		genDb(username, hostname, jsshUser, userCommand, port)
 	}
 
+	private void genDb(String sshUser, String hostname, String username, String userCommand, String port) {
+		SshServers server = dbStorageService.addServer(hostname, port)
+		Map<String,String> jU = dbStorageService.addJsshUser(username, server)
+		this.jUser = jU.user 
+		this.conLogId = jU.conId
+		this.conloggerId = dbStorageService.storeConnection(hostname, port, username, sshUser, conLogId)
+		this.comloggerId = dbStorageService.storeCommand(userCommand, username, conLogId, sshUser)
+		 
+	}
 }

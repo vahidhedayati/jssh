@@ -1,26 +1,23 @@
 package grails.plugin.jssh.logging
 
 class ConnectionLogs {
+
+	ConnectionLogger conlog
+	String jsshUser
+	String sshUser
+	String hostName
+	String port
 	
-	ConnectionLogs conlog
-	CommandLogs comlog
-	
-	String user
-	String contents
 	Date dateCreated
   
 	static constraints = {
-	  user nullable: true
-	}
-  
-	static mapping = {
-	  contents type: 'text'
+	  jsshUser nullable: true
 	}
   
 	String toString() {
-	  if (user) {
-		return "$user: $contents"
+	  if (jsshUser) {
+		return "$jsshUser: $sshUser: $hostName"
 	  }
-	  return contents
+	  return "$sshUser: $hostName"
 	}
 }
