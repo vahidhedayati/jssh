@@ -48,57 +48,55 @@ public class ClientProcessService extends ConfService  {
 		}
 	}
 	public void processResponse(Session userSession, String message) {
-		
+
 		String username = userSession.userProperties.get("username") as String
 		boolean disco = true
-		
+
 		if (message.startsWith("/pm")) {
-			
+
 			def values = parseInput("/pm ",message)
 			String user = values.user as String
 			String msg = values.msg as String
 			messagingService.forwardMessage(user,msg)
-			
+
 		}else if  (message.startsWith('/bm')) {
-		
+
 			def values = parseInput("/fm ",message)
 			String user = values.user as String
 			String msg = values.msg as String
-			
-			// New Websocket Client connection register store 
+
+			// New Websocket Client connection register store
 			// each new command input from frontend
 			String comloggerId = userSession.userProperties.get("comloggerId") as String
 			String conloggerId = userSession.userProperties.get("conloggerId") as String
 			dbStorageService.storeCommand(msg, user, conloggerId, username, comloggerId)
-			 
+
 			def asyncProcess = new Thread({
 				SessionChannelClient ss = j2sshService.newShell( ssh,  session, userSession)
 				j2sshService.processConnection(userSession, ss, msg)
 				j2sshService.closeShell( ssh,  ss)
 			} as Runnable )
 			asyncProcess.start()
-			
+
 		}else if (message.startsWith('/addGroup')) {
-		
+
 			def values = parseInput("/addGroup ",message)
 			String user = values.user as String
 			String msg = values.msg as String
-			
+
 			String output = dbStorageService.storeGroup(msg,user)
 			messagingService.sendBackEndFM(username, output)
-			
+
 		}else if  (message.startsWith('DISCO:-')) {
 			//userSession.close()
 			handleClose( userSession)
 		}else if (message.startsWith('/system')) {
-		def values = parseInput("/system ",message)
-		String user = values.user as String
-		String msg = values.msg as String
-		parseJSON( userSession,  username, user, msg)
+			def values = parseInput("/system ",message)
+			String user = values.user as String
+			String msg = values.msg as String
+			parseJSON( userSession,  username, user, msg)
 		}else if (message.startsWith('{')) {
-		
-		parseJSON( userSession, username, username, message)
-			
+			parseJSON( userSession, username, username, message)
 		}else{
 			messagingService.sendBackEndFM(username, message)
 		}
@@ -109,7 +107,6 @@ public class ClientProcessService extends ConfService  {
 		String actionthis=''
 		String msgFrom = rmesg.msgFrom
 		boolean pm = false
-
 		if (rmesg.hostname) {
 			verifyGeneric(rmesg)
 			userSession.userProperties.put("pingRate", pingRate)
@@ -118,34 +115,32 @@ public class ClientProcessService extends ConfService  {
 				multiUser(ssh, session, properties, userSession)
 			}
 		}
-		
+
 		String system = rmesg.system
 		if (rmesg.privateMessage) {
 			JSONObject rmesg2=JSON.parse(rmesg.privateMessage)
 			String command = rmesg2.command
 		}
-		
-		
 		if (system) {
 			if (user==username) {
-		if (system == "PAUSE:-") {
-			userSession.userProperties.put("status", "pause")
-			//j2sshService.processRequest(ssh, session, properties, userSession, system, user)
-		}else if (system == "RESUME:-") {
-			userSession.userProperties.put("status", "resume")
-			//j2sshService.processRequest(ssh, session, properties, userSession, system, user)
-		}else if (system == "disconnect") {
-			//clientListenerService.disconnect(userSession)
-			handleClose( userSession)
-		}
+				if (system == "PAUSE:-") {
+					userSession.userProperties.put("status", "pause")
+					//j2sshService.processRequest(ssh, session, properties, userSession, system, user)
+				}else if (system == "RESUME:-") {
+					userSession.userProperties.put("status", "resume")
+					//j2sshService.processRequest(ssh, session, properties, userSession, system, user)
+				}else if (system == "disconnect") {
+					//clientListenerService.disconnect(userSession)
+					handleClose( userSession)
+				}
 			}
 		}
 	}
 	private void multiUser(SshClient ssh, SessionChannelClient session=null,
 			SshConnectionProperties properties=null,Session userSession) {
-			
-		Map resSet = j2sshService.sshConnect(ssh, session, properties, user, userpass, host, 
-			usercommand, port, userSession)
+
+		Map resSet = j2sshService.sshConnect(ssh, session, properties, user, userpass, host,
+				usercommand, port, userSession)
 
 		boolean isAuthenticated = false
 		SshClient ssh2
