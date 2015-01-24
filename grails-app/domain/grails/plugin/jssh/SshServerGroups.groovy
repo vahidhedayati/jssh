@@ -9,6 +9,6 @@ class SshServerGroups {
 	static hasMany = [ servers: SshServers]
 	
     static constraints = {
-		name blank: false
+		name blank: false, unique: true
     }
 }

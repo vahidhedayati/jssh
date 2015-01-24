@@ -2,20 +2,15 @@ package grails.plugin.jssh
 
 class SshServers {
 	
-	SshServerGroups mygroup
-	
-	static belongsTo = [JsshUser]
+	static belongsTo = [JsshUser, SshServerGroups]
 	
 	String hostName
 	String ipAddress
 	String sshPort
 	
-	
     static constraints = {
-		mygroup nullable:true
-		
+		hostName blank: false, unique: true
 		ipAddress nullable:true
 		sshPort nullable:true
-		hostName blank: false
     }
 }

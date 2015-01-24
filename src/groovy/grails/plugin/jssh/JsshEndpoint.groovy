@@ -129,7 +129,10 @@ class JsshEndpoint extends ConfService implements ServletContextListener {
 				messagingService.forwardMessage(user,"/bm $user,$msg")
 			}
 			
-		
+		}else if (message.startsWith('/addGroup')) {
+			def values = parseInput("/addGroup ",message)
+			String msg = values.msg as String
+			messagingService.fwdFendMsg(username,"/addGroup ${username},$msg")
 		// All other actions	
 		}else{
 			def data = JSON.parse(message)

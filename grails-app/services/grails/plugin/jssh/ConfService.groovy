@@ -54,6 +54,7 @@ class ConfService {
 		values.put("msg", msg);
 		return values
 	}
+	
 	public String parseBash(String input) {
 
 		Map bashMap = [
@@ -81,6 +82,14 @@ class ConfService {
 	def getConfig() {
 		grailsApplication?.config?.jssh
 	}
+	
+	public String addFrontEnd(String username) {
+		if (!username.endsWith(frontend)) {
+			username=username+frontend
+		}
+		return username
+	}
+	
 	public String parseFrontEnd(String username) {
 		if (username.endsWith(frontend)) {
 			username=username.substring(0, username.indexOf(frontend))

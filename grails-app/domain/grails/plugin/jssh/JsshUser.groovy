@@ -13,7 +13,6 @@ class JsshUser {
     static constraints = {
 		username blank: false, unique: true
 		conlog nullable: true
-		//comlog nullable: true
     }
 	
 	static mapping = { 

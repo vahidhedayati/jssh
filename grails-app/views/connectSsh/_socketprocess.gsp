@@ -1,4 +1,4 @@
-<g:render template="/connectSsh/sshLayout"/>
+<g:render template="/connectSsh/sshLayout" />
 
 <g:javascript>     
 	if (!window.WebSocket) {
@@ -17,10 +17,13 @@
 	webSocket${divId}.onclose=function(message) {processClose${divId}(message);};
 	webSocket${divId}.onerror=function(message) {processError${divId}(message);};
 	var textMessage=document.getElementById("textMessage${divId}");
+
 	
 	function processOpen${divId}(message) {
 		$('#messagesTextarea${divId}').append('Server Connect....\n');
-		webSocket${divId}.send(JSON.stringify({'frontend':"${frontend}",'jsshUser':"${jsshUser}",'user':"${username}",'password':"${password}", 'hostname':"${hostname}", 'port': "${port }" ,'enablePong':"${enablePong }",'pingRate':"${pingRate }", 'usercommand': "${userCommand}"}))
+		webSocket${
+	divId
+}.send(JSON.stringify({'frontend':"${frontend}",'jsshUser':"${jsshUser}",'user':"${username}",'password':"${password}", 'hostname':"${hostname}", 'port': "${port }" ,'enablePong':"${enablePong }",'pingRate':"${pingRate }", 'usercommand': "${userCommand}"}))
 	}
 	
 	function processMessage${divId}(message) {

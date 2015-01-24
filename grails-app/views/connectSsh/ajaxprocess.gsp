@@ -23,18 +23,15 @@
 </title>
 </head>
 <body>
-<div class="container">
-<g:render template="/connectSsh/navbar"/>
+	<div class="container">
+		<g:render template="/connectSsh/navbar" />
 
-	<jssh:ajaxconnect hostname="${hostname}" username="${username}" 
-port="${port}"
-password="${password}" 
-userCommand="${userCommand.encodeAsJavaScript()}"
-jsshUser = "${jsshUser}"
-divId="${divId}"
-/>
-<div id="${divId}"></div>
+		<jssh:ajaxconnect hostname="${hostname}" username="${username}"
+			port="${port}" password="${password}"
+			userCommand="${userCommand.encodeAsJavaScript()}"
+			jsshUser="${jsshUser}" divId="${divId}" />
+		<div id="${divId}"></div>
 
-</div>
+	</div>
 </body>
 </html>

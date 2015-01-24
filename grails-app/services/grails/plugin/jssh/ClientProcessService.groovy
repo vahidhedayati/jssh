@@ -36,15 +36,29 @@ public class ClientProcessService extends ConfService  {
 	private boolean enablePong
 	private int pingRate
 
+	public void handleClose(Session userSession) {
+		if (session && session.isOpen()) {
+			session.close()
+		}
+		if (ssh && ssh.isConnected()) {
+			ssh.disconnect()
+		}
+		userSession.close()
+	}
 	public void processResponse(Session userSession, String message) {
+		
 		String username = userSession.userProperties.get("username") as String
 		boolean disco = true
+		
 		if (message.startsWith("/pm")) {
+			
 			def values = parseInput("/pm ",message)
 			String user = values.user as String
 			String msg = values.msg as String
 			messagingService.forwardMessage(user,msg)
+			
 		}else if  (message.startsWith('/bm')) {
+		
 			def values = parseInput("/fm ",message)
 			String user = values.user as String
 			String msg = values.msg as String
@@ -62,9 +76,21 @@ public class ClientProcessService extends ConfService  {
 			} as Runnable )
 			asyncProcess.start()
 			
+		}else if (message.startsWith('/addGroup')) {
+		
+			def values = parseInput("/addGroup ",message)
+			String user = values.user as String
+			String msg = values.msg as String
+			
+			String output = dbStorageService.storeGroup(msg,user)
+			messagingService.sendBackEndFM(username, output)
+			
 		}else if  (message.startsWith('DISCO:-')) {
+		
 			userSession.close()
+			
 		}else if (message.startsWith('{')) {
+		
 			JSONObject rmesg=JSON.parse(message)
 			String actionthis=''
 			String msgFrom = rmesg.msgFrom
@@ -78,14 +104,17 @@ public class ClientProcessService extends ConfService  {
 					multiUser(ssh, session, properties, userSession)
 				}
 			}
+			
 			String disconnect = rmesg.system
 			if (rmesg.privateMessage) {
 				JSONObject rmesg2=JSON.parse(rmesg.privateMessage)
 				String command = rmesg2.command
 			}
+			
 			if (disconnect && disconnect == "disconnect") {
 				clientListenerService.disconnect(userSession)
 			}
+			
 		}else{
 			messagingService.sendBackEndFM(username, message)
 		}
@@ -93,7 +122,9 @@ public class ClientProcessService extends ConfService  {
 
 	private void multiUser(SshClient ssh, SessionChannelClient session=null,
 			SshConnectionProperties properties=null,Session userSession) {
-		Map resSet = j2sshService.sshConnect(ssh, session, properties, user, userpass, host, usercommand, port, userSession)
+			
+		Map resSet = j2sshService.sshConnect(ssh, session, properties, user, userpass, host, 
+			usercommand, port, userSession)
 
 		boolean isAuthenticated = false
 		SshClient ssh2

@@ -18,7 +18,7 @@ class ConnectSshTagLib extends ConfService {
 	
 	private ArrayList hosts 
 	
-	private String hostname, username, userCommand, password, template, port
+	private String hostname, username, userCommand, password, template, port, adminTemplate
 
 	private String wshostname, hideConsoleMenu, hideSendBlock, hideSessionCtrl,
 	hideWhatsRunning, hideDiscoButton, hidePauseControl, hideNewShellButton, jobName,
@@ -100,10 +100,13 @@ class ConnectSshTagLib extends ConfService {
 		
 		def connMap = [frontend: frontend,  backuser: cuser, user: username, username:username, password: password,
 			port: port, enablePong: enablePong, pingRate: pingRate, usercommand: userCommand,
-			divId:divId, jsshApp: APP, uri:uri, job: cjob, frontuser:frontuser, hideWhatsRunning:hideWhatsRunning,
-			hideDiscoButton:hideDiscoButton, hidePauseControl:hidePauseControl, hideSessionCtrl:hideSessionCtrl,
-			hideNewShellButton:hideNewShellButton, hideConsoleMenu:hideConsoleMenu, hideSendBlock:hideSendBlock,
-			wshostname:wshostname]
+			divId:divId, jsshApp: APP, uri:uri, job: cjob, frontuser: frontuser, hideWhatsRunning: hideWhatsRunning,
+			hideDiscoButton: hideDiscoButton, hidePauseControl: hidePauseControl, hideSessionCtrl: hideSessionCtrl,
+			hideNewShellButton: hideNewShellButton, hideConsoleMenu: hideConsoleMenu, hideSendBlock: hideSendBlock,
+			wshostname: wshostname]
+		
+		Map adminMap = [frontuser: frontuser, backuser: cuser, job:cjob]
+		loadTemplate(adminTemplate,"/connectSsh/scsockmodal",adminMap)
 		
 		connMap.put('jsshUser', frontuser)
 		if (hostname) {
@@ -157,6 +160,7 @@ class ConnectSshTagLib extends ConfService {
 		this.userCommand = attrs.remove('userCommand') ?: "echo \"\$USER has logged into \$HOST\""
 		this.password = attrs.remove('password')?.toString()
 		this.template = attrs.remove('template')?.toString()
+		this.adminTemplate = attrs.remove('adminTemplate')?.toString() ?: ''
 		this.port = attrs.remove('port')?.toString() ?: '22'
 	}
 

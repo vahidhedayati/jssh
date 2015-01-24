@@ -37,6 +37,7 @@ public class JsshClientEndpoint  extends ConfService {
 
 	@OnClose
 	public void onClose(final Session userSession, final CloseReason reason) {
+		clientProcessService.handleClose(userSession)
 		this.userSession = null
 	}
 
@@ -51,9 +52,12 @@ public class JsshClientEndpoint  extends ConfService {
 
 	@OnError
 	public void handleError(Throwable t) {
+		clientProcessService.handleClose(userSession)
 		t.printStackTrace()
 	}
-
+	
+	
+	
 	public void sendMessage(final String message) {
 		userSession.basicRemote.sendText(message)
 	}

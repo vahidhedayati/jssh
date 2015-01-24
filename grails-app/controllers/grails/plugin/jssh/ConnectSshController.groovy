@@ -1,12 +1,15 @@
 package grails.plugin.jssh
 
 class ConnectSshController extends ConfService {
+	
 	def connectSsh
 	def randService
-	//def jsshConfig
+	
+	// _navbar.gsp menu map
 	private Map menuMap = ['index':'Socket method', 'ajaxpoll':'Ajax poll', 
 		'socketremote':'RemoteForm Websocket', 'scsocket':'NEW: Websocket Client/Server']
 	
+	// Original websocket 
 	def index() {
 		def process = config.disable.login ?: 'NO'
 		if (process.toString().toLowerCase().equals('yes')) {
@@ -16,7 +19,7 @@ class ConnectSshController extends ConfService {
 		[hideAuthBlock:hideAuthBlock, process:process, menuMap:menuMap]
 	}
 	
-	
+	// Original websocket using remoteForm
 	def socketremote() {
 		def process = config.disable.login ?: 'NO'
 		if (process.toString().toLowerCase().equals('yes')) {
@@ -25,15 +28,7 @@ class ConnectSshController extends ConfService {
 		[process:process, menuMap:menuMap]
 	}
 
-	def ajaxpoll() {
-		def process = config.disable.login ?: 'NO'
-		if (process.toString().toLowerCase().equals('yes')) {
-			render "ajaxpoll disabled"
-		}
-		[process:process, menuMap:menuMap]
-	}
-
-	
+	// Socket Client/Server action
 	def scsocket() {
 		def process = config.disable.login ?: 'NO'
 		if (process.toString().toLowerCase().equals('yes')) {
@@ -42,7 +37,8 @@ class ConnectSshController extends ConfService {
 		[process:process, menuMap:menuMap]
 	}
 
-
+	// Shared process feature - that determines what view to load according to form posted
+	// by relevant action
 	def process	(String jsshUser, String hostname, String username, String userCommand,
 		String port, String password, String divId, String sshTitle, String view) {
 		if (!divId) {
@@ -58,6 +54,8 @@ class ConnectSshController extends ConfService {
 		render view:view, model: map
 	}
 
+		
+	// Ajax Polling related actions	
 	def resetOutput() { 
 		connectSsh.setOutput(new StringBuilder())
 		render ''
@@ -77,5 +75,30 @@ class ConnectSshController extends ConfService {
 	def inspect() {
 		def input = connectSsh.output
 		[input:input ]
+	}
+	
+	def ajaxpoll() {
+		def process = config.disable.login ?: 'NO'
+		if (process.toString().toLowerCase().equals('yes')) {
+			render "ajaxpoll disabled"
+		}
+		[process:process, menuMap:menuMap]
+	}
+	// End of Ajax polling related actions
+	
+	// Admin DB related features
+	def addGroup() {
+		render template: '/admin/addGroup'
+	}
+	
+	def addServers(String username) {
+		JsshUser ju = JsshUser.findByUsername(username)
+		println "-- ${ju}"
+		def serverList
+		if (ju) {
+			serverList = SshServerGroups.findByUser(ju) 
+		}
+		println "--->< ${serverList}"
+		render template: '/admin/addServers', model: [serverList:serverList]
 	}
 }

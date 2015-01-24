@@ -1,5 +1,5 @@
 
-<g:render template="/connectSsh/sshConnectLayout"/>
+<g:render template="/connectSsh/sshConnectLayout" />
 
 <g:javascript>
 
@@ -21,7 +21,9 @@
 	
 	function processOpen${divId}(message) {
 		$('#messagesTextarea${divId}').append('Client Socket connected to Socket Server....\n');
-		webSocket${divId}.send(JSON.stringify({'client': 'yes', 'frontend':"${frontend}",'jsshUser':"${frontuser}"}))
+		webSocket${
+	divId
+}.send(JSON.stringify({'client': 'yes', 'frontend':"${frontend}",'jsshUser':"${frontuser}"}))
 	}
 		function processMessage${divId}(message) {
 			//console.log(JSON.stringify(message));
@@ -136,6 +138,6 @@
 	window.onbeforeunload = function() {
 		//webSocket${divId}.onclose = function() { }
 		webSocket${divId}.send(JSON.stringify({ 'frontend':"true",'DISCO':"true"}));
-		//webSocket${divId}.close();
+		webSocket${divId}.close();
 	}
 </g:javascript>

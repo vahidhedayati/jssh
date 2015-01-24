@@ -8,10 +8,8 @@ import javax.websocket.Session
 class MessagingService extends ConfService  {
 	
 	def sendFrontEndPM2(Session userSession, String user,String message) {
-		if (user && (!user.endsWith(frontend))) {
-			user=user+frontend
-		}
-		def found=findUser( user)
+		user = addFrontEnd(user)
+		def found = findUser( user)
 		if (found) {
 			def crec = usersSession(user)
 			crec.basicRemote.sendText("${message}")
@@ -21,10 +19,8 @@ class MessagingService extends ConfService  {
 	}
 	
 	def sendFrontEndPM(Session userSession, String user,String message) {
-		if (user && (!user.endsWith(frontend))) {
-			user=user+frontend
-		}
-		def found=findUser( user)
+		user = addFrontEnd(user)
+		def found = findUser( user)
 		if (found) {
 			userSession.basicRemote.sendText("/pm ${user},${message}")
 		}else{
@@ -33,13 +29,8 @@ class MessagingService extends ConfService  {
 	}
 
 	def sendBackEndFM(String user,String message) {
-		if (user.endsWith(frontend)) {
-			user=user.substring(0,user.indexOf(frontend))
-		}
-		String fend = user
-		if (!user.endsWith(frontend)) {
-			fend=user+frontend
-		}
+		user = parseFrontEnd(user)
+		String fend = addFrontEnd(user)
 		Session cuser = usersSession(fend)
 		String user1 = cuser.userProperties.get("username") as String
 		cuser.basicRemote.sendText("/fm ${user},${message}")
@@ -68,7 +59,6 @@ class MessagingService extends ConfService  {
 		return found
 	}
 
-
 	public void sendMessage(Session userSession,final String message) {
 		userSession.basicRemote.sendText(message)
 	}
@@ -86,6 +76,14 @@ class MessagingService extends ConfService  {
 	}
 
 	def forwardMessage(String username, String message) {
+		Session user = usersSession(username)
+		if (user) {
+			user.basicRemote.sendText(message)
+		}
+	}
+	
+	def fwdFendMsg(String username, String message) {
+		username = parseFrontEnd(username)
 		Session user = usersSession(username)
 		if (user) {
 			user.basicRemote.sendText(message)
@@ -120,9 +118,7 @@ class MessagingService extends ConfService  {
 	}
 
 	def sendBackPM(String user,String message) {
-		if (user.endsWith(frontend)) {
-			user=user.substring(0,user.indexOf(frontend))
-		}
+		user = parseFrontEnd(user)
 		try {
 			synchronized (sshUsers) {
 				sshUsers?.each { crec->
@@ -130,7 +126,7 @@ class MessagingService extends ConfService  {
 						String cuser = crec.userProperties.get("username") as String
 						String cjob =  crec.userProperties.get("job") as String
 						boolean found = false
-						if (user==cuser) {
+						if (user == cuser) {
 							crec.basicRemote.sendText("${message}")
 						}
 					}
@@ -213,30 +209,5 @@ class MessagingService extends ConfService  {
 		}
 	}
 	*/
-
-	
-	
-	/*
-	 * No longer required  required
-
-	
-
-  
-	def sendBackEndPM(Session userSession, String user,String message) {
-		if (user.endsWith(frontend)) {
-			user=user.substring(0,user.indexOf(frontend))
-		}
-		userSession.basicRemote.sendText("/pm ${user},${message}")
-	}
-		
-	def sendFEPM(Session userSession, String user,String message) {
-		if (user && (!user.endsWith(frontend))) {
-			user=user+frontend
-		}
-		if (user) {
-			userSession.basicRemote.sendText("/pm ${user},${message}")
-		}
-	}
-	 */
 
 }

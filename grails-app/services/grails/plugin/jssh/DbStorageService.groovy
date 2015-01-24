@@ -12,6 +12,43 @@ class DbStorageService extends ConfService {
 
 	def dnsService
 	
+	public String storeServers(ArrayList servers, String gpId, String username) {
+		
+	}
+	
+	public String storeGroup(String name, String username) { 
+		SshServerGroups.withTransaction {
+			username = parseFrontEnd(username)
+			JsshUser user = JsshUser.findByUsername(username)
+			SshServerGroups sg = SshServerGroups.findOrSaveByNameAndUser(name, user)
+			if (!sg.save(flush:true)) {
+				if (config.debug == "on") {
+					sg.errors.allErrors.each{println it}
+				}
+			}
+			return "\n\nGroup ${sg.name } should now be added for ${user.username}"
+		}
+	}
+	
+	public String storeConnection(String hostName, String port, String user,  String sshUser, String conId = null) {
+		ConnectionLogs logInstance
+		ConnectionLogs.withTransaction {
+			ConnectionLogger conlog
+			if (conId) {
+				conlog = ConnectionLogger.get(conId)
+			}else{
+				conlog = addLog()
+			}
+			logInstance = new ConnectionLogs(jsshUser: user, sshUser: sshUser, hostName: hostName, port: port, conlog: conlog)
+			if (!logInstance.save(flush:true)) {
+				if (config.debug == "on") {
+					logInstance.errors.allErrors.each{println it}
+				}
+			}
+		}
+		return logInstance.id as String
+	}
+	
 	public Map<String,String> addJsshUser(String username, SshServers server, String groupId=null) {
 		JsshUser user
 		JsshUser.withTransaction {
@@ -92,25 +129,6 @@ class DbStorageService extends ConfService {
 			}
 			return logInstance
 		}
-	}
-	
-	public String storeConnection(String hostName, String port, String user,  String sshUser, String conId = null) {
-		ConnectionLogs logInstance
-		ConnectionLogs.withTransaction {
-			ConnectionLogger conlog
-			if (conId) {
-				conlog = ConnectionLogger.get(conId)
-			}else{
-				conlog = addLog()
-			}
-			logInstance = new ConnectionLogs(jsshUser: user, sshUser: sshUser, hostName: hostName, port: port, conlog: conlog)
-			if (!logInstance.save(flush:true)) {
-				if (config.debug == "on") {
-					logInstance.errors.allErrors.each{println it}
-				}
-			}
-		}
-		return logInstance.id as String
 	}
 	
 	private String storeCommand(String message, String user, String conId, String sshUser, String comId = null) {
