@@ -90,45 +90,57 @@ public class ClientProcessService extends ConfService  {
 		}else if  (message.startsWith('DISCO:-')) {
 			//userSession.close()
 			handleClose( userSession)
+		}else if (message.startsWith('/system')) {
+		def values = parseInput("/system ",message)
+		String user = values.user as String
+		String msg = values.msg as String
+		parseJSON( userSession,  username, user, msg)
 		}else if (message.startsWith('{')) {
 		
-			JSONObject rmesg=JSON.parse(message)
-			String actionthis=''
-			String msgFrom = rmesg.msgFrom
-			boolean pm = false
-
-			if (rmesg.hostname) {
-				verifyGeneric(rmesg)
-				userSession.userProperties.put("pingRate", pingRate)
-				boolean frontend = rmesg.frontend.toBoolean()
-				if (frontend) {
-					multiUser(ssh, session, properties, userSession)
-				}
-			}
-			
-			String system = rmesg.system
-			if (rmesg.privateMessage) {
-				JSONObject rmesg2=JSON.parse(rmesg.privateMessage)
-				String command = rmesg2.command
-			}
-		
-			if (system) {
-				
-			if (system == "PAUSE:-") {
-				j2sshService.processRequest(ssh, session, properties, userSession, system)
-			}else if (system == "RESUME:-") {
-				j2sshService.processRequest(ssh, session, properties, userSession, system)
-			}else if (system == "disconnect") {
-				//clientListenerService.disconnect(userSession)
-				handleClose( userSession)
-			}
-			}
+		parseJSON( userSession, username, username, message)
 			
 		}else{
 			messagingService.sendBackEndFM(username, message)
 		}
 	}
 
+	private void parseJSON(Session userSession,String username, String user,  String message) {
+		JSONObject rmesg=JSON.parse(message)
+		String actionthis=''
+		String msgFrom = rmesg.msgFrom
+		boolean pm = false
+
+		if (rmesg.hostname) {
+			verifyGeneric(rmesg)
+			userSession.userProperties.put("pingRate", pingRate)
+			boolean frontend = rmesg.frontend.toBoolean()
+			if (frontend) {
+				multiUser(ssh, session, properties, userSession)
+			}
+		}
+		
+		String system = rmesg.system
+		if (rmesg.privateMessage) {
+			JSONObject rmesg2=JSON.parse(rmesg.privateMessage)
+			String command = rmesg2.command
+		}
+		
+		
+		if (system) {
+			if (user==username) {
+		if (system == "PAUSE:-") {
+			userSession.userProperties.put("status", "pause")
+			//j2sshService.processRequest(ssh, session, properties, userSession, system, user)
+		}else if (system == "RESUME:-") {
+			userSession.userProperties.put("status", "resume")
+			//j2sshService.processRequest(ssh, session, properties, userSession, system, user)
+		}else if (system == "disconnect") {
+			//clientListenerService.disconnect(userSession)
+			handleClose( userSession)
+		}
+			}
+		}
+	}
 	private void multiUser(SshClient ssh, SessionChannelClient session=null,
 			SshConnectionProperties properties=null,Session userSession) {
 			

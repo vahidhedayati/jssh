@@ -28,7 +28,7 @@
 
 		<jssh:conn hostname="${hostname}" username="${username}"
 			port="${port}" password="${password}"
-			userCommand="${userCommand.encodeAsJavaScript()}"
+			userCommand="${userCommand}"
 			jsshUser="${jsshUser}" divId="${divId}" />
 		<div id="${divId}"></div>
 	</div>

@@ -117,7 +117,7 @@ class MessagingService extends ConfService  {
 		}
 	}
 
-	def sendBackPM(String user,String message) {
+	def sendBackPM(String user,String message, String mtype=null) {
 		user = parseFrontEnd(user)
 		try {
 			synchronized (sshUsers) {
@@ -127,7 +127,14 @@ class MessagingService extends ConfService  {
 						String cjob =  crec.userProperties.get("job") as String
 						boolean found = false
 						if (user == cuser) {
+							
+							
+							if (mtype=="system") {
+								println "== ${user} ::  ${message}"
+								crec.basicRemote.sendText("/system ${user},${message}")
+							}else{
 							crec.basicRemote.sendText("${message}")
+							}
 						}
 					}
 				}

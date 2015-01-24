@@ -21,25 +21,9 @@ import com.sshtools.j2ssh.transport.publickey.SshPrivateKeyFile
 class J2sshService extends ConfService {
 
 	private boolean isAuthenticated = false
-	private boolean pauseLog = false
-	private boolean resumed = false
 	
 	def messagingService
-	public processRequest(SshClient ssh, SessionChannelClient session,
-		SshConnectionProperties properties,Session userSession, String message) {
 
-	if  (message.equals('DISCO:-')) {
-		session.close()
-		ssh.disconnect()
-	} else if  (message.equals('PAUSE:-')) {
-		pauseLog = true
-	} else if  (message.equals('RESUME:-')) {
-		pauseLog = false
-		resumed = true
-	}else if (message.equals('CLOSE_SHELL:-')) {
-		closeShell(ssh, session, userSession)
-	}
-}
 	public void pingPong(Session userSession, Integer pingRate) {
 		if (userSession && userSession.isOpen()) {
 			String user = userSession.userProperties.get("username") as String
@@ -157,19 +141,16 @@ class J2sshService extends ConfService {
 		int i=0
 		if (userSession && userSession.isOpen()) {
 			while ((read = input.read(buffer))>0) {
+				String status = userSession.userProperties.get("status") as String
 				String out1 = new String(buffer, 0, read)
-				if (pauseLog) {
+				if (status == "pause") {
 					catchup.append(out1)
 				}else{
-					if (resumed) {
-						resumed = false
-						messagingService.sendFrontEndPM2(userSession, user, catchup as String)
-						catchup = new StringBuilder()
-					}
+					messagingService.sendFrontEndPM2(userSession, user, catchup as String)
+					catchup = new StringBuilder()
 					messagingService.sendFrontEndPM2(userSession, user, parseBash(out1))
 				}
 			}
 		}
 	}
-
 }

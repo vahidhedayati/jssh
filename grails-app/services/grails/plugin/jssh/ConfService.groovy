@@ -17,7 +17,6 @@ class ConfService {
 	public String APP = "j2ssh"
 	public String VIEW = "connectSsh"
 
-
 	public boolean isConfigEnabled(String input) {
 		return Boolean.valueOf(input ?: false)
 	}
