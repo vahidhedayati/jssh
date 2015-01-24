@@ -31,9 +31,12 @@
 		<div class='col-sm-4'>
 			<div class='form-group'>
 				<label for="groupname"> <g:message
-						code="jssh.new.group.name.label" default="New Group" />
+						code="jssh.new.group.name.label" default="Add Server" />
 				</label>
-				<g:textField id="servername" name="name" />
+				<g:render template="/admin/autoServer" />
+				
+				<div id="selectedValues">
+				</div>
 			</div>
 		</div>
 
@@ -43,3 +46,6 @@
 	<g:submitButton name="something" class="btn btn-primary" id="submitIt"
 		onClick="sendServers();closeModal();" value="Add Group" />
 </div>
+<div id="invitecontainer" style="display:none;">
+		<g:render template="/admin/inviteContainer"/>
+	</div>

@@ -1,5 +1,7 @@
 package grails.plugin.jssh
 
+import java.util.Map;
+
 import grails.plugin.jssh.logging.CommandLogger
 import grails.plugin.jssh.logging.CommandLogs
 import grails.plugin.jssh.logging.ConnectionLogger
@@ -11,6 +13,17 @@ import grails.transaction.Transactional
 class DbStorageService extends ConfService {
 
 	def dnsService
+	
+	public Map findServer(String hostName) {
+		def returnResult=[:]
+		def found = SshServers.findByHostName(hostName)
+		if (found) {
+			returnResult=[status: 'found', id: found.id as String]
+		}else{
+			returnResult=[status: 'not_found']
+		}
+		return returnResult
+	}
 	
 	public String storeServers(ArrayList servers, String gpId, String username) {
 		
@@ -70,13 +83,15 @@ class DbStorageService extends ConfService {
 		return [ user: user.id as String, conId: user.conlog.id as String ]
 	}
 	
-	public SshServers  addServer(String hostName,  String port) {
+	public SshServers  addServer(String hostName,  String port, String ip=null) {
 		SshServers server
 		SshServers.withTransaction {
 			server = SshServers.findByHostName(hostName)
 			if (!server) {
 				Map i = dnsService.hostLookup(hostName)
-				String ip = i.ip ?: i.name ?: i.fqdn ?: 'loocalhoost'
+				if (!ip) {
+					ip = i.ip ?: i.fqdn ?: i.name ?:  '127.0.0.1'
+				}
 				server = new SshServers(hostName: hostName, ipAddress: ip, sshPort:port)
 				if (!server.save(flush:true)) {
 					if (config.debug == "on") {

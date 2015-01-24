@@ -10,3 +10,7 @@ function toggleBlock(caller,called,calltext) {
  	
   	});
   }	
+
+function wrapIt(value) {
+	return "'"+value+"'"
+}

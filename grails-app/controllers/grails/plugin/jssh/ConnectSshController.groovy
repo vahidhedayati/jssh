@@ -1,9 +1,12 @@
 package grails.plugin.jssh
 
+import grails.converters.JSON
+
 class ConnectSshController extends ConfService {
 	
 	def connectSsh
 	def randService
+	def dbStorageService
 	
 	// _navbar.gsp menu map
 	private Map menuMap = ['index':'Socket method', 'ajaxpoll':'Ajax poll', 
@@ -93,12 +96,24 @@ class ConnectSshController extends ConfService {
 	
 	def addServers(String username) {
 		JsshUser ju = JsshUser.findByUsername(username)
-		println "-- ${ju}"
 		def serverList
 		if (ju) {
 			serverList = SshServerGroups.findByUser(ju) 
 		}
-		println "--->< ${serverList}"
 		render template: '/admin/addServers', model: [serverList:serverList]
+	}
+	
+	def addHostDetails(String hostName, String ip, String port) {
+		if (!port) {
+			port = "22"
+		}
+		render dbStorageService.addServer(hostName,port,ip) as String
+	}
+	def addHostName(String hostName) {
+		render template: '/admin/addHost', model: [hostName:hostName]
+	}
+	
+	def findServer(String hostName) {
+		render dbStorageService.findServer(hostName) as JSON
 	}
 }

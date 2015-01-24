@@ -195,12 +195,22 @@ class J2sshService extends ConfService {
 		}
 		// Evaluate the result
 		if (isAuthenticated) {
+			/*
 			def asyncProcess = new Thread({
 				sleep(1200)
 				//newShell( ssh, session, userSession)
 				sshControl(ssh, session, usercommand, userSession)
 			} as Runnable )
 			asyncProcess.start()
+			*/
+			def asyncProcess = new Thread({
+				sleep(800)
+				SessionChannelClient ss = newShell( ssh,  session, userSession)
+				processConnection(userSession, ss, usercommand)
+				closeShell( ssh,  ss,  userSession)
+			} as Runnable )
+			asyncProcess.start()
+			
 		}else{
 			def authType = "using key file  "
 			if (password) { authType = "using password" }

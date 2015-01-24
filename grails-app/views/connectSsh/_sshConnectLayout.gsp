@@ -54,7 +54,7 @@
 				title="${hostname } ssh connection">
 				<b>
 					${hostname }: running <span id="whatCommand${divId}"></span>
-				</b> | CONN_COUNT: <span id="connectionCount${divId}"></span>
+				
 			</div>
 		</g:if>
 

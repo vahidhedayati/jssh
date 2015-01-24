@@ -165,8 +165,37 @@ code {
 }
 
 #content code {
-
     display: block;
     padding: 0.5em 1em;
     border: 1px solid #bebab0;
+}
+
+#accept {
+	width: 16px;
+	height: 16px;
+    background: url(../images/accept.png) no-repeat 100% 100%;
+	display:inline-block;
+	*display:inline;
+	*zoom:1;
+	float:right;
+}
+
+#reject {
+	width: 16px;
+	height: 16px;
+    background: url(../images/reject.png) no-repeat 100% 100%;
+   	display:inline-block;
+	*display:inline;
+	*zoom:1;
+	float:right;
+}
+
+#question {
+	width: 16px;
+	height: 16px;
+    background: url(../images/exclamation.png) no-repeat 100% 100%;
+   	display:inline-block;
+	*display:inline;
+	*zoom:1;
+	float:right;
 }

@@ -42,6 +42,14 @@
 	function getApp() {
 		return baseapp;
 	}
+	
+	function addHost(user,newhost) {
+		$.get("/"+getApp()+"/connectSsh/addHostName?hostName="+newhost,function(data){
+			$('#inviteUserContainer').hide().html(data).fadeIn('slow');
+		});
+		$('#invitecontainer').show();
+	
+	}
 
 	function addGroup() {
 		$.get("/"+getApp()+"/connectSsh/addGroup",function(data){

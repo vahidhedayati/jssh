@@ -8,6 +8,7 @@
 </div>
 
 <g:javascript>
+
 	function sendGroup() {
 		var group = document.getElementById('groupName').value;
 		webSocket${divId}.send("/addGroup ,"+group);
