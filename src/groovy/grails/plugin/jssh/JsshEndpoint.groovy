@@ -151,9 +151,8 @@ class JsshEndpoint extends ConfService implements ServletContextListener {
 				if (bfrontend) {
 					if (!data.client) {
 						// 	Disconnect both the front-end and backend -
-						if  (data.DISCO == "true") {
+						if  ((data.DISCO == "true") || (data.COMMAND == "true")) {
 							messagingService.sendBackPM(username, message)
-							userSession.close()
 						}else{	
 							userSession.basicRemote.sendText("${message}")
 						}

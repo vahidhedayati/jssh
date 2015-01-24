@@ -25,77 +25,21 @@ class J2sshService extends ConfService {
 	private boolean resumed = false
 	
 	def messagingService
-	
 	public processRequest(SshClient ssh, SessionChannelClient session,
-			SshConnectionProperties properties,Session userSession, String message) {
+		SshConnectionProperties properties,Session userSession, String message) {
 
-		if  (message.equals('DISCO:-')) {
-			session.close()
-			ssh.disconnect()
-		} else if  (message.equals('PAUSE:-')) {
-			pauseLog = true
-		} else if  (message.equals('RESUME:-')) {
-			pauseLog = false
-			resumed = true
-		}else if (message.equals('CLOSE_SHELL:-')) {
-			closeShell(ssh, session, userSession)
-		} else {
-			// Will return here conflicts with custom calls
-			// Ensure user can actually send stuff according to back-end config
-			if (config.security == "enabled")  {
-				if ((!config.hideSendBlock)||(!config.hideSendBlock.equals('YES')))  {
-					sshControl(ssh, session, message, userSession)
-				}
-			}
-			// No security just do it
-			else{
-				sshControl(ssh, session, message, userSession)
-			}
-		}
+	if  (message.equals('DISCO:-')) {
+		session.close()
+		ssh.disconnect()
+	} else if  (message.equals('PAUSE:-')) {
+		pauseLog = true
+	} else if  (message.equals('RESUME:-')) {
+		pauseLog = false
+		resumed = true
+	}else if (message.equals('CLOSE_SHELL:-')) {
+		closeShell(ssh, session, userSession)
 	}
-
-	public void sshControl(SshClient ssh, SessionChannelClient session, String usercommand, Session userSession) {
-		Boolean newChann = false
-		String newchannel = config.NEWCONNPERTRANS ?: ''
-		String hideSessionCtrl = config.hideSessionCtrl ?: ''
-		String user = userSession.userProperties.get("username") as String
-		if (config.security == "enabled") {
-			// Ensure user is not attempting to gain unauthorised access -
-			// Check back-end config: ensure session control is enabled.
-			if ((newchannel.equals('YES'))||(hideSessionCtrl.equals('NO'))) {
-				newChann = true
-			}else if ((hideSessionCtrl.equals('NO'))) {
-				newChann = true
-			}else if ((hideSessionCtrl.equals('NO'))) {
-				newChann = false
-			}
-		}
-		// No security enabled - do as user asks.
-		else{
-			if (newchannel.equals('YES')) {
-				newChann = true
-			}	
-		}
-
-		def cc = ssh.getActiveChannelCount() ?: 1
-		def myMsg = [:]
-		myMsg.put("connCount", cc.toString())
-		def myMsgj = myMsg as JSON
-		//messagingService.sendFrontEndPM(userSession, user,myMsgj as String)
-		if ((cc>1)&&(newChann==false)) {
-			processConnection(userSession, session, usercommand)
-		}else{
-			session = ssh.openSessionChannel()
-			SessionOutputReader sor = new SessionOutputReader(session)
-			if (session.requestPseudoTerminal("gogrid",80,24, 0 , 0, "")) {
-				if (session.startShell()) {
-					ChannelOutputStream out = session.getOutputStream()
-					processConnection(userSession, session, usercommand)
-				}
-			}
-		}
-	}
-
+}
 	public void pingPong(Session userSession, Integer pingRate) {
 		if (userSession && userSession.isOpen()) {
 			String user = userSession.userProperties.get("username") as String
@@ -107,24 +51,14 @@ class J2sshService extends ConfService {
 		}
 	}
 
-
-	private void closeShell(SshClient ssh, SessionChannelClient session, Session userSession) {
-
-		String user = userSession.userProperties.get("username") as String
+	private void closeShell(SshClient ssh, SessionChannelClient session) {
 		int timeout = 1000;
 		def cc = ssh.getActiveChannelCount() ?: 1
-		if (cc>1) {
+		if (cc>0) {
 			session.close()
 			session.getState().waitForState(ChannelState.CHANNEL_CLOSED, timeout);
-			userSession.basicRemote.sendText('Shell closed')
-		}else{
-			userSession.basicRemote.sendText('Only 1 shell - could not close master window - try closing session : '+cc)
 		}
-		def ncc = ssh.getActiveChannelCount() ?: 1
-		def myMsgj = (["connCount": ncc.toString()]as JSON)
-		//	messagingService.sendFrontEndPM(userSession, user, myMsgj as String)
 	}
-
 
 	private SessionChannelClient newShell(SshClient ssh, SessionChannelClient session, Session userSession) {
 		session = ssh.openSessionChannel()
@@ -138,11 +72,6 @@ class J2sshService extends ConfService {
 		}
 
 		def cc = ssh.getActiveChannelCount() ?: 1
-		def myMsg = [:]
-		myMsg.put("connCount", cc.toString())
-		def myMsgj = myMsg as JSON
-		//messagingService.sendFrontEndPM(userSession, user,myMsgj as String)
-		//messagingService.sendFrontEndPM(userSession, user, 'New shell created, console window : '+cc)
 		return session
 	}
 
@@ -195,19 +124,12 @@ class J2sshService extends ConfService {
 		}
 		// Evaluate the result
 		if (isAuthenticated) {
-			/*
-			def asyncProcess = new Thread({
-				sleep(1200)
-				//newShell( ssh, session, userSession)
-				sshControl(ssh, session, usercommand, userSession)
-			} as Runnable )
-			asyncProcess.start()
-			*/
+
 			def asyncProcess = new Thread({
 				sleep(800)
 				SessionChannelClient ss = newShell( ssh,  session, userSession)
 				processConnection(userSession, ss, usercommand)
-				closeShell( ssh,  ss,  userSession)
+				closeShell( ssh,  ss)
 			} as Runnable )
 			asyncProcess.start()
 			

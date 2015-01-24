@@ -64,7 +64,7 @@ function toggleBlock(caller,called,calltext) {
      		e.preventDefault();
 		}
 		if(e.which == 13){
-       		var tmb=textMessage.value.replace(/^\s*[\r\n]/gm, "");
+       		var tmb=textMessage${divId}.value.replace(/^\s*[\r\n]/gm, "");
        		if (tmb!="") {
        			sendMessage${divId}();
         	}

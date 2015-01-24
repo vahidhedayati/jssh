@@ -43,7 +43,9 @@ public class ClientProcessService extends ConfService  {
 		if (ssh && ssh.isConnected()) {
 			ssh.disconnect()
 		}
-		userSession.close()
+		if (userSession && userSession.isOpen()) {
+			userSession.close()
+		}
 	}
 	public void processResponse(Session userSession, String message) {
 		
@@ -72,7 +74,7 @@ public class ClientProcessService extends ConfService  {
 			def asyncProcess = new Thread({
 				SessionChannelClient ss = j2sshService.newShell( ssh,  session, userSession)
 				j2sshService.processConnection(userSession, ss, msg)
-				j2sshService.closeShell( ssh,  ss,  userSession)
+				j2sshService.closeShell( ssh,  ss)
 			} as Runnable )
 			asyncProcess.start()
 			
@@ -86,9 +88,8 @@ public class ClientProcessService extends ConfService  {
 			messagingService.sendBackEndFM(username, output)
 			
 		}else if  (message.startsWith('DISCO:-')) {
-		
-			userSession.close()
-			
+			//userSession.close()
+			handleClose( userSession)
 		}else if (message.startsWith('{')) {
 		
 			JSONObject rmesg=JSON.parse(message)
@@ -105,14 +106,22 @@ public class ClientProcessService extends ConfService  {
 				}
 			}
 			
-			String disconnect = rmesg.system
+			String system = rmesg.system
 			if (rmesg.privateMessage) {
 				JSONObject rmesg2=JSON.parse(rmesg.privateMessage)
 				String command = rmesg2.command
 			}
-			
-			if (disconnect && disconnect == "disconnect") {
-				clientListenerService.disconnect(userSession)
+		
+			if (system) {
+				
+			if (system == "PAUSE:-") {
+				j2sshService.processRequest(ssh, session, properties, userSession, system)
+			}else if (system == "RESUME:-") {
+				j2sshService.processRequest(ssh, session, properties, userSession, system)
+			}else if (system == "disconnect") {
+				//clientListenerService.disconnect(userSession)
+				handleClose( userSession)
+			}
 			}
 			
 		}else{
@@ -135,7 +144,6 @@ public class ClientProcessService extends ConfService  {
 			ssh2  = resSet.ssh
 			properties2 = resSet.properties
 			session2 = resSet.session
-
 		}
 		//if (isAuthenticated) {}
 	}

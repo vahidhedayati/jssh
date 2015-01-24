@@ -47,33 +47,18 @@
 		}
 	}
 	
-	function SameSess${divId}() {
-	 	webSocket${divId}.send("SAME_SESSION:-");
-	}
-	
-	function NewSess${divId}() {
-	 	webSocket${divId}.send("NEW_SESSION:-");
-	}
-	
-	function NewShell${divId}() {
-		webSocket${divId}.send("NEW_SHELL:-");
-    }
-    
-    function CloseShell${divId}() {
-		webSocket${divId}.send("CLOSE_SHELL:-");
-    }
-    
 	function Pause${divId}() {
-		webSocket${divId}.send("PAUSE:-");
+		//webSocket${divId}.send("PAUSE:-");
+		webSocket${divId}.send(JSON.stringify({ 'frontend':"true",'COMMAND':"true", 'system': 'PAUSE:-'}));
     }
     
 	function Resume${divId}() {
-		webSocket${divId}.send("RESUME:-");
+		webSocket${divId}.send(JSON.stringify({ 'frontend':"true",'COMMAND':"true", 'system': 'RESUME:-'}));
+		//webSocket${divId}.send("RESUME:-");
     }
     
 	function closeConnection${divId}() {
-		//webSocket${divId}.send("DISCO:-");
-		webSocket${divId}.send(JSON.stringify({ 'frontend':"true",'DISCO':"true"}));
+		webSocket${divId}.send(JSON.stringify({ 'frontend':"true",'DISCO':"true", 'system': 'disconnect'}));
 		webSocket${divId}.onclose = function() { }
         webSocket${divId}.close();
         if (divId=="Basic") {
@@ -137,7 +122,7 @@
 	
 	window.onbeforeunload = function() {
 		//webSocket${divId}.onclose = function() { }
-		webSocket${divId}.send(JSON.stringify({ 'frontend':"true",'DISCO':"true"}));
+		webSocket${divId}.send(JSON.stringify({ 'frontend':"true",'DISCO':"true", 'system': 'disconnect'}));
 		webSocket${divId}.close();
 	}
 </g:javascript>
