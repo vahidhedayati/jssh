@@ -56,7 +56,7 @@
 	}
 
 	function addSelection(email, data) {
-		$('#selectedValues').append('<div class="btn"></div><input type="checkbox" checked name="serverList" value="'+data+'">'+data+'</div>');
+		$('#selectedValues').append('<div class="btn"></div><input type="checkbox" id="sList" checked name="serverList" value="'+data+'">'+data+'</div>');
 	}
 	
 	

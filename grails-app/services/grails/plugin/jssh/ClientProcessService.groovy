@@ -26,9 +26,9 @@ public class ClientProcessService extends ConfService  {
 	def j2sshService
 	def authService
 	def dbStorageService
+	
 	private SshClient ssh = new SshClient()
 	private SessionChannelClient session
-
 	private SshConnectionProperties properties = null
 
 	private String host, user, userpass, usercommand
@@ -125,10 +125,8 @@ public class ClientProcessService extends ConfService  {
 			if (user==username) {
 				if (system == "PAUSE:-") {
 					userSession.userProperties.put("status", "pause")
-					//j2sshService.processRequest(ssh, session, properties, userSession, system, user)
 				}else if (system == "RESUME:-") {
 					userSession.userProperties.put("status", "resume")
-					//j2sshService.processRequest(ssh, session, properties, userSession, system, user)
 				}else if (system == "disconnect") {
 					//clientListenerService.disconnect(userSession)
 					handleClose( userSession)

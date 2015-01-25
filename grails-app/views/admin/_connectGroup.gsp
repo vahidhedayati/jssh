@@ -26,32 +26,16 @@
 				</label>
 				<g:select name="groupId" id="mySelect" from="${serverList}" optionKey="id" optionValue="name" 
 				required="required" 
-				 class="one-to-one" noSelection="['':'Choose Group']" onChange="showServers();loadGroup(this.value);"/>
+				 class="one-to-one" noSelection="['':'Choose Group']" onChange="loadGroup(this.value);"/>
 			</div>
 		</div>
 	</div>
-	
-	<div class='row' id="serverRow" style="display:none;">
-		<div class='col-sm-5'>
-			<div class='form-group'>
-				<label for="groupname"> <g:message
-						code="jssh.new.group.name.label" default="Add Server" />
-				</label>
-				<g:render template="/admin/autoServer" />
-				
-				<div id="selectedValues">
+<div id="selectedValues">
 				</div>
-			</div>
-		</div>
-
-	</div>
 </div>
 
 <div class="modal-footer">
-	<g:submitButton  name="something" class="btn btn-primary"  value="Update Group" />
+	<g:submitButton  name="something" class="btn btn-primary"  value="SSH Connect" />
 </div>
 </g:formRemote>
 </g:if>
-<div id="invitecontainer" style="display:none;">
-		<g:render template="/admin/inviteContainer"/>
-	</div>

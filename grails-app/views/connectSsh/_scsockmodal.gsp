@@ -1,4 +1,4 @@
-
+<div id="returnAnswer"></div>
 <div id="adminsTemplateContainer" style="display: none;">
 	<g:render template="/admin/admin" />
 </div>
@@ -30,7 +30,10 @@
 				onclick="javascript:addServer();"> <g:message
 						code="jssh.add.servers.default" default="Add Servers To Group" />
 			</a></li>
-
+			<li><a data-toggle="modal" href="#masterAdminContainer"
+				onclick="javascript:ConnectGroup();"> <g:message
+						code="jssh.connect.group.default" default="Connect To Group" />
+			</a></li>
 		</ul></li>
 </ul>
 
@@ -50,6 +53,20 @@
 		$('#invitecontainer').show();
 	
 	}
+	
+	function loadGroup(value) {
+	 	$.get("/"+getApp()+"/connectSsh/loadServers?username=${backuser}&gId="+value,function(data){
+			$('#selectedValues').hide().html(data).fadeIn('slow');
+		});
+	
+	}
+	
+	function connectGroup() { 
+		$.get("/"+getApp()+"/connectSsh/loadGroup?username=${backuser}&template=connectGroup",function(data){
+			$('#adminContainer').hide().html(data).fadeIn('slow');
+		});
+		$('#adminsTemplateContainer').show();
+	}
 
 	function addGroup() {
 		$.get("/"+getApp()+"/connectSsh/addGroup",function(data){
@@ -59,7 +76,7 @@
 	}
 
 	function addServer() {
-		$.get("/"+getApp()+"/connectSsh/addServers?username=${backuser}",function(data){
+		$.get("/"+getApp()+"/connectSsh/loadGroup?username=${backuser}&template=addServers",function(data){
 			$('#adminContainer').hide().html(data).fadeIn('slow');
 		});
 		$('#adminsTemplateContainer').show();

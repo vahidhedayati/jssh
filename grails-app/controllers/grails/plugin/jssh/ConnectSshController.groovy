@@ -7,7 +7,8 @@ class ConnectSshController extends ConfService {
 	def connectSsh
 	def randService
 	def dbStorageService
-
+	def dnsService
+	
 	// _navbar.gsp menu map
 	private Map menuMap = ['index':'Socket method', 'ajaxpoll':'Ajax poll',
 		'socketremote':'RemoteForm Websocket', 'scsocket':'NEW: Websocket Client/Server']
@@ -94,25 +95,45 @@ class ConnectSshController extends ConfService {
 		render template: '/admin/addGroup'
 	}
 
-	def addServers(String username) {
+	def loadGroup(String username, String template) {
 		JsshUser ju = JsshUser.findByUsername(username)
 		def serverList
 		if (ju) {
 			serverList = SshServerGroups.findByUser(ju)
 		}
-		render template: '/admin/addServers', model: [serverList:serverList]
+		render template: '/admin/'+template, model: [serverList:serverList]
 	}
-
-	def addHostDetails(String hostName, String ip, String port) {
-		if (!port) {
-			port = "22"
+	def loadServers(String username, String gId) {
+		println "=== ${username} ${gId}"
+		JsshUser ju = JsshUser.findByUsername(username)
+		def serverList
+		if (ju) {
+			def ss = SshServerGroups.findByUser(ju)
+			println "---------------------${ss} -------------- ::: "
+			serverList = ss.servers
+			println "--- ${serverList} <>::"
 		}
-		render dbStorageService.addServer(hostName,port,ip) as String
+		render template: '/admin/loadServers', model: [serverList:serverList]
 	}
+	
+	def addHostDetails(String hostName, String ip, String port) {
+		
+		render dbStorageService.addServer(hostName,port ?: '',ip ?: '') as String
+	}
+	
+	def addHostDetail(String hostName, String ip, String port, String groupId) {
+		
+		render dbStorageService.addServer(hostName,port ?: '',ip ?: '',groupId) as String
+	}
+	
 	def addHostName(String hostName) {
 		render template: '/admin/addHost', model: [hostName:hostName]
 	}
 
+	def addGroupServers() {
+		println "SERVER PARAMS ARE: ${params}"
+		render "====="
+	} 
 	def findServer(String hostName) {
 		render dbStorageService.findServer(hostName) as JSON
 	}

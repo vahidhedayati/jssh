@@ -82,16 +82,38 @@ class DbStorageService extends ConfService {
 		}
 		return [ user: user.id as String, conId: user.conlog.id as String ]
 	}
+	public SshServers  addServer(String hostName,  String port, String ip, String groupId) {
+		SshServers server = addServer(hostName,   port,  ip)
+		//println "--- ${server} --- ${groupId}"
+		def d1 = SshServerGroups.get(groupId)
+		println "--- ${d1}"
+		if (d1) {
+		d1.addToServers(server)
+		if (!d1.save(flush:true)) {
+			//if (config.debug == "on") {
+				d1.errors.allErrors.each{println it}
+			//}
+		}
+		}
+		//.save(flush:true)
+		return server
+	}
 	
-	public SshServers  addServer(String hostName,  String port, String ip=null) {
+	public SshServers addServer(String hostName,  String port, String ip) {
 		SshServers server
 		SshServers.withTransaction {
 			server = SshServers.findByHostName(hostName)
 			if (!server) {
-				Map i = dnsService.hostLookup(hostName)
+				
+				if (!port) {
+					port = "22"
+				}
+				
 				if (!ip) {
+					Map i = dnsService.hostLookup(hostName)
 					ip = i.ip ?: i.fqdn ?: i.name ?:  '127.0.0.1'
 				}
+				
 				server = new SshServers(hostName: hostName, ipAddress: ip, sshPort:port)
 				if (!server.save(flush:true)) {
 					if (config.debug == "on") {
