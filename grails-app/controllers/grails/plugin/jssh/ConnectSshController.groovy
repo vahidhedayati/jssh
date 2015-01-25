@@ -8,7 +8,7 @@ class ConnectSshController extends ConfService {
 	def randService
 	def dbStorageService
 	def dnsService
-	
+
 	// _navbar.gsp menu map
 	private Map menuMap = ['index':'Socket method', 'ajaxpoll':'Ajax poll',
 		'socketremote':'RemoteForm Websocket', 'scsocket':'NEW: Websocket Client/Server']
@@ -103,57 +103,50 @@ class ConnectSshController extends ConfService {
 		}
 		render template: '/admin/'+template, model: [serverList:serverList]
 	}
+
 	def loadServers(String username, String gId) {
-		println "=== ${username} ${gId}"
 		JsshUser ju = JsshUser.findByUsername(username)
 		def serverList
 		if (ju) {
 			def ss = SshServerGroups.findByUser(ju)
-			println "---------------------${ss} -------------- ::: "
 			serverList = ss.servers
-			println "--- ${serverList} <>::"
 		}
 		render template: '/admin/loadServers', model: [serverList:serverList]
 	}
-	
-	def addHostDetails(String hostName, String ip, String port) {
-		
-		render dbStorageService.addServer(hostName,port ?: '',ip ?: '') as String
-	}
-	
-	def addHostDetail(String hostName, String ip, String port, String groupId) {
-		
-		render dbStorageService.addServer(hostName,port ?: '',ip ?: '',groupId) as String
-	}
-	
-	def addHostName(String hostName) {
-		render template: '/admin/addHost', model: [hostName:hostName]
+
+	def addHostDetails(String username, String hostName, String ip, String port) {
+		render dbStorageService.addServer(username, hostName, port ?: '22',ip ?: '') as String
 	}
 
-	def addGroupServers() {
-		println "SERVER PARAMS ARE: ${params}"
-		render "====="
-	} 
+	def addHostDetail(String username, String hostName, String ip, String port, String groupId) {
+		render dbStorageService.addServer(username, hostName, port ?: '22',ip ?: '',groupId) as String
+	}
+
+	def addHostName(String username, String hostName, String groupId) {
+		Map map = [hostName:hostName, username:username, groupId:groupId]
+		render template: '/admin/addHost', model: map
+	}
+
+	def addGroupServers(String groupId) {
+		def serverList = params.serverList
+		if(serverList instanceof String) {
+			serverList = [serverList]
+		}else{
+			serverList = serverList as ArrayList
+		}
+
+		ArrayList serverLists = serverList
+		dbStorageService.addGroupServers(groupId, serverLists)
+		render "GroupID  ${groupId} added to ${serverList}"
+	}
+
 	def findServer(String hostName) {
 		render dbStorageService.findServer(hostName) as JSON
 	}
 
 	// Logging/debugging utils
 	def activeUsers() {
-		if (config.logusers == "on") {
-			StringBuilder sb= new StringBuilder("Size: "+sshUsers.size()+"\n")
-			synchronized (sshUsers) {
-				sshUsers?.each { crec->
-					if (crec && crec.isOpen()) {
-						def cuser = crec.userProperties.get("username").toString()
-						def cjob = crec.userProperties.get("job").toString()
-						//println "sshUsers: ${cuser} ${cjob}"
-						sb.append("${cuser}:${cjob}\n")
-					}
-				}
-			}
-			log.info sb.toString()
-		}
+		dbStorageService.activeUsers()
 		render ""
 	}
 

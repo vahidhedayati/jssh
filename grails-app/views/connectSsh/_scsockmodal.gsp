@@ -46,8 +46,8 @@
 		return baseapp;
 	}
 	
-	function addHost(user,newhost) {
-		$.get("/"+getApp()+"/connectSsh/addHostName?hostName="+newhost,function(data){
+	function addHost(user,newhost,groupId) {
+		$.get("/"+getApp()+"/connectSsh/addHostName?username=${backuser}&hostName="+newhost+"&groupId="+groupId,function(data){
 			$('#inviteUserContainer').hide().html(data).fadeIn('slow');
 		});
 		$('#invitecontainer').show();

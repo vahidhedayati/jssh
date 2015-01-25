@@ -248,7 +248,7 @@ class ConnectSshTagLib extends ConfService {
 	}
 	
 	private void addUserHost(String hostname, String port, String username) {
-		SshServers server = dbStorageService.addServer(hostname, port ?: '', '' )
+		SshServers server = dbStorageService.addServer(username, hostname, port ?: '22', '' )
 		Map<String,String> jU = dbStorageService.addJsshUser(username, server)
 		this.jUser = jU.user
 		this.conLogId = jU.conId

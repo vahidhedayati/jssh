@@ -26,7 +26,7 @@
 				</label>
 				<g:select name="groupId" id="mySelect" from="${serverList}" optionKey="id" optionValue="name" 
 				required="required" 
-				 class="one-to-one" noSelection="['':'Choose Group']" onChange="showServers();loadGroup(this.value);"/>
+				 class="one-to-one" noSelection="['':'Choose Group']" onChange="showServers(this.value);loadGroup(this.value);"/>
 			</div>
 		</div>
 	</div>

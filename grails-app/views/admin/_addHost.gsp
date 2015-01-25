@@ -13,13 +13,15 @@
 	update="inviteConfirmation"  
 	onComplete="closeInviteModal();verifyValue('${hostName}')"
 	>
+	<input type="hidden" name="username" value="${username}">
+	<input type="hidden" name="groupId" value="${groupId}">
 	<div class='row'>
 	<div class='col-sm-5'>
 		<div class='form-group'>
 			<label for="hostname">
 				<g:message code="jssh.new.hostName.label" default="HostName" />
 			</label>
-			<g:textField name="hostName" value="${hostName }" />
+			<g:textField name="hostName" value="${hostName}" />
 		</div>
 	</div>
 	</div>

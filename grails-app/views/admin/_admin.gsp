@@ -10,21 +10,15 @@
 
 <g:javascript>
 
-	function showServers() {
+	function showServers(value) {
 		$('#serverRow').show();
+		document.getElementById('gpId').value = value;
 	}
 
 	function sendGroup() {
 		var group = document.getElementById('groupName').value;
 		webSocket${divId}.send("/addGroup ,"+group);
 	}
-	
-	//function sendServers() {
-		//var group = document.getElementById('groupId').value;
-		//var server = document.getElementById('sList').value;
-		//console.log('--------'+group+'---------'+server+'---------------------');
-		//webSocket${divId}.send("/addServer "+group+","+server);
-	//}
 	
 	function closeModal() {
 		$('#masterAdminContainer').modal('hide');

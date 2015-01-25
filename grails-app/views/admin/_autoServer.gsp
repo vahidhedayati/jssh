@@ -8,10 +8,11 @@
 	<div id="response_image"></div>
 </div>
 <div id="return_result"></div>
-
+<input type=hidden name="gpId" id="gpId">
 <g:javascript>
 
 	function verifyValue(data) {
+		var gpId = document.getElementById('gpId').value;
 		if (data!='') {
 			$.getJSON('${createLink(controller:"connectSsh", action: "findServer")}?hostName='+data,function(e){
 			var found=e.status;
@@ -30,7 +31,7 @@
 					var return_this='<div class="errors" role="alert">\
 		#Server '+data+' has no id, <a data-toggle="modal"\
 			href="#invitecontainer1"\
-			onclick="javascript:addHost('+wrapIt(user)+','+wrapIt(data)+');">add\
+			onclick="javascript:addHost('+wrapIt(user)+','+wrapIt(data)+', '+wrapIt(groupId)+');">add\
 			Host?</a>\
 	</div>';
 					$('#return_result').html(return_this);
@@ -40,7 +41,7 @@
 				var return_this='<div class="errors" role="alert">\
 		Server '+data+' not found, <a data-toggle="modal"\
 			href="#invitecontainer1"\
-			onclick="javascript:addHost('+wrapIt(user)+','+wrapIt(data)+');">add\
+				onclick="javascript:addHost('+wrapIt(user)+','+wrapIt(data)+', '+wrapIt(gpId)+');">add\
 			Host?</a>\
 	</div>';
 				$('#return_result').html(return_this);
