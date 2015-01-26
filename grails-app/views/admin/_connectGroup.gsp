@@ -9,15 +9,9 @@
 	</div>
 </div>
 <g:if test="${serverList}">
-	<g:formRemote 
-	name="urlParams"  
-	class="form-horizontal" 
-	url="[controller:'connectSsh', action:'addGroupServers']" 
-	update="returnAnswer"  
-	onComplete="closeModal();"
-	>
+	<g:form name="groupConn" class="form-horizontal" action="groupConnection"	>
 <div class="modal-body">
-
+<input type="hidden" name="jsshUsername" value="${username }">
 	<div class='row'>
 		<div class='col-sm-5'>
 			<div class='form-group'>
@@ -26,16 +20,23 @@
 				</label>
 				<g:select name="groupId" id="mySelect" from="${serverList}" optionKey="id" optionValue="name" 
 				required="required" 
-				 class="one-to-one" noSelection="['':'Choose Group']" onChange="loadGroup(this.value);"/>
+				 class="one-to-one" noSelection="['':'Choose Group']"/>
+				 
+				 <g:select name="userId" id="mySelect" from="${sshUserList}" optionKey="id" optionValue="username" 
+				required="required" 
+				 class="one-to-one" noSelection="['':'Choose SSh UserName']"/>
+				 
+				 
+				 <g:textField id="userCommand" name="userCommand" placeHolder="Global command to run on server group?"/>
+				 
 			</div>
 		</div>
 	</div>
-<div id="selectedValues">
-				</div>
+	
 </div>
 
 <div class="modal-footer">
 	<g:submitButton  name="something" class="btn btn-primary"  value="SSH Connect" />
 </div>
-</g:formRemote>
+</g:form>
 </g:if>

@@ -13,7 +13,8 @@
 
 	function verifyValue(data) {
 		var gpId = document.getElementById('gpId').value;
-		if (data!='') {
+		
+		if ((data != '') && (gpId != '')) {
 			$.getJSON('${createLink(controller:"connectSsh", action: "findServer")}?hostName='+data,function(e){
 			var found=e.status;
 			var eid=e.id;
@@ -22,6 +23,7 @@
 				if (eid != undefined) {
 					$('#response_image').html('<div id="accept"></div>');
 					$('#return_result').html('Server found: '+eid);
+					console.log('Server found: '+eid);
 					addSelection(eid, data);
 					
 					$('#serverName').val(" ");

@@ -98,20 +98,41 @@ class ConnectSshController extends ConfService {
 	def loadGroup(String username, String template) {
 		JsshUser ju = JsshUser.findByUsername(username)
 		def serverList
+		def sshUserList
 		if (ju) {
-			serverList = SshServerGroups.findByUser(ju)
+			serverList = SshServerGroups.findAllByUser(ju)
+			sshUserList = ju.sshuser
 		}
-		render template: '/admin/'+template, model: [serverList:serverList]
+		render template: '/admin/'+template, model: [serverList:serverList, username: username, sshUserList: sshUserList]
 	}
 
+	def groupConnection(String jsshUsername, String userId, String groupId, String userCommand) {
+			def grps = SshServerGroups.get(groupId)
+			def  servers = grps.servers
+			SshUser user = SshUser.get(userId)
+			def jobName = randService.shortRand('job')
+			def divId =  randService.shortRand('divId')
+			
+			
+			//println "---"
+			render template: '/admin/groupConnect', model: [jsshUsername:jsshUsername , user:user, servers:servers, jobName:jobName, userCommand:userCommand, divId:divId]
+	}
+	
 	def loadServers(String username, String gId) {
 		JsshUser ju = JsshUser.findByUsername(username)
 		def serverList
 		if (ju) {
-			def ss = SshServerGroups.findByUser(ju)
-			serverList = ss.servers
+			//def ss = SshServerGroups.findAllByIdAndUser(ju, gId)
+			def ss = SshServerGroups.get(gId)
+			if (ss.user == ju) {
+				serverList = ss.servers
+			}
 		}
-		render template: '/admin/loadServers', model: [serverList:serverList]
+		if (serverList) {
+			render template: '/admin/loadServers', model: [serverList:serverList]
+		}else{
+			render ""
+		}
 	}
 
 	def addHostDetails(String username, String hostName, String ip, String port) {
@@ -127,21 +148,31 @@ class ConnectSshController extends ConfService {
 		render template: '/admin/addHost', model: map
 	}
 
+	def adduserDetails(String username, String sshUsername, String keyFile) {
+		dbStorageService.addSShUser(username, sshUsername, keyFile)
+		render "SSH User has been added"
+	}
+
 	def addGroupServers(String groupId) {
 		def serverList = params.serverList
-		if(serverList instanceof String) {
-			serverList = [serverList]
-		}else{
-			serverList = serverList as ArrayList
+		if (serverList) {
+			if(serverList instanceof String) {
+				serverList = [serverList]
+			}else{
+				serverList = serverList as ArrayList
+			}
+			ArrayList serverLists = serverList
+			dbStorageService.addGroupServers(groupId, serverLists)
+			render "GroupID  ${groupId} added to ${serverList}"
 		}
-
-		ArrayList serverLists = serverList
-		dbStorageService.addGroupServers(groupId, serverLists)
-		render "GroupID  ${groupId} added to ${serverList}"
 	}
 
 	def findServer(String hostName) {
 		render dbStorageService.findServer(hostName) as JSON
+	}
+
+	def findSshUser(String username) {
+		render dbStorageService.findSshUser(username) as JSON
 	}
 
 	// Logging/debugging utils

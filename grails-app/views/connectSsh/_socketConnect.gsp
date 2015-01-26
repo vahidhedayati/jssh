@@ -3,14 +3,12 @@
 
 <g:javascript>
 
-	var loggedInUsers=[];
-	var user="${user }";
-	var backuser='${backuser}';
-	var uri="${uri}";
-	var divId="${divId}";
+	var ${divId}loggedInUsers=[];
+
+
 	
 	
-	var webSocket${divId}=new WebSocket(uri);
+	var webSocket${divId}=new WebSocket('${uri}');
 	webSocket${divId}.onopen=function(message) {processOpen${divId}(message);};
 	webSocket${divId}.onclose=function(message) {processClose${divId}(message);};
 	webSocket${divId}.onerror=function(message) {processError${divId}(message);};
@@ -61,7 +59,7 @@
 		webSocket${divId}.send(JSON.stringify({ 'frontend':"true",'DISCO':"true", 'system': 'disconnect'}));
 		webSocket${divId}.onclose = function() { }
         webSocket${divId}.close();
-        if (divId=="Basic") {
+        if (${divId}=="Basic") {
         	window.history.back();
         }else{
         	$("#mySshBox${divId}").html('');
@@ -74,10 +72,10 @@
 		if (textMessage${divId}.value!="close") {
 			if ((textMessage${divId}.value.indexOf('\n')>-1) || (textMessage${divId}.value.indexOf('\r')>-1) ) {
 				actOnEachLine(textMessage${divId}, function(line) {
-   					webSocket${divId}.send('/fm '+backuser+','+line);
+   					webSocket${divId}.send('/fm ${backuser},'+line);
 				});
 			}else{
-				webSocket${divId}.send('/fm '+backuser+','+textMessage${divId}.value);
+				webSocket${divId}.send('/fm ${backuser},'+textMessage${divId}.value);
 			}
 			
 			$('#whatCommand${divId}').html(textMessage${divId}.value);
@@ -112,7 +110,7 @@
 	
 	function verifyIsOn(uid) {
 		var ison="false";
-		var idx = loggedInUsers.indexOf(uid);
+		var idx = ${divId}loggedInUsers.indexOf(uid);
 		if (idx != -1) {
 			ison="true";
 		}

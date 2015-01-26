@@ -47,6 +47,7 @@ public class ClientProcessService extends ConfService  {
 			userSession.close()
 		}
 	}
+	
 	public void processResponse(Session userSession, String message) {
 
 		String username = userSession.userProperties.get("username") as String
@@ -134,6 +135,7 @@ public class ClientProcessService extends ConfService  {
 			}
 		}
 	}
+	
 	private void multiUser(SshClient ssh, SessionChannelClient session=null,
 			SshConnectionProperties properties=null,Session userSession) {
 

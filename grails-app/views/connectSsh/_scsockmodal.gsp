@@ -26,12 +26,20 @@
 				onclick="javascript:addGroup();"> <g:message
 						code="jssh.add.group.default" default="Add SSH Group" />
 			</a></li>
+			
 			<li><a data-toggle="modal" href="#masterAdminContainer"
 				onclick="javascript:addServer();"> <g:message
 						code="jssh.add.servers.default" default="Add Servers To Group" />
 			</a></li>
+			
 			<li><a data-toggle="modal" href="#masterAdminContainer"
-				onclick="javascript:ConnectGroup();"> <g:message
+				onclick="javascript:addSshUser();"> <g:message
+						code="jssh.add.ssh.user.default" default="Add SSH User" />
+			</a></li>
+			
+			
+			<li><a data-toggle="modal" href="#masterAdminContainer"
+				onclick="javascript:connectGroup();"> <g:message
 						code="jssh.connect.group.default" default="Connect To Group" />
 			</a></li>
 		</ul></li>
@@ -81,4 +89,11 @@
 		});
 		$('#adminsTemplateContainer').show();
 	}
+	
+	function addSshUser() {
+		 $.get("/"+getApp()+"/connectSsh/loadGroup?username=${backuser}&template=addSshUser",function(data){
+			$('#adminContainer').hide().html(data).fadeIn('slow');
+		});
+		$('#adminsTemplateContainer').show();
+	}	
 </g:javascript>

@@ -25,6 +25,18 @@ class DbStorageService extends ConfService {
 		return returnResult
 	}
 
+	
+	public Map findSshUser(String username) {
+		def returnResult=[:]
+		def found = SshUser.findByUsername(username)
+		if (found) {
+			returnResult=[status: 'found', id: found.id as String]
+		}else{
+			returnResult=[status: 'not_found']
+		}
+		return returnResult
+	}
+	
 	//public String storeServers(ArrayList servers, String gpId, String username) {}
 
 	public String storeGroup(String name, String username) {
@@ -36,6 +48,9 @@ class DbStorageService extends ConfService {
 				if (config.debug == "on") {
 					sg.errors.allErrors.each{println it}
 				}
+			}
+			if (user && sg) {
+				user.addToGroups(sg)
 			}
 			return "\n\nGroup ${sg.name } should now be added for ${user.username}"
 		}
@@ -170,6 +185,22 @@ class DbStorageService extends ConfService {
 				}
 			}
 			log.info sb.toString()
+		}
+	}
+	
+	public addSShUser(String username, String sshUsername, String sshKey) {
+		JsshUser user = JsshUser.findByUsername(username)
+		SshUser suser
+		SshUser.withTransaction {
+			suser = SshUser.findOrSaveWhere(username: sshUsername, sshKey: sshKey)
+			if (!suser.save(flush:true)) {
+				if (config.debug == "on") {
+					suser.errors.allErrors.each{println it}
+				}
+			}
+		}
+		if (user && suser) {
+			user.addToSshuser(suser)
 		}
 	}
 

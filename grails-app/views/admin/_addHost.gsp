@@ -4,7 +4,7 @@
 
 </div>
 </div>
-	
+	<div class="modal-body">
 	<div class="container">
 		<g:formRemote 
 	name="urlParams"  
@@ -59,3 +59,5 @@
 
 	</g:formRemote>	
 	</div>
+	</div>
+	
