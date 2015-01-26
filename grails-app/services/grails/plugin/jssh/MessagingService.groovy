@@ -130,7 +130,6 @@ class MessagingService extends ConfService  {
 							
 							
 							if (mtype=="system") {
-								println "== ${user} ::  ${message}"
 								crec.basicRemote.sendText("/system ${user},${message}")
 							}else{
 							crec.basicRemote.sendText("${message}")

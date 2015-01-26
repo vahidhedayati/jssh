@@ -8,74 +8,122 @@ Websocket ssh interaction can be incorporated to an existing grails app running 
 
 Dependency :
 
-	compile ":jssh:0.29" 
+	compile ":jssh:0.29-SNAPSHOT" 
 
-This plugin provides  basic functionality to allow you to call your end host either via a taglib or via a call to provided controller. These are just examples and you could either use out of the package or create your own from given examples.
+This plugin provides a variety of taglib calls within your application to then interact with SSH connection to a Unix/Linux machine. Once you have successfully configured connected your browser will provide something similar to a shell console and with the later Websocket methods you can literally interact live with your SSH connection to the back end Linux host.
 
-
-### Video:
-Video of jssh 0.9, whilst waiting on creations of stuff there was some discussion into the back-end plugin code and how it interacts via websockets: [jssh 0.9 full walk through](https://www.youtube.com/watch?v=r-dBVUmT9Uo)
-
-
-### 0.5 release : websocket live ssh interaction:
-Using default tomcat websockets to interact with j2ssh libraries.
-![websocket connection](https://raw.github.com/vahidhedayati/jssh-test/master/jssh-doc/4.jpg)
-
-I have found whilst tailing a file, if required you could click New Shell which will duplicate your connection on your existing screen and allow you to type further commands.  if executed, the new command will be sent and its output appended to your connection. After which it will resumes back to original tailing  (please refer to configuration items below, this has to be enabled as part of 0.6+). 
-
-No ctrl C or special keys etc. If you are connected and wish to stop such features simply disconnect or close your browser.
-
-![send remote command even whilst tailing !](https://raw.github.com/vahidhedayati/jssh-test/master/jssh-doc/5.jpg)
+##### Releasing 0.29-SNAPSHOT to fix a variety of bugs in 0.29 and set the ground for the future of the plugin.
+I am releasing this because it is the ground works for the next phase which requires changes within the code. There were quite a lot of issues with 0.29 and this will fix a lot of those bugs + enhancements in the new feature although not complete. Still useful.
 
 
-Javascript detection of browser changes i.e. leaving page/closing browser and will notify websockets to attempt to close ssh connection down.
+## Config.groovy additions required: 
 
-On the bright side, there are pause and resume buttons provided on websockets which pauses output and on resume pumps back StringBuffer that was preserving the output whilst you had it on pause.
+[Config.groovy variables](https://github.com/vahidhedayati/jssh/wiki/Config.groovy-values)
 
-New taglibs added (check under tag lib)
+## Change Release information
+ 
+[Change information](https://github.com/vahidhedayati/jssh/wiki/VersionInfo)
 
+## Video
 
+Video of jssh 0.9, whilst waiting on creations of stuff there was some discussion into the back-end plugin code and how it interacts via websockets:
+
+[jssh 0.9 full walk through 43 mins? wow a lot of BS :) ](https://www.youtube.com/watch?v=r-dBVUmT9Uo)
+
+Will be releasing a new video to cover multi broadcast method once I get it working hopefully be releasing jssh-1.0 then.
 	 	
-## [Config.groovy variables](https://github.com/vahidhedayati/jssh/wiki/Config.groovy-values)
+
+
+## Interaction Methods:
+
+##### [Socket Client/Server](https://github.com/vahidhedayati/jssh/blob/master/grails-app/views/connectSsh/scsocketconnect.gsp)
+
+[New Client/Server Websocket SSH tag lib call](https://github.com/vahidhedayati/jssh/wiki/Websocket-client-server-taglib-call)
+
+This is the my new segment of the project, in the end I am looking to acheive a web based solution to easily interact with multiple ssh connections and be able to broadcast one command to a group of servers. At the moment on this 029-SNAPSHOT version the ground work is in place. The logic at the end to connect to many is wrong so I need to write some new code/solution for it. 
+
+This new method client/server websockets is a cool feature that makes more of a secure connection. The model is upon triggering the call you actually make 2 websocket connections. Your webpage is 1 and is in essence a dumb terminal that sits awaiting information. It can also send remote commands that again as a dumb terminal the messages are sent through websockets to its parent or master connection which resides on the actual webserver. The webserver makes the connection the websocket client sitting locally and sends the SSH information to it. The client on Server then forwards all of the output back to the dumb terminal being your browser. 
+
+jsshUser = This could be your actual logged in user, since it will now actually log their interactions with SSH, what they connect to and what commands they send. There is no UI available for this at the moment. If not provided a random jsshUser is generated.
+
+On the main index screen there is now a new connection method, if you do use it. You will find once connected an admin cog will appear. You can register initially an SSH group, add to this group some servers and then add SSH servers. For now it does not actually work beyond 1 server :). This requires a major rethink and should only be code at my end i.e. not changes to your DB etc.... The purpose is multi connection global command sends.. local command sends etc. 
 
 
 
-#### Using plugin within existing application
-| [wiki on jssh existing app using websockets](https://github.com/vahidhedayati/jssh/wiki/jssh-websocket-within-existing-application) | 
-[wiki on jssh existing app using ajax polling](https://github.com/vahidhedayati/jssh/wiki/using-jssh-within-existing-application) |
+```gsp
+
+<jssh:conn hostname="${hostname}" username="${username}"
+	port="${port}" password="${password}"
+	userCommand="${userCommand}"
+	jsshUser="${jsshUser}" divId="${divId}" />
+<div id="${divId}"></div>
+```					
+
+		
+##### [Socket Method](https://github.com/vahidhedayati/jssh/wiki/jssh-websocket-taglib-call)
+
+[wiki on jssh existing app using websockets](https://github.com/vahidhedayati/jssh/wiki/jssh-websocket-within-existing-application)
+
+[Socket taglib with pingpong](https://github.com/vahidhedayati/jssh/wiki/socket-taglib-with-pingpong)
 
 
-	
-### Taglib call:
+```gsp
+<jssh:socketconnect 
+username="${username }"
+password="${password }"
+hostname="${hostname}" 
+userCommand="${userCommand}"
+divId="${divId}"
+hideWhatsRunning="${hideWhatsRunning }"
+hideDiscoButton="${hideDiscoButton }"
+hidePauseControl="${hidePauseControl }"
+hideSessionCtrl="${hideSessionCtrl }"
+hideConsoleMenu="${hideConsoleMenu}"
+hideSendBlock="${hideSendBlock}"
+hideNewShellButton="${hideNewShellButton}"
 
-Refer to ConnectSshTagLib.groovy within plugin
+/>
+```
 
-Define a template= if you wish to override default _process.gsp template from loading
+##### Socket Method -- Multipe calls - remoteForm - refer to plugin connectSsh/index page and go to remote Form..
 
-##### [New Client/Server Websocket SSH tag lib call](https://github.com/vahidhedayati/jssh/wiki/Websocket-client-server-taglib-call)
+As above but:
 
-##### [Websockets tag lib call](https://github.com/vahidhedayati/jssh/wiki/websocket-taglib-call)
+```gsp
+<jssh:socketconnect 
+...
+  divId="${divId}" />
+<div id="${divId}"></div>
+```
+
+##### [Ajax Taglib](https://github.com/vahidhedayati/jssh/blob/master/grails-app/views/connectSsh/ajaxprocess.gsp)
+
+[wiki on jssh existing app using ajax polling](https://github.com/vahidhedayati/jssh/wiki/using-jssh-within-existing-application)
+
+[ajax/polling tag lib call](https://github.com/vahidhedayati/jssh/wiki/ajax-polling-taglib-call)
+
+``gsp
+<jssh:ajaxconnect hostname="${hostname}" username="${username}"
+	port="${port}" password="${password}"
+	userCommand="${userCommand.encodeAsJavaScript()}"
+	jsshUser="${jsshUser}"  />
+```
 
 
+##### Misc Calling methods: 
 
-##### [Socket taglib with pingpong](https://github.com/vahidhedayati/jssh/wiki/socket-taglib-with-pingpong)
+[Taglib example on resources based grails app](https://github.com/vahidhedayati/jssh-test/blob/master/grails-app/views/testjssh/using-resources.gsp)
 
-##### [ajax/polling tag lib call](https://github.com/vahidhedayati/jssh/wiki/ajax-polling-taglib-call)
+[Taglib example on assets based grails app](https://github.com/vahidhedayati/jssh-test/blob/master/grails-app/views/testjssh/using-assets.gsp)
 
-![multiple websocket taglib calls on default grails site](https://raw.github.com/vahidhedayati/jssh-test/master/jssh-doc/6.jpg)
+[gsp call](https://github.com/vahidhedayati/jssh/wiki/call-directly-via-gsp)
 
-##### [Taglib example on resources based grails app](https://github.com/vahidhedayati/jssh-test/blob/master/grails-app/views/testjssh/using-resources.gsp)
+[Extendable css div box](https://github.com/vahidhedayati/jssh/wiki/extending-SSH-Connection-boxes)
 
-##### [Taglib example on assets based grails app](https://github.com/vahidhedayati/jssh-test/blob/master/grails-app/views/testjssh/using-assets.gsp)
+[Easy scrolling tailing log test](https://github.com/vahidhedayati/jssh/wiki/tail-dummy-log-file)
 
-##### [gsp call](https://github.com/vahidhedayati/jssh/wiki/call-directly-via-gsp)
+[Usercommand hacks](https://github.com/vahidhedayati/jssh/wiki/userCommand-hacks)
 
-##### [Extendable css div box](https://github.com/vahidhedayati/jssh/wiki/extending-SSH-Connection-boxes)
+[Bootstrap/jquery switch method](https://github.com/vahidhedayati/jssh/wiki/Bootstrap---Jquery-Switch-method)
 
-##### [Easy scrolling tailing log test](https://github.com/vahidhedayati/jssh/wiki/tail-dummy-log-file)
-
-##### [Usercommand hacks](https://github.com/vahidhedayati/jssh/wiki/userCommand-hacks)
-
-##### [Bootstrap/jquery switch method](https://github.com/vahidhedayati/jssh/wiki/Bootstrap---Jquery-Switch-method)
-
-### [Change information](https://github.com/vahidhedayati/jssh/wiki/VersionInfo)
+[Screenshots](https://github.com/vahidhedayati/jssh/wiki/Screenshots)
