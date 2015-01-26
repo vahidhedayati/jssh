@@ -102,7 +102,7 @@ As above but:
 
 [ajax/polling tag lib call](https://github.com/vahidhedayati/jssh/wiki/ajax-polling-taglib-call)
 
-``gsp
+```gsp
 <jssh:ajaxconnect hostname="${hostname}" username="${username}"
 	port="${port}" password="${password}"
 	userCommand="${userCommand.encodeAsJavaScript()}"
