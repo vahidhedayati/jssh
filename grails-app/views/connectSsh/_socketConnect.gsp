@@ -4,9 +4,6 @@
 <g:javascript>
 
 	var ${divId}loggedInUsers=[];
-
-
-	
 	
 	var webSocket${divId}=new WebSocket('${uri}');
 	webSocket${divId}.onopen=function(message) {processOpen${divId}(message);};
@@ -14,18 +11,15 @@
 	webSocket${divId}.onerror=function(message) {processError${divId}(message);};
 	webSocket${divId}.onmessage=function(message) {processMessage${divId}(message);	};
 
-	var userList=[];
-	
 	
 	function processOpen${divId}(message) {
 		$('#messagesTextarea${divId}').append('Client Socket connected to Socket Server....\n');
-		webSocket${
-	divId
-}.send(JSON.stringify({'client': 'yes', 'frontend':"${frontend}",'jsshUser':"${frontuser}"}))
+		webSocket${divId}.send(JSON.stringify({'client': 'yes', 'frontend':"${frontend}",'jsshUser':"${frontuser}"}))
 	}
-		function processMessage${divId}(message) {
-			//console.log(JSON.stringify(message));
-			//console.log(message);
+	
+	function processMessage${divId}(message) {
+		//console.log(JSON.stringify(message));
+		//console.log(message);
 		var json;
 		try {
 	  		json = JSON.parse(message.data);
@@ -67,7 +61,7 @@
         }
         	
     }
-    
+
 	function sendMessage${divId}() {
 		if (textMessage${divId}.value!="close") {
 			if ((textMessage${divId}.value.indexOf('\n')>-1) || (textMessage${divId}.value.indexOf('\r')>-1) ) {
@@ -75,7 +69,7 @@
    					webSocket${divId}.send('/fm ${backuser},'+line);
 				});
 			}else{
-				webSocket${divId}.send('/fm ${backuser},'+textMessage${divId}.value);
+				webSocket${divId}.send('/fm ${backuser}@${hostname},'+textMessage${divId}.value);
 			}
 			
 			$('#whatCommand${divId}').html(textMessage${divId}.value);

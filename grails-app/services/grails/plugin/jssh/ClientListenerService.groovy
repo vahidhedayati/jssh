@@ -35,7 +35,7 @@ public class ClientListenerService extends ConfService {
 		if (map.hosts) {
 			oSession.userProperties.put("hosts", map.hosts)
 		}
-		
+
 		return  oSession
 	}
 

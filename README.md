@@ -60,7 +60,9 @@ On the main index screen there is now a new connection method, if you do use it.
 ```					
 
 		
-##### [Socket Method](https://github.com/vahidhedayati/jssh/wiki/jssh-websocket-taglib-call)
+##### [Socket Method](https://github.com/vahidhedayati/jssh/blob/master/grails-app/views/connectSsh/socketprocess.gsp)
+
+[jssh-websocket-taglib-call](https://github.com/vahidhedayati/jssh/wiki/jssh-websocket-taglib-call)
 
 [wiki on jssh existing app using websockets](https://github.com/vahidhedayati/jssh/wiki/jssh-websocket-within-existing-application)
 

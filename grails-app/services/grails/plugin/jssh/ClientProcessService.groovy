@@ -26,9 +26,9 @@ public class ClientProcessService extends ConfService  {
 	def j2sshService
 	def authService
 	def dbStorageService
-	
-	private SshClient ssh = new SshClient()
-	private SessionChannelClient session
+
+	private SshClient mySsh
+
 	private SshConnectionProperties properties = null
 
 	private String host, user, userpass, usercommand
@@ -37,45 +37,49 @@ public class ClientProcessService extends ConfService  {
 	private int pingRate
 
 	public void handleClose(Session userSession) {
-		if (session && session.isOpen()) {
-			session.close()
-		}
-		if (ssh && ssh.isConnected()) {
-			ssh.disconnect()
+		if (mySsh && mySsh.isConnected()) {
+			mySsh.disconnect()
 		}
 		if (userSession && userSession.isOpen()) {
 			userSession.close()
 		}
 	}
-	
+
 	public void processResponse(Session userSession, String message) {
 
 		String username = userSession.userProperties.get("username") as String
 		boolean disco = true
 
 		if (message.startsWith("/pm")) {
-
 			def values = parseInput("/pm ",message)
 			String user = values.user as String
 			String msg = values.msg as String
 			messagingService.forwardMessage(user,msg)
 
 		}else if  (message.startsWith('/bm')) {
-
 			def values = parseInput("/fm ",message)
-			String user = values.user as String
+			String cuser, chost
+			String users = values.user as String
+			if (users.indexOf('@')>-1) {
+				cuser = users.substring(0,users.indexOf('@'))
+				chost = users.substring(cuser.length()+1,users.length())
+			}else{
+				cuser = users
+			}
 			String msg = values.msg as String
 
-			// New Websocket Client connection register store
-			// each new command input from frontend
 			String comloggerId = userSession.userProperties.get("comloggerId") as String
 			String conloggerId = userSession.userProperties.get("conloggerId") as String
-			dbStorageService.storeCommand(msg, user, conloggerId, username, comloggerId)
+			if (comloggerId && conloggerId) {
+				dbStorageService.storeCommand(msg, user, conloggerId, username, comloggerId)
+			}
 
 			def asyncProcess = new Thread({
-				SessionChannelClient ss = j2sshService.newShell( ssh,  session, userSession)
-				j2sshService.processConnection(userSession, ss, msg)
-				j2sshService.closeShell( ssh,  ss)
+				//SshClient mssh =  userSession.userProperties.get(chost) as SshClient
+				//userSession.userProperties.put('host', chost)
+				SshClient mssh =  userSession.userProperties.get('sshClient') as SshClient
+				j2sshService.processConnection(mssh, userSession, msg)
+
 			} as Runnable )
 			asyncProcess.start()
 
@@ -113,7 +117,7 @@ public class ClientProcessService extends ConfService  {
 			userSession.userProperties.put("pingRate", pingRate)
 			boolean frontend = rmesg.frontend.toBoolean()
 			if (frontend) {
-				multiUser(ssh, session, properties, userSession)
+				 multiUser(userSession)
 			}
 		}
 
@@ -135,24 +139,10 @@ public class ClientProcessService extends ConfService  {
 			}
 		}
 	}
-	
-	private void multiUser(SshClient ssh, SessionChannelClient session=null,
-			SshConnectionProperties properties=null,Session userSession) {
 
-		Map resSet = j2sshService.sshConnect(ssh, session, properties, user, userpass, host,
-				usercommand, port, userSession)
+	private void multiUser(Session userSession) {
+		j2sshService.sshConnect(  user, userpass, host,	usercommand, port, userSession)
 
-		boolean isAuthenticated = false
-		SshClient ssh2
-		SshConnectionProperties properties2
-		SessionChannelClient session2
-		if (resSet) {
-			isAuthenticated = resSet.isAuthenticated
-			ssh2  = resSet.ssh
-			properties2 = resSet.properties
-			session2 = resSet.session
-		}
-		//if (isAuthenticated) {}
 	}
 
 	private void verifyGeneric(JSONObject data) {

@@ -6,6 +6,7 @@ import javax.websocket.Session
 
 
 class MessagingService extends ConfService  {
+
 	
 	def sendFrontEndPM2(Session userSession, String user,String message) {
 		user = addFrontEnd(user)
@@ -17,7 +18,7 @@ class MessagingService extends ConfService  {
 			log.error "COULD NOT FIND ${user} : $message "
 		}
 	}
-	
+
 	def sendFrontEndPM(Session userSession, String user,String message) {
 		user = addFrontEnd(user)
 		def found = findUser( user)
@@ -43,10 +44,10 @@ class MessagingService extends ConfService  {
 				sshUsers?.each { crec->
 					if (crec && crec.isOpen()) {
 						def cuser = crec.userProperties.get("username").toString()
-						if (config.debug == "on") {
-							def cjob = crec.userProperties.get("job").toString()
-							println "sshUsers: ${cuser} ${cjob}"
-						}
+						//if (config.debug == "on") {
+						//def cjob = crec.userProperties.get("job").toString()
+						//println "sshUsers: ${cuser} ${cjob}"
+						//}
 						if (cuser.equals(username)) {
 							found = true
 						}
@@ -62,14 +63,14 @@ class MessagingService extends ConfService  {
 	public void sendMessage(Session userSession,final String message) {
 		userSession.basicRemote.sendText(message)
 	}
-	
+
 	def sendMsg(Session userSession,String msg) {
 		try {
 			userSession.basicRemote.sendText(msg)
 		} catch (IOException e) {
 		}
 	}
-	
+
 	def messageUser(Session userSession,Map msg) {
 		def myMsgj = (msg as JSON).toString()
 		sendMsg(userSession, myMsgj)
@@ -81,7 +82,7 @@ class MessagingService extends ConfService  {
 			user.basicRemote.sendText(message)
 		}
 	}
-	
+
 	def fwdFendMsg(String username, String message) {
 		username = parseFrontEnd(username)
 		Session user = usersSession(username)
@@ -89,7 +90,7 @@ class MessagingService extends ConfService  {
 			user.basicRemote.sendText(message)
 		}
 	}
-	
+
 	def privateMessage(Session userSession,String user,String msg, String mtype) {
 		String urecord = userSession.userProperties.get("username") as String
 		Boolean found = false
@@ -101,12 +102,12 @@ class MessagingService extends ConfService  {
 						if (cuser.endsWith(frontend)) {
 							if (mtype == "/fm") {
 							}else{
-							messageUser(crec,["message": "${msg}"])
+								messageUser(crec,["message": "${msg}"])
 							}
 						}else{
 							if (mtype == "/fm") {
 							}else{
-							crec.basicRemote.sendText("${mtype} ${urecord},"+msg as String)
+								crec.basicRemote.sendText("${mtype} ${urecord},"+msg as String)
 							}
 						}
 					}
@@ -127,12 +128,12 @@ class MessagingService extends ConfService  {
 						String cjob =  crec.userProperties.get("job") as String
 						boolean found = false
 						if (user == cuser) {
-							
-							
+
+
 							if (mtype=="system") {
 								crec.basicRemote.sendText("/system ${user},${message}")
 							}else{
-							crec.basicRemote.sendText("${message}")
+								crec.basicRemote.sendText("${message}")
 							}
 						}
 					}
@@ -143,6 +144,80 @@ class MessagingService extends ConfService  {
 			log.error ("onMessage failed", e)
 		}
 	}
+
+	def sendJobPM(Session userSession, String job,String message) {
+		try {
+			synchronized (sshUsers) {
+				sshUsers?.each { crec->
+					if (crec && crec.isOpen()) {
+						String cuser = crec.userProperties.get("username") as String
+						String cjob =  crec.userProperties.get("job") as String
+						String chost =  crec.userProperties.get("host") as String
+						boolean found = false
+
+						if ((job==cjob) && (!cuser.endsWith(frontend))){
+							found=findUser(cuser)
+							if (found) {
+								crec.basicRemote.sendText("/fm ${cuser}@${chost},${message}")
+								//SshClient mssh =  crec.userProperties.get('sshClient') as SshClient
+								//j2sshService.processConnection(mssh, crec, message)
+							}
+						}
+					}
+				}
+			}
+		} catch (IOException e) {
+			log.error ("onMessage failed", e)
+		}
+	}
+
+	
+	/*
+	 * try {
+				synchronized (sshUsers) {
+					sshUsers?.each { crec->
+						if (crec && crec.isOpen()) {
+							String cuser = crec.userProperties.get("username") as String
+							
+							boolean found = false
+	
+							//if ((job==cjob) && (cuser &&(!cuser.endsWith(frontend)))){
+							if (job==cjob){
+									Session fend = messagingService.usersSession(parseFrontEnd(cuser))
+									if (fend) {
+									SshClient mssh =  fend.userProperties.get('sshClient') as SshClient
+									println "--- Messaging ${cuser} ${mssh} ${message}"
+									j2sshService.processConnection(mssh, fend, message)
+									}
+								
+							}
+						}
+					}
+				}
+			} catch (IOException e) {
+				log.error ("onMessage failed", e)
+			}
+	 */
+	def sendJobMessage(String job,String message) {
+		try {
+			synchronized (sshUsers) {
+				sshUsers?.each { crec->
+					if (crec && crec.isOpen()) {
+						String cuser = crec.userProperties.get("username") as String
+						String cjob =  crec.userProperties.get("job") as String
+						boolean found = false
+						if (job==cjob) {
+							crec.basicRemote.sendText("${message}")
+						}
+					}
+				}
+			}
+
+		} catch (IOException e) {
+			log.error ("onMessage failed", e)
+		}
+	}
+
 	Session usersSession(String username) {
 		Session userSession
 		try {
@@ -163,57 +238,10 @@ class MessagingService extends ConfService  {
 	}
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	
+
 	/*
 	 * To be used in later release  broadcast messages to master nodes of a given job
 	 * A bit like terminator broadcasting to multiple ssh - to come
-	def sendArrayPM(Session userSession, String job,String message) {
-		try {
-			synchronized (sshUsers) {
-				sshUsers?.each { crec->
-					if (crec && crec.isOpen()) {
-						String cuser = crec.userProperties.get("username") as String
-						String cjob =  crec.userProperties.get("job") as String
-						boolean found = false
-						if (job==cjob) {
-							found=findUser(cuser)
-							if (found) {
-								crec.basicRemote.sendText("/pm ${cuser},${message}")
-							}
-							if (!cuser.toString().endsWith(frontend)) {
-								found=findUser(cuser+frontend)
-								if (found) {
-									crec.basicRemote.sendText("/pm ${cuser+frontend},${message}")
-								}
-							}
-						}
-					}
-				}
-			}
-		} catch (IOException e) {
-			log.error ("onMessage failed", e)
-		}
-	}
-
-	def sendJobMessage(String job,String message) {
-		try {
-			synchronized (sshUsers) {
-				sshUsers?.each { crec->
-					if (crec && crec.isOpen()) {
-						String cuser = crec.userProperties.get("username") as String
-						String cjob =  crec.userProperties.get("job") as String
-						boolean found = false
-						if (job==cjob) {
-							crec.basicRemote.sendText("${message}")
-						}
-					}
-				}
-			}
-
-		} catch (IOException e) {
-			log.error ("onMessage failed", e)
-		}
-	}
-	*/
+	 */
 
 }

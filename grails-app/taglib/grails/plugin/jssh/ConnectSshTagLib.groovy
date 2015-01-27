@@ -8,16 +8,16 @@ import javax.websocket.Session
 
 class ConnectSshTagLib extends ConfService {
 	static namespace = "jssh"
-	
+
 	def connectSsh
 	def jsshConfig
 	def pluginbuddyService
 	def randService
 	def clientListenerService
 	def dbStorageService
-	
-	private ArrayList hosts 
-	
+
+	private ArrayList hosts
+
 	private String hostname, username, userCommand, password, template, port, adminTemplate
 
 	private String wshostname, hideConsoleMenu, hideSendBlock, hideSessionCtrl,
@@ -25,7 +25,7 @@ class ConnectSshTagLib extends ConfService {
 	jsshUser, divId, enablePong, pingRate, addAppName
 
 	private String jUser, conLogId, conloggerId, comloggerId
-	
+
 	def ajaxconnect =  { attrs ->
 
 		genericOpts(attrs)
@@ -71,22 +71,52 @@ class ConnectSshTagLib extends ConfService {
 		loadTemplate(template, "/connectSsh/socketprocess", model)
 	}
 
+
+	/* jssh:broadcast only required on top of jssh:conn if used multiple times on 1 page
+	 * will send a broadcast message to all the connections
+	 * All JobNames on jssh:conn must match the same jobName as broadcast for this
+	 * Provide divId + jobName + template(optional) 
+	 */ 
+	def broadcast = { attrs ->
+		/*
+		this.jobName = attrs.remove('jobName')?.toString()
+		
+		if (!jobName) {
+			throwTagError("Tag [broadcast] is missing required attribute [jobName]")
+		}
+		*/
+		
+		socketOpts(attrs)
+		String uri="ws://${wshostname}/${appName}/${APP}/"
+		if (addAppName=="no") {
+			uri="ws://${hostname}/${APP}/"
+		}
+		uri = uri + jobName
+		boolean frontend = true
+		def model = [frontend:frontend, divId: divId, jobName: jobName,  uri:uri, job: jobName,	wshostname: wshostname, frontuser: jsshUser]
+		loadTemplate(template, '/connectSsh/broadcast', model)
+	} 
+	
+	
+
 	/* NEW : Client / Server SSH Model - Server or Master being backend SSH connection / client 
-	*  being websocket client
-	* That listens to Websocket server/master that sends connection info back to client
-	*/
+	 *  being websocket client
+	 * That listens to Websocket server/master that sends connection info back to client
+	 */
 
 	def conn = { attrs ->
 
 		socketOpts(attrs)
-		
+
 		// Only register commands and transactions from new conn method
 		genDb(username, hosts, hostname, jsshUser, userCommand, port)
-		
+
 		def cuser= jsshUser
-		
+
 		def cjob = jobName
-		String frontuser=cuser+frontend
+		String frontuser = cuser+frontend
+
+
 		boolean frontend = true
 		String uri="ws://${wshostname}/${appName}/${APP}/"
 		if (addAppName=="no") {
@@ -97,17 +127,15 @@ class ConnectSshTagLib extends ConfService {
 		if (!appName) {
 			appName = grailsApplication.metadata['app.name']
 		}
-		
-		def connMap = [frontend: frontend,  backuser: cuser, user: username, username:username, password: password,
-			port: port, enablePong: enablePong, pingRate: pingRate, usercommand: userCommand,
-			divId:divId, jsshApp: APP, uri:uri, job: cjob, frontuser: frontuser, hideWhatsRunning: hideWhatsRunning,
-			hideDiscoButton: hideDiscoButton, hidePauseControl: hidePauseControl, hideSessionCtrl: hideSessionCtrl,
-			hideNewShellButton: hideNewShellButton, hideConsoleMenu: hideConsoleMenu, hideSendBlock: hideSendBlock,
-			wshostname: wshostname]
-		
+
+		def connMap = [frontend: frontend,  frontuser: frontuser,  backuser: cuser, user: username, username:username, password: password,
+			port: port, enablePong: enablePong, pingRate: pingRate, usercommand: userCommand, divId:divId, jsshApp: APP, uri:uri, job: cjob,
+			hideWhatsRunning: hideWhatsRunning,	hideDiscoButton: hideDiscoButton, hidePauseControl: hidePauseControl, hideSessionCtrl: hideSessionCtrl,
+			hideNewShellButton: hideNewShellButton, hideConsoleMenu: hideConsoleMenu, hideSendBlock: hideSendBlock,	wshostname: wshostname]
+
 		Map adminMap = [frontuser: frontuser, backuser: cuser, job:cjob]
 		loadTemplate(adminTemplate,"/connectSsh/scsockmodal",adminMap)
-		
+
 		connMap.put('jsshUser', frontuser)
 		if (hostname) {
 			connMap.put('hostname', hostname)
@@ -116,16 +144,16 @@ class ConnectSshTagLib extends ConfService {
 		}
 		// TODO -
 		/*	
-		if (hosts) {
-			hosts.each { hostn ->
-				connMap.put('hostname', hostn)
-				loadTemplate(template,'/connectSsh/socketConnect', connMap)
-				loadBackEnd(uri, connMap, cuser)
-			}
-		}
-		*/
+		 if (hosts) {
+		 hosts.each { hostn ->
+		 connMap.put('hostname', hostn)
+		 loadTemplate(template,'/connectSsh/socketConnect', connMap)
+		 loadBackEnd(uri, connMap, cuser)
+		 }
+		 }
+		 */
 	}
-	
+
 	private void loadBackEnd(String uri, Map connMap, String cuser) {
 		connMap.remove('jsshUser')
 		connMap.put('jsshUser', cuser)
@@ -148,14 +176,14 @@ class ConnectSshTagLib extends ConfService {
 	}
 
 	private void genericOpts(attrs) {
-		if (attrs.hostname && (!attrs.hosts)) { 
+		if (attrs.hostname && (!attrs.hosts)) {
 			this.hostname = attrs.remove('hostname')?.toString() ?: 'localhost'
 		}
-		
+
 		if (attrs.hosts instanceof ArrayList) {
 			this.hosts = attrs.hostname
-		}	
-		
+		}
+
 		this.username = attrs.remove('username')?.toString() ?: config.USER ?: ''
 		this.userCommand = attrs.remove('userCommand') ?: "echo \"\$USER has logged into \$HOST\""
 		this.password = attrs.remove('password')?.toString()
@@ -224,7 +252,7 @@ class ConnectSshTagLib extends ConfService {
 		if (!jsshUser) {
 			jsshUser=randService.randomise('jsshUser')
 		}
-		
+
 		this.divId = attrs.remove('divId')?.toString()
 		this.enablePong = attrs.remove('enablePong')?.toString() ?: config.enablePong
 		// In milliseconds how to long to wait before sending next ping
@@ -232,7 +260,7 @@ class ConnectSshTagLib extends ConfService {
 
 		this.addAppName =  config.addAppName ?: 'YES'
 
-		
+
 	}
 
 	private void genDb(String sshUser, ArrayList hosts, String hostname, String username, String userCommand, String port) {
@@ -246,7 +274,7 @@ class ConnectSshTagLib extends ConfService {
 		this.conloggerId = dbStorageService.storeConnection(hostname, port, username, sshUser, conLogId)
 		this.comloggerId = dbStorageService.storeCommand(userCommand, username, conLogId, sshUser)
 	}
-	
+
 	private void addUserHost(String hostname, String port, String username) {
 		SshServers server = dbStorageService.addServer(username, hostname, port ?: '22', '' )
 		Map<String,String> jU = dbStorageService.addJsshUser(username, server)

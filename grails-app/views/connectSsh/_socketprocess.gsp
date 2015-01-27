@@ -84,6 +84,7 @@
         	
     }
     
+
 	function sendMessage${divId}() {
 		if (textMessage.value!="close") {
 		

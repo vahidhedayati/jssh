@@ -105,7 +105,7 @@ class JsshEndpoint extends ConfService implements ServletContextListener {
 		String username = userSession.userProperties.get("username") as String
 		String job  =  userSession.userProperties.get("job") as String
 		if (config.debug == "on") {
-			println "@onMessage: $message"
+			println "@onMessage: $username: $job > $message\n\n"
 		}
 		// Standard Private Messages
 		if (message.startsWith('/pm')) {
@@ -117,23 +117,42 @@ class JsshEndpoint extends ConfService implements ServletContextListener {
 			}else{
 				log.error "Messaging yourself?"
 			}
-			
-		// NEW Sent only from FrontEnd when user triggers a command to be sent
+
+			// NEW Sent only from FrontEnd when user triggers a command to be sent
 		}else if  (message.startsWith('/fm')) {
+
 			def values = parseInput("/fm ",message)
-			String user = values.user as String
+			String users = values.user as String
+			String user
+			if (users.indexOf('@')>-1) {
+				user = users.substring(0,users.indexOf('@'))
+			}else{
+				user = users
+			}
 			String msg = values.msg as String
+			
+			println "${username } sending message ${users} ${msg}"
 			if (msg.startsWith('{')) {
 				messagingService.forwardMessage(user,msg)
 			}else{
-				messagingService.forwardMessage(user,"/bm $user,$msg")
+				messagingService.forwardMessage(user,"/bm $users,$msg")
 			}
+		}else if (message.startsWith('/bcast')) {
+			def values = parseInput("/bcast ",message)
+			String cjob = values.user as String
+			String msg = values.msg as String
+			
+			//messagingService.sendJobMessage(cjob,msg)
+			messagingService.sendJobPM(userSession, cjob, msg)
+
+			
+			
 			
 		}else if (message.startsWith('/addGroup')) {
 			def values = parseInput("/addGroup ",message)
 			String msg = values.msg as String
 			messagingService.fwdFendMsg(username,"/addGroup ${username},$msg")
-		// All other actions	
+			// All other actions
 		}else{
 			def data = JSON.parse(message)
 			boolean bfrontend =  false
@@ -141,7 +160,7 @@ class JsshEndpoint extends ConfService implements ServletContextListener {
 				bfrontend =  data.frontend.toBoolean() ?: false
 				if (!username) {
 					String jsshUser = data.jsshUser
-				
+
 					if (jsshUser) {
 						userSession.userProperties.put("username", jsshUser)
 					}
@@ -155,14 +174,14 @@ class JsshEndpoint extends ConfService implements ServletContextListener {
 							messagingService.sendBackPM(username, message)
 						}else if (data.COMMAND == "true") {
 							messagingService.sendBackPM(username, message,"system")
-						}else{	
+						}else{
 							userSession.basicRemote.sendText("${message}")
 						}
 					}
 				}else{
 					if  (data.DISCO == "true") {
 						userSession.close()
-					}else{	
+					}else{
 						authService.authenticate(ssh, session, properties, userSession, data)
 					}
 				}
@@ -200,7 +219,7 @@ class JsshEndpoint extends ConfService implements ServletContextListener {
 			this.pingRate = data.pingRate?.toInteger() ?: '60000'
 		}
 	}
-	
+
 	@OnClose
 	public void handeClose() {
 		if (session && session.isOpen()) {

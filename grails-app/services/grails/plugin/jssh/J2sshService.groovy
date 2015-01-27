@@ -1,7 +1,5 @@
 package grails.plugin.jssh
 
-import grails.converters.JSON
-
 import javax.websocket.Session
 
 import com.sshtools.j2ssh.SshClient
@@ -21,7 +19,7 @@ import com.sshtools.j2ssh.transport.publickey.SshPrivateKeyFile
 class J2sshService extends ConfService {
 
 	private boolean isAuthenticated = false
-	
+
 	def messagingService
 
 	public void pingPong(Session userSession, Integer pingRate) {
@@ -35,34 +33,8 @@ class J2sshService extends ConfService {
 		}
 	}
 
-	private void closeShell(SshClient ssh, SessionChannelClient session) {
-		int timeout = 1000;
-		def cc = ssh.getActiveChannelCount() ?: 1
-		if (cc>0) {
-			session.close()
-			session.getState().waitForState(ChannelState.CHANNEL_CLOSED, timeout);
-		}
-	}
-
-	private SessionChannelClient newShell(SshClient ssh, SessionChannelClient session, Session userSession) {
-		session = ssh.openSessionChannel()
-		String user = userSession.userProperties.get("username") as String
-		SessionOutputReader sor = new SessionOutputReader(session)
-		if (session.requestPseudoTerminal("gogrid",80,24, 0 , 0, "")) {
-			if (session.startShell()) {
-				ChannelOutputStream out = session.getOutputStream()
-
-			}
-		}
-
-		def cc = ssh.getActiveChannelCount() ?: 1
-		return session
-	}
-
-	private Map sshConnect(SshClient ssh, SessionChannelClient session,
-			SshConnectionProperties properties,  String user, String userpass,
-			String host, String usercommand, int port, Session userSession)  {
-
+	private void sshConnect(String user, String userpass, String host, String usercommand, int port, Session userSession)  {
+		String suser = userSession.userProperties.get("username") as String
 		String sshuser = config.USER ?: ''
 		String sshpass = config.PASS ?: ''
 		String sshkey = config.KEY ?: ''
@@ -75,9 +47,10 @@ class J2sshService extends ConfService {
 		String keyfilePass=''
 		int result=0
 
-		properties = new SshConnectionProperties();
+		SshConnectionProperties properties = new SshConnectionProperties()
 		properties.setHost(host)
 		properties.setPort(sshPort)
+		SshClient ssh = new SshClient()
 		ssh.connect(properties, new IgnoreHostKeyVerification())
 		// User has a key authenticate using SSH Key
 		if (!password) {
@@ -109,31 +82,42 @@ class J2sshService extends ConfService {
 		// Evaluate the result
 		if (isAuthenticated) {
 
+			///userSession.userProperties.put(host, ssh)
+			userSession.userProperties.put('host', host)
+			userSession.userProperties.put('sshClient', ssh)
+
 			def asyncProcess = new Thread({
 				sleep(800)
-				SessionChannelClient ss = newShell( ssh,  session, userSession)
-				processConnection(userSession, ss, usercommand)
-				closeShell( ssh,  ss)
+
+				processConnection(ssh, userSession, usercommand)
 			} as Runnable )
 			asyncProcess.start()
-			
+
 		}else{
 			def authType = "using key file  "
 			if (password) { authType = "using password" }
 			String failMessage = "SSH: Failed authentication user: ${username} on ${host} ${authType}"
 			messagingService.sendFrontEndPM( userSession, user, failMessage)
 		}
-		return [isAuthenticated: isAuthenticated, ssh:ssh, session:session, properties: properties]
+
 	}
 
-	private void processConnection(Session userSession, SessionChannelClient session, String usercommand) {
-		String user = userSession.userProperties.get("username") as String
+	private void processConnection(SshClient ssh, Session userSession, String usercommand) {
+		SessionChannelClient session = new SessionChannelClient()
 		StringBuilder catchup = new StringBuilder()
+		int timeout = 1000
+		session = ssh.openSessionChannel()
+		String user = userSession.userProperties.get("username") as String
+		SessionOutputReader sor = new SessionOutputReader(session)
+		if (session.requestPseudoTerminal("gogrid",80,24, 0 , 0, "")) {
+			if (session.startShell()) {
+				ChannelOutputStream out = session.getOutputStream()
 
+			}
+		}
 		if (!usercommand.endsWith('\n')) {
 			usercommand = usercommand+'\n'
 		}
-
 		session.getOutputStream().write(usercommand.getBytes())
 		InputStream input = session.getInputStream()
 		byte[] buffer = new byte[255]
@@ -146,11 +130,18 @@ class J2sshService extends ConfService {
 				if (status == "pause") {
 					catchup.append(out1)
 				}else{
-					messagingService.sendFrontEndPM2(userSession, user, catchup as String)
-					catchup = new StringBuilder()
+					if (catchup) {
+						messagingService.sendFrontEndPM2(userSession, user, catchup as String)
+						catchup = new StringBuilder()
+					}
 					messagingService.sendFrontEndPM2(userSession, user, parseBash(out1))
 				}
 			}
+		}
+		def cc = ssh.getActiveChannelCount() ?: 1
+		if (cc>0) {
+			session.close()
+			session.getState().waitForState(ChannelState.CHANNEL_CLOSED, timeout);
 		}
 	}
 }
