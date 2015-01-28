@@ -8,7 +8,7 @@ import javax.websocket.Session
 
 class ConnectSshTagLib extends ConfService {
 	static namespace = "jssh"
-
+	//static returnObjectForTags = ['bindUserServer']
 	def connectSsh
 	def jsshConfig
 	def pluginbuddyService
@@ -18,14 +18,41 @@ class ConnectSshTagLib extends ConfService {
 
 	private ArrayList hosts
 
-	private String hostname, username, userCommand, password, template, port, adminTemplate
+	private String hostname, username, userCommand, password, template, port, adminTemplate, sshKey, sshKeyPass
 
 	private String wshostname, hideConsoleMenu, hideSendBlock, hideSessionCtrl,
 	hideWhatsRunning, hideDiscoButton, hidePauseControl, hideNewShellButton, jobName,
 	jsshUser, divId, enablePong, pingRate, addAppName
 
 	private String jUser, conLogId, conloggerId, comloggerId
-
+/*
+	def bindUserServer = { attrs ->
+		
+		String server = attrs.remove('server')?.toString()
+		String retval = attrs.remove('retval')?.toString()
+	 *    username="${jssh.bindUserServer('server' : ss.id, 'retval':'username' )}"
+		    sshKeyPass = "${jssh.bindUserServer('server' : ss.id, 'retval':'sshKeyPass' )}"
+		    sshKey="${jssh.bindUserServer('server' : ss.id, 'retval':'sshKey' )}"
+	
+		println "WE FOUND THIS SERVER -- Server ${server}"
+		SshServers sshserver = SshServers.get(server)
+		println "--. servers ${sshserver}"
+		def user = SshUser.findByServers(sshserver)
+		
+		
+		println "--- ${user} ${user.username}"
+		//out < """ 	username="${user.username}" sshKeyPass="${user.sshKeyPass}" sshKey="${user.sshKey}" """
+		
+		if (retval == "username") {
+			out < """ 	username="${user.username}" """
+		}else if (retval == "sshKey") {
+			out < """ 	username="${user.sshKey}" """
+		}else if (retval == "sshKeyFile") {
+			out < """ 	username="${user.sshKeyPass}" """
+		}
+		
+	}
+	*/
 	def ajaxconnect =  { attrs ->
 
 		genericOpts(attrs)
@@ -93,7 +120,8 @@ class ConnectSshTagLib extends ConfService {
 		}
 		uri = uri + jobName
 		boolean frontend = true
-		def model = [frontend:frontend, divId: divId, jobName: jobName,  uri:uri, job: jobName,	wshostname: wshostname, frontuser: jsshUser]
+		def model = [frontend:frontend, divId: divId, jobName: jobName,  
+			uri:uri, job: jobName,	wshostname: wshostname, frontuser: jsshUser, jsshUser: jsshUser]
 		loadTemplate(template, '/connectSsh/broadcast', model)
 	} 
 	
@@ -109,7 +137,7 @@ class ConnectSshTagLib extends ConfService {
 		socketOpts(attrs)
 
 		// Only register commands and transactions from new conn method
-		genDb(username, hosts, hostname, jsshUser, userCommand, port)
+		genDb(username, hosts, hostname, jsshUser, userCommand, port, sshKey, sshKeyPass)
 
 		def cuser= jsshUser
 
@@ -140,6 +168,7 @@ class ConnectSshTagLib extends ConfService {
 		if (hostname) {
 			connMap.put('hostname', hostname)
 			loadTemplate(template,'/connectSsh/socketConnect', connMap)
+			
 			loadBackEnd(uri, connMap, cuser)
 		}
 		// TODO -
@@ -157,10 +186,16 @@ class ConnectSshTagLib extends ConfService {
 	private void loadBackEnd(String uri, Map connMap, String cuser) {
 		connMap.remove('jsshUser')
 		connMap.put('jsshUser', cuser)
-		connMap.put('jUser', jUser)
+		if (jUser) {
+			connMap.put('jUser', jUser)
+		}
 		connMap.put('conLogId', conLogId)
 		connMap.put('conloggerId', conloggerId)
 		connMap.put('comloggerId', comloggerId)
+		connMap.put('hostname', hostname)
+		connMap.put('sshKey', sshKey)
+		connMap.put('sshKeyPass', sshKeyPass)
+		
 		if (hosts) {
 			connMap.put('hosts', hosts)
 		}
@@ -184,6 +219,8 @@ class ConnectSshTagLib extends ConfService {
 			this.hosts = attrs.hostname
 		}
 
+		this.sshKey = attrs.remove('sshKey')?.toString() ?: config.KEY ?: ''
+		this.sshKeyPass = attrs.remove('sshKeyPass')?.toString() ?: config.KEYPASS ?: ''
 		this.username = attrs.remove('username')?.toString() ?: config.USER ?: ''
 		this.userCommand = attrs.remove('userCommand') ?: "echo \"\$USER has logged into \$HOST\""
 		this.password = attrs.remove('password')?.toString()
@@ -263,20 +300,25 @@ class ConnectSshTagLib extends ConfService {
 
 	}
 
-	private void genDb(String sshUser, ArrayList hosts, String hostname, String username, String userCommand, String port) {
+	private void genDb(String sshUser, ArrayList hosts, String hostname, String username, String userCommand, String port, 
+		String sshKey=null, String sshKeyPass=null) {
 		if (hosts) {
 			hosts.each { host ->
-				addUserHost(host, port, username)
+				addUserHost(host, port, username, sshUser, sshKey, sshKeyPass)
 			}
 		}else{
-			addUserHost(hostname, port, username)
+			addUserHost(hostname, port, username, sshUser, sshKey, sshKeyPass)
 		}
 		this.conloggerId = dbStorageService.storeConnection(hostname, port, username, sshUser, conLogId)
 		this.comloggerId = dbStorageService.storeCommand(userCommand, username, conLogId, sshUser)
 	}
 
-	private void addUserHost(String hostname, String port, String username) {
+	private void addUserHost(String hostname, String port, String username, String sshUser, String sshKey=null, String sshKeyPass=null) {
+		//SshServers server = dbStorageService.addServer(username, hostname, port ?: '22', '' )
+		
+		
 		SshServers server = dbStorageService.addServer(username, hostname, port ?: '22', '' )
+		def SshUser =  dbStorageService.addSShUser(username, sshUser, sshKey ?: '', sshKeyPass ?: '', server.id as String )
 		Map<String,String> jU = dbStorageService.addJsshUser(username, server)
 		this.jUser = jU.user
 		this.conLogId = jU.conId

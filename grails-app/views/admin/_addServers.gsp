@@ -52,6 +52,9 @@
 </div>
 </g:formRemote>
 </g:if>
+<g:else>
+No groups have been created as yet!
+</g:else>
 <div id="invitecontainer" style="display:none;">
 		<g:render template="/admin/inviteContainer"/>
 	</div>

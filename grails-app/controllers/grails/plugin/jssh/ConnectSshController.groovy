@@ -106,16 +106,17 @@ class ConnectSshController extends ConfService {
 		render template: '/admin/'+template, model: [serverList:serverList, username: username, sshUserList: sshUserList]
 	}
 
-	def groupConnection(String jsshUsername, String userId, String groupId, String userCommand) {
+	def groupConnection(String jsshUsername, String groupId, String userCommand) {
 			def grps = SshServerGroups.get(groupId)
 			def  servers = grps.servers
-			SshUser user = SshUser.get(userId)
+			//def user = grps.user
 			def jobName = randService.shortRand('job')
 			def divId =  randService.shortRand('divId')
 			
+			Map model = [jsshUsername:jsshUsername , servers:servers, jobName:jobName, 
+				userCommand:userCommand, divId:divId]
 			
-			//println "---"
-			render template: '/admin/groupConnect', model: [jsshUsername:jsshUsername , user:user, servers:servers, jobName:jobName, userCommand:userCommand, divId:divId]
+			render template: '/admin/groupConnect', model: model 
 	}
 	
 	def loadServers(String username, String gId) {
@@ -136,11 +137,11 @@ class ConnectSshController extends ConfService {
 	}
 
 	def addHostDetails(String username, String hostName, String ip, String port) {
-		render dbStorageService.addServer(username, hostName, port ?: '22',ip ?: '') as String
+		render dbStorageService.addServer(username, hostName, port ?: '22', ip ?: '') as String
 	}
 
 	def addHostDetail(String username, String hostName, String ip, String port, String groupId) {
-		render dbStorageService.addServer(username, hostName, port ?: '22',ip ?: '',groupId) as String
+		render dbStorageService.addServer(username, hostName, port ?: '22', ip ?: '', groupId) as String
 	}
 
 	def addHostName(String username, String hostName, String groupId) {
@@ -148,11 +149,16 @@ class ConnectSshController extends ConfService {
 		render template: '/admin/addHost', model: map
 	}
 
-	def adduserDetails(String username, String sshUsername, String keyFile) {
-		dbStorageService.addSShUser(username, sshUsername, keyFile)
+	def adduserDetails(String username, String sshUsername, String sshKey, String sshKeyPass,  String serverId) {
+		dbStorageService.addSShUser(username, sshUsername, sshKey, serverId)
 		render "SSH User has been added"
 	}
 
+	def addGroupDetails(String username, String name) {
+		println "--- ${username} ---- ${name}"
+		dbStorageService.storeGroup(name, username)
+		render "Group should now be added"
+	}
 	def addGroupServers(String groupId) {
 		def serverList = params.serverList
 		if (serverList) {

@@ -31,7 +31,7 @@ public class ClientProcessService extends ConfService  {
 
 	private SshConnectionProperties properties = null
 
-	private String host, user, userpass, usercommand
+	private String host, user, userpass, usercommand, sshKey, sshKeyPass
 	private int port = 22
 	private boolean enablePong
 	private int pingRate
@@ -141,7 +141,7 @@ public class ClientProcessService extends ConfService  {
 	}
 
 	private void multiUser(Session userSession) {
-		j2sshService.sshConnect(  user, userpass, host,	usercommand, port, userSession)
+		j2sshService.sshConnect(  user, userpass, host,	usercommand, port, sshKey, sshKeyPass, userSession)
 
 	}
 
@@ -156,7 +156,8 @@ public class ClientProcessService extends ConfService  {
 		this.user = data.user ?: ''
 		this.userpass = data.password ?: ''
 		this.usercommand = data.usercommand ?: ''
-
+		this.sshKey = data.sshKey ?: ''
+		this.sshKeyPass = data.sshKey ?: ''
 		if (data.enablePong) {
 			this.enablePong = data.enablePong?.toBoolean()
 		}

@@ -42,6 +42,25 @@
 				</label>
 				<g:textField name="sshKey" />
 			</div>
+				<div class='col-sm-3'>
+			<div class='form-group'>
+				<label for="IP">
+				<g:message code="jssh.new.sshKeyPass.label" default="SSH Key Pass" />
+				</label>
+				<g:textField name="sshKeyPass" />
+			</div>
+			
+			<div class='col-sm-3'>
+			<div class='form-group'>
+				<label for="Server">
+				<g:message code="jssh.server.binding.label" default="Server" />
+				</label>
+				<g:select name="serverId" from="${grails.plugin.jssh.SshServers.list()}" optionKey="id"
+				optionValue="hostName" class="one-to-one"/>
+			</div>
+		</div>
+	</div>
+	
 		</div>
 	
 	

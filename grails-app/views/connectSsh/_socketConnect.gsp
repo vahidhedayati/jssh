@@ -80,7 +80,10 @@
 	}
 	
 	function processClose${divId}(message) {
-		webSocket${divId}.send("Client disconnected......");
+		//webSocket${divId}.send("Client disconnected......");
+		webSocket${divId}.send(JSON.stringify({ 'frontend':"true",'DISCO':"true", 'system': 'disconnect'}));
+		webSocket${divId}.onclose = function() { }
+        webSocket${divId}.close();
 		$('#messagesTextarea${divId}').append("Server Disconnected... \n");
 	}
 	

@@ -8,8 +8,18 @@
 		</h3>
 	</div>
 </div>
-
+<g:formRemote 
+	name="urlParams"  
+	class="form-horizontal" 
+	url="[controller:'connectSsh', action:'addGroupDetails']" 
+	update="inviteConfirmation"  
+	onComplete="closeModal();"
+	>
+	
 <div class="modal-body">
+
+	<input type="hidden" name="username" value="${username}">
+	
 	<div class='row'>
 
 		<div class='col-sm-4'>
@@ -25,5 +35,6 @@
 </div>
 <div class="modal-footer">
 	<g:submitButton name="something" class="btn btn-primary" id="submitIt"
-		onClick="sendGroup();closeModal();" value="Add Group" />
+		 value="Add Group" />
 </div>
+</g:formRemote>

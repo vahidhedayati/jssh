@@ -28,7 +28,6 @@
 
 	
 	function processOpen${divId}(message) {
-		$('#messagesTextarea${divId}').append('Client Socket connected to Socket Server....\n');
 		webSocket${divId}.send(JSON.stringify({'client': 'yes', 'frontend':"${frontend}",'jsshUser':"${frontuser}"}))
 	}
 	
@@ -53,9 +52,25 @@
 			}
 		}
 	}
+		function closeConnection${divId}() {
+		webSocket${divId}.send(JSON.stringify({ 'frontend':"true",'DISCO':"true", 'system': 'disconnect'}));
+		webSocket${divId}.onclose = function() { }
+        webSocket${divId}.close();
+        if (${divId}=="Basic") {
+        	window.history.back();
+        }else{
+        	$("#mySshBox${divId}").html('');
+			$("#mySshOut${divId}").html('');
+        }
+        	
+    }
 	
+    function processClose${divId}(message) {
+		webSocket${divId}.send(JSON.stringify({ 'frontend':"true",'DISCO':"true", 'system': 'disconnect'}));
+		webSocket${divId}.onclose = function() { }
+        webSocket${divId}.close();
+	}
 	
-    
     function broadcastMessage${divId}() {
 		webSocket${divId}.send('/bcast ${jobName},'+textMessage${divId}.value);
 		textMessage${divId}.value="";

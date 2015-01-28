@@ -37,7 +37,7 @@ Will be releasing a new video to cover multi broadcast method once I get it work
 ## Interaction Methods:
 
 ##### [Socket Client/Server](https://github.com/vahidhedayati/jssh/blob/master/grails-app/views/connectSsh/scsocketconnect.gsp)
-
+#### [mutli-connection broadcasting to multiple SSH connections](https://github.com/vahidhedayati/jssh/wiki/mutli-connection---broadcasting-to-multi-nodes)
 [New Client/Server Websocket SSH tag lib call](https://github.com/vahidhedayati/jssh/wiki/Websocket-client-server-taglib-call)
 
 This is the my new segment of the project, in the end I am looking to acheive a web based solution to easily interact with multiple ssh connections and be able to broadcast one command to a group of servers. At the moment on this 029-SNAPSHOT version the ground work is in place. The logic at the end to connect to many is wrong so I need to write some new code/solution for it. 
@@ -129,3 +129,18 @@ As above but:
 [Bootstrap/jquery switch method](https://github.com/vahidhedayati/jssh/wiki/Bootstrap---Jquery-Switch-method)
 
 [Screenshots](https://github.com/vahidhedayati/jssh/wiki/Screenshots)
+
+SSH Keys:
+
+Bsaically for the new websocket multi method you will need to use keys. And this is the easiest way of setting up the trust. You need to keep the actual keys per account on an accessible file system to the webserver serving this plugin. Since although an end user can configure keys via the web interface / Config.groovy. The actual key files will need read access from tomcat to be able to make SSH connections.
+
+This is really a solution for those lets say that have generic system accounts in place. So admin that can do pretty much everything. Webuser that can do things within the scope of apache and so on. With that in place and the keys available to your site you can then let end users log in with their real ids. Use the shared ids which is all then mapped within the plugin.
+
+This command once you have keys would need to be done per host that needs key access, most people would use puppet or similar to push out the generic keys to all hosts.
+
+```
+ssh-copy-id -i $HOME/.ssh/id_rsa.pub $user@$remote_home
+```
+
+
+

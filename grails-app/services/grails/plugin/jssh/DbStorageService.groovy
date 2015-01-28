@@ -1,7 +1,5 @@
 package grails.plugin.jssh
 
-import java.util.Map;
-
 import grails.plugin.jssh.logging.CommandLogger
 import grails.plugin.jssh.logging.CommandLogs
 import grails.plugin.jssh.logging.ConnectionLogger
@@ -25,7 +23,7 @@ class DbStorageService extends ConfService {
 		return returnResult
 	}
 
-	
+
 	public Map findSshUser(String username) {
 		def returnResult=[:]
 		def found = SshUser.findByUsername(username)
@@ -36,24 +34,35 @@ class DbStorageService extends ConfService {
 		}
 		return returnResult
 	}
-	
+
 	//public String storeServers(ArrayList servers, String gpId, String username) {}
 
 	public String storeGroup(String name, String username) {
+		username = parseFrontEnd(username)
+		JsshUser user = JsshUser.findByUsername(username)
+		println "-- ${user}"
+		SshServerGroups sg
 		SshServerGroups.withTransaction {
-			username = parseFrontEnd(username)
-			JsshUser user = JsshUser.findByUsername(username)
-			SshServerGroups sg = SshServerGroups.findOrSaveByNameAndUser(name, user)
+			sg = SshServerGroups.findOrSaveByNameAndUser(name, user)
+			println "${sg}"
 			if (!sg.save(flush:true)) {
 				if (config.debug == "on") {
 					sg.errors.allErrors.each{println it}
 				}
 			}
-			if (user && sg) {
-				user.addToGroups(sg)
+
+
+		}
+		if (user && sg) {
+			user.addToGroups(sg)
+			if (!user.save(flush:true)) {
+				if (config.debug == "on") {
+					user.errors.allErrors.each{println it}
+				}
 			}
 			return "\n\nGroup ${sg.name } should now be added for ${user.username}"
 		}
+
 	}
 
 	public String storeConnection(String hostName, String port, String user,  String sshUser, String conId = null) {
@@ -187,21 +196,35 @@ class DbStorageService extends ConfService {
 			log.info sb.toString()
 		}
 	}
-	
-	public addSShUser(String username, String sshUsername, String sshKey) {
+
+	public addSShUser(String username, String sshUsername, String sshKey=null, String sshKeyPass=null,  String serverId) {
+		println "--- adding user ${username} ${sshUsername}"
 		JsshUser user = JsshUser.findByUsername(username)
-		SshUser suser
-		SshUser.withTransaction {
-			suser = SshUser.findOrSaveWhere(username: sshUsername, sshKey: sshKey)
-			if (!suser.save(flush:true)) {
-				if (config.debug == "on") {
-					suser.errors.allErrors.each{println it}
+		SshUser suser = SshUser.findByUsername(sshUsername)
+		if (!suser) {
+			SshUser.withTransaction {
+				suser = SshUser.findOrSaveWhere(username: sshUsername, sshKey: sshKey, sshKeyPass: sshKeyPass)
+				SshServers server = SshServers.get(serverId)
+				if (server) {
+					server.sshuser = suser
+					if (!server.save(flush:true)) {
+						if (config.debug == "on") {
+							server.errors.allErrors.each{println it}
+						}
+					}
+					suser.addToServers(server)
+				}
+				if (!suser.save(flush:true)) {
+					if (config.debug == "on") {
+						suser.errors.allErrors.each{println it}
+					}
 				}
 			}
+			if (user) {
+				user.addToSshuser(suser)
+			}
 		}
-		if (user && suser) {
-			user.addToSshuser(suser)
-		}
+
 	}
 
 	private void addGroupLink(String groupId, SshServers server) {
@@ -218,6 +241,7 @@ class DbStorageService extends ConfService {
 		}
 
 	}
+
 	private CommandLogger addComLog() {
 		CommandLogger.withTransaction {
 			//ConnectionLogs con = ConnectionLogs.get(conId)

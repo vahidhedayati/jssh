@@ -49,7 +49,9 @@ class AuthService {
 		// Initial call lets connect
 		boolean go = true
 		try {
-			def asyncProcess = new Thread({ jsshService.sshConnect(ssh, session, properties, user, userpass, host, usercommand, port, userSession)
+			def asyncProcess = new Thread({ 
+				sleep(300)
+				jsshService.sshConnect(ssh, session, properties, user, userpass, host, usercommand, port, userSession)
 			} as Runnable )
 			asyncProcess.start()
 

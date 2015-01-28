@@ -11,6 +11,14 @@ class MessagingService extends ConfService  {
 	def sendFrontEndPM2(Session userSession, String user,String message) {
 		user = addFrontEnd(user)
 		def found = findUser( user)
+		if (!found) {
+			int i = 0
+			while (i < 30 && (found==false)) {
+				sleep(200)
+				found = findUser( user)
+				i++
+			}
+		}
 		if (found) {
 			def crec = usersSession(user)
 			crec.basicRemote.sendText("${message}")
@@ -22,6 +30,14 @@ class MessagingService extends ConfService  {
 	def sendFrontEndPM(Session userSession, String user,String message) {
 		user = addFrontEnd(user)
 		def found = findUser( user)
+		if (!found) {
+			int i = 0
+			while (i < 30 && (found==false)) {
+				sleep(200)
+				found = findUser( user)
+				i++	
+			}
+		}
 		if (found) {
 			userSession.basicRemote.sendText("/pm ${user},${message}")
 		}else{
@@ -150,18 +166,25 @@ class MessagingService extends ConfService  {
 			synchronized (sshUsers) {
 				sshUsers?.each { crec->
 					if (crec && crec.isOpen()) {
+						
 						String cuser = crec.userProperties.get("username") as String
 						String cjob =  crec.userProperties.get("job") as String
-						String chost =  crec.userProperties.get("host") as String
+						//String chost =  crec.userProperties.get("host") as String
+						
 						boolean found = false
-
-						if ((job==cjob) && (!cuser.endsWith(frontend))){
-							found=findUser(cuser)
-							if (found) {
-								crec.basicRemote.sendText("/fm ${cuser}@${chost},${message}")
-								//SshClient mssh =  crec.userProperties.get('sshClient') as SshClient
-								//j2sshService.processConnection(mssh, crec, message)
-							}
+						
+						if ((job == cjob) && (cuser && cuser.endsWith(frontend))){
+						String fend = parseFrontEnd(cuser)
+						if (fend) {
+						println "-- $cuser ${fend}"
+							Session buser = usersSession(fend)
+							String host = buser.userProperties.get("host") as String
+						//crec.basicRemote.sendText("/bm ${cuser}@${host},${message}")
+						buser.basicRemote.sendText("/bm ${cuser}@${host},${message}")
+						}
+							//SshClient mssh =  crec.userProperties.get('sshClient') as SshClient
+							//j2sshService.processConnection(mssh, crec, message)
+						
 						}
 					}
 				}

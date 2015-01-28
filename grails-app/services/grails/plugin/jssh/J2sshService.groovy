@@ -33,12 +33,13 @@ class J2sshService extends ConfService {
 		}
 	}
 
-	private void sshConnect(String user, String userpass, String host, String usercommand, int port, Session userSession)  {
+	private void sshConnect(String user, String userpass, String host, String usercommand, int port,
+		String sshKey, String sshKeyPass, Session userSession)  {
 		String suser = userSession.userProperties.get("username") as String
 		String sshuser = config.USER ?: ''
 		String sshpass = config.PASS ?: ''
-		String sshkey = config.KEY ?: ''
-		String sshkeypass = config.KEYPASS ?: ''
+		//String sshkey = config.KEY ?: ''
+		//String sshkeypass = config.KEYPASS ?: ''
 		String sshport = config.PORT ?: ''
 
 		String username = user ?: sshuser
@@ -57,9 +58,9 @@ class J2sshService extends ConfService {
 			PublicKeyAuthenticationClient pk = new PublicKeyAuthenticationClient()
 			pk.setUsername(username)
 
-			SshPrivateKeyFile file = SshPrivateKeyFile.parse(new File(sshkey.toString()))
+			SshPrivateKeyFile file = SshPrivateKeyFile.parse(new File(sshKey ?: ''))
 			if (file.isPassphraseProtected()) {
-				keyfilePass = sshkeypass.toString()
+				keyfilePass = sshKeyPass ?: ''
 			}
 			SshPrivateKey key = file.toPrivateKey(keyfilePass);
 			pk.setKey(key)
@@ -87,8 +88,6 @@ class J2sshService extends ConfService {
 			userSession.userProperties.put('sshClient', ssh)
 
 			def asyncProcess = new Thread({
-				sleep(800)
-
 				processConnection(ssh, userSession, usercommand)
 			} as Runnable )
 			asyncProcess.start()

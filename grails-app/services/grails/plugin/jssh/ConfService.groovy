@@ -90,7 +90,7 @@ class ConfService {
 	}
 	
 	public String parseFrontEnd(String username) {
-		if (username.endsWith(frontend)) {
+		if (username && username.endsWith(frontend)) {
 			username=username.substring(0, username.indexOf(frontend))
 		}
 		return username

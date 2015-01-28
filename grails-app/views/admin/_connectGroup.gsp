@@ -22,9 +22,6 @@
 				required="required" 
 				 class="one-to-one" noSelection="['':'Choose Group']"/>
 				 
-				 <g:select name="userId" id="mySelect" from="${sshUserList}" optionKey="id" optionValue="username" 
-				required="required" 
-				 class="one-to-one" noSelection="['':'Choose SSh UserName']"/>
 				 
 				 
 				 <g:textField id="userCommand" name="userCommand" placeHolder="Global command to run on server group?"/>
@@ -40,3 +37,6 @@
 </div>
 </g:form>
 </g:if>
+<g:else>
+No Connections have been configured as yet
+</g:else>

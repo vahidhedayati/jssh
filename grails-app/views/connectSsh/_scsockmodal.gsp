@@ -77,7 +77,7 @@
 	}
 
 	function addGroup() {
-		$.get("/"+getApp()+"/connectSsh/addGroup",function(data){
+		$.get("/"+getApp()+"/connectSsh/loadGroup?username=${backuser}&template=addGroup",function(data){
 			$('#adminContainer').hide().html(data).fadeIn('slow');
 		});
 		$('#adminsTemplateContainer').show();
