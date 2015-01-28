@@ -46,12 +46,14 @@ Will be releasing a new video to cover multi broadcast method once I get it work
 
 
 ### Sessions
+```
  [1] HTTP Session 
       |
  [2] [2X..N] WebSocket sessions
       |
  [1] [1X..N] SSH Sessions    
- 
+```
+
 So 1 HTTP session that triggers 2 socket connections per call which then triggers 1 ssh connection from the back-end websocket connection. The SSH session is actually recreated each time you run a new command. new shell/execute/close shell. This done async so tasks like tail -f continue running allowing you to run on top.
 
 Your front-end websocket connection is a receiver. It does not actually trigger anything beyond a websocket connection that tallies up to the naming convention of the back-end. The back-end then transmits messages to its pair or front-end user. When a front-end sends a command - the command goes through websockets and finds back-end. By re-transmitted the /fm message to /bm (frontmessage/backmessage) which ClientProcessService picks up and executes ssh command and process loops as per above.
