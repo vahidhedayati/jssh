@@ -40,16 +40,29 @@ Will be releasing a new video to cover multi broadcast method once I get it work
 
 ##### [Socket Client/Server](https://github.com/vahidhedayati/jssh/blob/master/grails-app/views/connectSsh/scsocketconnect.gsp)
 #### [mutli-connection broadcasting to multiple SSH connections](https://github.com/vahidhedayati/jssh/wiki/mutli-connection---broadcasting-to-multi-nodes)
+
 [New Client/Server Websocket SSH tag lib call](https://github.com/vahidhedayati/jssh/wiki/Websocket-client-server-taglib-call)
 
-This is the my new segment of the project, in the end I am looking to acheive a web based solution to easily interact with multiple ssh connections and be able to broadcast one command to a group of servers. At the moment on this 029-SNAPSHOT version the ground work is in place. The logic at the end to connect to many is wrong so I need to write some new code/solution for it. 
 
-This new method client/server websockets is a cool feature that makes more of a secure connection. The model is upon triggering the call you actually make 2 websocket connections. Your webpage is 1 and is in essence a dumb terminal that sits awaiting information. It can also send remote commands that again as a dumb terminal the messages are sent through websockets to its parent or master connection which resides on the actual webserver. The webserver makes the connection the websocket client sitting locally and sends the SSH information to it. The client on Server then forwards all of the output back to the dumb terminal being your browser. 
+
+### Sessions
+ [1] HTTP Session 
+      |
+ [2] [2X..N] WebSocket sessions
+      |
+ [1] [1X..N] SSH Sessions    
+ 
+So 1 HTTP session that triggers 2 socket connections per call which then triggers 1 ssh connection from the back-end websocket connection. The SSH session is actually recreated each time you run a new command. new shell/execute/close shell. This done async so tasks like tail -f continue running allowing you to run on top.
+
+Your front-end websocket connection is a receiver. It does not actually trigger anything beyond a websocket connection that tallies up to the naming convention of the back-end. The back-end then transmits messages to its pair or front-end user. When a front-end sends a command - the command goes through websockets and finds back-end. By re-transmitted the /fm message to /bm (frontmessage/backmessage) which ClientProcessService picks up and executes ssh command and process loops as per above.
+
 
 jsshUser = This could be your actual logged in user, since it will now actually log their interactions with SSH, what they connect to and what commands they send. There is no UI available for this at the moment. If not provided a random jsshUser is generated.
 
-On the main index screen there is now a new connection method, if you do use it. You will find once connected an admin cog will appear. You can register initially an SSH group, add to this group some servers and then add SSH servers. For now it does not actually work beyond 1 server :). This requires a major rethink and should only be code at my end i.e. not changes to your DB etc.... The purpose is multi connection global command sends.. local command sends etc. 
+At the moment it should work fine in single use. When you multi call - the user has to differentiate so I am still thinking about this and there are easy options just not had time as yet.
 
+
+On the main index screen there is now a NEW Socket connection method, use it to take advantage of the new web features to add groups/servers/ssh users and then connect to multi server. So you log in as your Jssh User create the group and as that user in the future those groups are available for usage.
 
 
 ```gsp
