@@ -155,7 +155,6 @@ class ConnectSshController extends ConfService {
 	}
 
 	def addGroupDetails(String username, String name) {
-		println "--- ${username} ---- ${name}"
 		dbStorageService.storeGroup(name, username)
 		render "Group should now be added"
 	}

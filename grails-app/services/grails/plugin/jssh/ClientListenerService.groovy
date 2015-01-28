@@ -35,7 +35,7 @@ public class ClientListenerService extends ConfService {
 		oSession.userProperties.put("conloggerId", map.conloggerId)
 		oSession.userProperties.put("comloggerId", map.comloggerId)
 		oSession.userProperties.put("host", map.hostname)
-		
+
 		if (map.hosts) {
 			oSession.userProperties.put("hosts", map.hosts)
 		}

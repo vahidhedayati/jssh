@@ -117,7 +117,7 @@ public class ClientProcessService extends ConfService  {
 			userSession.userProperties.put("pingRate", pingRate)
 			boolean frontend = rmesg.frontend.toBoolean()
 			if (frontend) {
-				 multiUser(userSession)
+				multiUser(userSession)
 			}
 		}
 

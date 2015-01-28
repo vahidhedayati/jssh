@@ -40,11 +40,9 @@ class DbStorageService extends ConfService {
 	public String storeGroup(String name, String username) {
 		username = parseFrontEnd(username)
 		JsshUser user = JsshUser.findByUsername(username)
-		println "-- ${user}"
 		SshServerGroups sg
 		SshServerGroups.withTransaction {
 			sg = SshServerGroups.findOrSaveByNameAndUser(name, user)
-			println "${sg}"
 			if (!sg.save(flush:true)) {
 				if (config.debug == "on") {
 					sg.errors.allErrors.each{println it}
@@ -155,14 +153,6 @@ class DbStorageService extends ConfService {
 
 	}
 
-	/*
-	 def addGroupServers(String groupId, String serverList) {
-	 println ">>>::: 2 ------- > ${sn} :: ${serverList}"
-	 SshServers server = SshServers.findByHostName(serverList)
-	 addGroupLink(groupId, server)
-	 }
-	 */
-
 	public SshServerGroups addGroup(String name, String serverId) {
 		SshServerGroups sg
 		SshServerGroups.withTransaction {
@@ -198,7 +188,6 @@ class DbStorageService extends ConfService {
 	}
 
 	public addSShUser(String username, String sshUsername, String sshKey=null, String sshKeyPass=null,  String serverId) {
-		println "--- adding user ${username} ${sshUsername}"
 		JsshUser user = JsshUser.findByUsername(username)
 		SshUser suser = SshUser.findByUsername(sshUsername)
 		if (!suser) {

@@ -7,7 +7,7 @@ import javax.websocket.Session
 
 class MessagingService extends ConfService  {
 
-	
+
 	def sendFrontEndPM2(Session userSession, String user,String message) {
 		user = addFrontEnd(user)
 		def found = findUser( user)
@@ -35,7 +35,7 @@ class MessagingService extends ConfService  {
 			while (i < 30 && (found==false)) {
 				sleep(200)
 				found = findUser( user)
-				i++	
+				i++
 			}
 		}
 		if (found) {
@@ -166,80 +166,28 @@ class MessagingService extends ConfService  {
 			synchronized (sshUsers) {
 				sshUsers?.each { crec->
 					if (crec && crec.isOpen()) {
-						
+
 						String cuser = crec.userProperties.get("username") as String
 						String cjob =  crec.userProperties.get("job") as String
-						//String chost =  crec.userProperties.get("host") as String
-						
-						boolean found = false
-						
-						if ((job == cjob) && (cuser && cuser.endsWith(frontend))){
-						String fend = parseFrontEnd(cuser)
-						if (fend) {
-						println "-- $cuser ${fend}"
-							Session buser = usersSession(fend)
-							String host = buser.userProperties.get("host") as String
-						//crec.basicRemote.sendText("/bm ${cuser}@${host},${message}")
-						buser.basicRemote.sendText("/bm ${cuser}@${host},${message}")
-						}
-							//SshClient mssh =  crec.userProperties.get('sshClient') as SshClient
-							//j2sshService.processConnection(mssh, crec, message)
-						
-						}
-					}
-				}
-			}
-		} catch (IOException e) {
-			log.error ("onMessage failed", e)
-		}
-	}
 
-	
-	/*
-	 * try {
-				synchronized (sshUsers) {
-					sshUsers?.each { crec->
-						if (crec && crec.isOpen()) {
-							String cuser = crec.userProperties.get("username") as String
-							
-							boolean found = false
-	
-							//if ((job==cjob) && (cuser &&(!cuser.endsWith(frontend)))){
-							if (job==cjob){
-									Session fend = messagingService.usersSession(parseFrontEnd(cuser))
-									if (fend) {
-									SshClient mssh =  fend.userProperties.get('sshClient') as SshClient
-									println "--- Messaging ${cuser} ${mssh} ${message}"
-									j2sshService.processConnection(mssh, fend, message)
-									}
-								
+						boolean found = false
+
+						if ((job == cjob) && (cuser && cuser.endsWith(frontend))){
+							String fend = parseFrontEnd(cuser)
+							if (fend) {
+								Session buser = usersSession(fend)
+								String host = buser.userProperties.get("host") as String
+								buser.basicRemote.sendText("/bm ${cuser}@${host},${message}")
 							}
 						}
 					}
 				}
-			} catch (IOException e) {
-				log.error ("onMessage failed", e)
 			}
-	 */
-	def sendJobMessage(String job,String message) {
-		try {
-			synchronized (sshUsers) {
-				sshUsers?.each { crec->
-					if (crec && crec.isOpen()) {
-						String cuser = crec.userProperties.get("username") as String
-						String cjob =  crec.userProperties.get("job") as String
-						boolean found = false
-						if (job==cjob) {
-							crec.basicRemote.sendText("${message}")
-						}
-					}
-				}
-			}
-
 		} catch (IOException e) {
 			log.error ("onMessage failed", e)
 		}
 	}
+
 
 	Session usersSession(String username) {
 		Session userSession
@@ -260,11 +208,3 @@ class MessagingService extends ConfService  {
 		return userSession
 	}
 
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	/*
-	 * To be used in later release  broadcast messages to master nodes of a given job
-	 * A bit like terminator broadcasting to multiple ssh - to come
-	 */
-
-}

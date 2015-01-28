@@ -8,7 +8,7 @@ import javax.websocket.Session
 
 class ConnectSshTagLib extends ConfService {
 	static namespace = "jssh"
-	//static returnObjectForTags = ['bindUserServer']
+
 	def connectSsh
 	def jsshConfig
 	def pluginbuddyService
@@ -25,34 +25,7 @@ class ConnectSshTagLib extends ConfService {
 	jsshUser, divId, enablePong, pingRate, addAppName
 
 	private String jUser, conLogId, conloggerId, comloggerId
-/*
-	def bindUserServer = { attrs ->
-		
-		String server = attrs.remove('server')?.toString()
-		String retval = attrs.remove('retval')?.toString()
-	 *    username="${jssh.bindUserServer('server' : ss.id, 'retval':'username' )}"
-		    sshKeyPass = "${jssh.bindUserServer('server' : ss.id, 'retval':'sshKeyPass' )}"
-		    sshKey="${jssh.bindUserServer('server' : ss.id, 'retval':'sshKey' )}"
-	
-		println "WE FOUND THIS SERVER -- Server ${server}"
-		SshServers sshserver = SshServers.get(server)
-		println "--. servers ${sshserver}"
-		def user = SshUser.findByServers(sshserver)
-		
-		
-		println "--- ${user} ${user.username}"
-		//out < """ 	username="${user.username}" sshKeyPass="${user.sshKeyPass}" sshKey="${user.sshKey}" """
-		
-		if (retval == "username") {
-			out < """ 	username="${user.username}" """
-		}else if (retval == "sshKey") {
-			out < """ 	username="${user.sshKey}" """
-		}else if (retval == "sshKeyFile") {
-			out < """ 	username="${user.sshKeyPass}" """
-		}
-		
-	}
-	*/
+
 	def ajaxconnect =  { attrs ->
 
 		genericOpts(attrs)
@@ -314,9 +287,6 @@ class ConnectSshTagLib extends ConfService {
 	}
 
 	private void addUserHost(String hostname, String port, String username, String sshUser, String sshKey=null, String sshKeyPass=null) {
-		//SshServers server = dbStorageService.addServer(username, hostname, port ?: '22', '' )
-		
-		
 		SshServers server = dbStorageService.addServer(username, hostname, port ?: '22', '' )
 		def SshUser =  dbStorageService.addSShUser(username, sshUser, sshKey ?: '', sshKeyPass ?: '', server.id as String )
 		Map<String,String> jU = dbStorageService.addJsshUser(username, server)
