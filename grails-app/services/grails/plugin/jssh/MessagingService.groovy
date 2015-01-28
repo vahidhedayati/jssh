@@ -208,3 +208,4 @@ class MessagingService extends ConfService  {
 		return userSession
 	}
 
+}
