@@ -16,7 +16,7 @@ import com.sshtools.j2ssh.transport.publickey.SshPrivateKey
 import com.sshtools.j2ssh.transport.publickey.SshPrivateKeyFile
 
 
-class J2sshService extends ConfService {
+class J2sshService extends JsshConfService {
 
 	private boolean isAuthenticated = false
 

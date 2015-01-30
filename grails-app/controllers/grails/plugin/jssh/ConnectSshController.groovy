@@ -2,12 +2,11 @@ package grails.plugin.jssh
 
 import grails.converters.JSON
 
-class ConnectSshController extends ConfService {
+class ConnectSshController extends JsshConfService {
 
 	def connectSsh
-	def randService
-	def dbStorageService
-	def dnsService
+	def jsshRandService
+	def jsshDbStorageService
 
 	// _navbar.gsp menu map
 	private Map menuMap = ['index':'Socket method', 'ajaxpoll':'Ajax poll',
@@ -46,7 +45,7 @@ class ConnectSshController extends ConfService {
 	def process	(String jsshUser, String hostname, String username, String userCommand,
 			String port, String password, String divId, String sshTitle, String view) {
 		if (!divId) {
-			divId = randService.shortRand('divId')
+			divId = jsshRandService.shortRand('divId')
 		}
 		if (!sshTitle) {
 			sshTitle = "Grails Jssh plugin: ${view}"
@@ -110,8 +109,8 @@ class ConnectSshController extends ConfService {
 			def grps = SshServerGroups.get(groupId)
 			def  servers = grps.servers
 			//def user = grps.user
-			def jobName = randService.shortRand('job')
-			def divId =  randService.shortRand('divId')
+			def jobName = jsshRandService.shortRand('job')
+			def divId =  jsshRandService.shortRand('divId')
 			
 			Map model = [jsshUsername:jsshUsername , servers:servers, jobName:jobName, 
 				userCommand:userCommand, divId:divId]
@@ -137,11 +136,11 @@ class ConnectSshController extends ConfService {
 	}
 
 	def addHostDetails(String username, String hostName, String ip, String port) {
-		render dbStorageService.addServer(username, hostName, port ?: '22', ip ?: '') as String
+		render jsshDbStorageService.addServer(username, hostName, port ?: '22', ip ?: '') as String
 	}
 
 	def addHostDetail(String username, String hostName, String ip, String port, String groupId) {
-		render dbStorageService.addServer(username, hostName, port ?: '22', ip ?: '', groupId) as String
+		render jsshDbStorageService.addServer(username, hostName, port ?: '22', ip ?: '', groupId) as String
 	}
 
 	def addHostName(String username, String hostName, String groupId) {
@@ -150,12 +149,12 @@ class ConnectSshController extends ConfService {
 	}
 
 	def adduserDetails(String username, String sshUsername, String sshKey, String sshKeyPass,  String serverId) {
-		dbStorageService.addSShUser(username, sshUsername, sshKey, serverId)
+		jsshDbStorageService.addSShUser(username, sshUsername, sshKey, serverId)
 		render "SSH User has been added"
 	}
 
 	def addGroupDetails(String username, String name) {
-		dbStorageService.storeGroup(name, username)
+		jsshDbStorageService.storeGroup(name, username)
 		render "Group should now be added"
 	}
 	def addGroupServers(String groupId) {
@@ -167,22 +166,22 @@ class ConnectSshController extends ConfService {
 				serverList = serverList as ArrayList
 			}
 			ArrayList serverLists = serverList
-			dbStorageService.addGroupServers(groupId, serverLists)
+			jsshDbStorageService.addGroupServers(groupId, serverLists)
 			render "GroupID  ${groupId} added to ${serverList}"
 		}
 	}
 
 	def findServer(String hostName) {
-		render dbStorageService.findServer(hostName) as JSON
+		render jsshDbStorageService.findServer(hostName) as JSON
 	}
 
 	def findSshUser(String username) {
-		render dbStorageService.findSshUser(username) as JSON
+		render jsshDbStorageService.findSshUser(username) as JSON
 	}
 
 	// Logging/debugging utils
 	def activeUsers() {
-		dbStorageService.activeUsers()
+		jsshDbStorageService.activeUsers()
 		render ""
 	}
 

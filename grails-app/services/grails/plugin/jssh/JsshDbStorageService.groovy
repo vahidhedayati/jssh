@@ -8,9 +8,9 @@ import grails.transaction.Transactional
 
 
 @Transactional
-class DbStorageService extends ConfService {
+class JsshDbStorageService extends JsshConfService {
 
-	def dnsService
+	def jsshDnsService
 
 	public Map findServer(String hostName) {
 		def returnResult=[:]
@@ -45,7 +45,7 @@ class DbStorageService extends ConfService {
 			sg = SshServerGroups.findOrSaveByNameAndUser(name, user)
 			if (!sg.save(flush:true)) {
 				if (config.debug == "on") {
-					sg.errors.allErrors.each{println it}
+					sg.errors.allErrors.each{log.info it}
 				}
 			}
 
@@ -55,7 +55,7 @@ class DbStorageService extends ConfService {
 			user.addToGroups(sg)
 			if (!user.save(flush:true)) {
 				if (config.debug == "on") {
-					user.errors.allErrors.each{println it}
+					user.errors.allErrors.each{log.info it}
 				}
 			}
 			return "\n\nGroup ${sg.name } should now be added for ${user.username}"
@@ -75,7 +75,7 @@ class DbStorageService extends ConfService {
 			logInstance = new ConnectionLogs(jsshUser: user, sshUser: sshUser, hostName: hostName, port: port, conlog: conlog)
 			if (!logInstance.save(flush:true)) {
 				if (config.debug == "on") {
-					logInstance.errors.allErrors.each{println it}
+					logInstance.errors.allErrors.each{log.info it}
 				}
 			}
 		}
@@ -95,7 +95,7 @@ class DbStorageService extends ConfService {
 				user = new JsshUser(username:username, conlog: addlog, servers: server, groups: ssg)
 				if (!user.save(flush:true)) {
 					if (config.debug == "on") {
-						user.errors.allErrors.each{println it}
+						user.errors.allErrors.each{log.info it}
 					}
 				}
 			}
@@ -122,14 +122,14 @@ class DbStorageService extends ConfService {
 				}
 
 				if (!ip) {
-					Map i = dnsService.hostLookup(hostName)
+					Map i = jsshDnsService.hostLookup(hostName)
 					ip = i.ip ?: i.fqdn ?: i.name ?:  '127.0.0.1'
 				}
 
 				server = new SshServers(hostName: hostName, ipAddress: ip, sshPort:port)
 				if (!server.save(flush:true)) {
 					if (config.debug == "on") {
-						server.errors.allErrors.each{println it}
+						server.errors.allErrors.each{log.info it}
 					}
 				}
 			}
@@ -138,7 +138,7 @@ class DbStorageService extends ConfService {
 			user.addToServers(server)
 			if (!user.save(flush:true)) {
 				if (config.debug == "on") {
-					user.errors.allErrors.each{println it}
+					user.errors.allErrors.each{log.info it}
 				}
 			}
 		}
@@ -163,7 +163,7 @@ class DbStorageService extends ConfService {
 
 				if (!sg.save(flush:true)) {
 					if (config.debug == "on") {
-						sg.errors.allErrors.each{println it}
+						sg.errors.allErrors.each{log.info it}
 					}
 				}
 			}
@@ -190,22 +190,16 @@ class DbStorageService extends ConfService {
 	public addSShUser(String username, String sshUsername, String sshKey=null, String sshKeyPass=null,  String serverId) {
 		JsshUser user = JsshUser.findByUsername(username)
 		SshUser suser = SshUser.findByUsername(sshUsername)
+		SshServers server = SshServers.get(serverId)
 		if (!suser) {
 			SshUser.withTransaction {
 				suser = SshUser.findOrSaveWhere(username: sshUsername, sshKey: sshKey, sshKeyPass: sshKeyPass)
-				SshServers server = SshServers.get(serverId)
 				if (server) {
-					server.sshuser = suser
-					if (!server.save(flush:true)) {
-						if (config.debug == "on") {
-							server.errors.allErrors.each{println it}
-						}
-					}
 					suser.addToServers(server)
 				}
 				if (!suser.save(flush:true)) {
 					if (config.debug == "on") {
-						suser.errors.allErrors.each{println it}
+						suser.errors.allErrors.each{log.info it}
 					}
 				}
 			}
@@ -213,7 +207,15 @@ class DbStorageService extends ConfService {
 				user.addToSshuser(suser)
 			}
 		}
-
+		
+		if (server && (!server.sshuser)) {
+			server.sshuser = suser
+			if (!server.save(flush:true)) {
+				if (config.debug == "on") {
+					server.errors.allErrors.each{log.info it}
+				}
+			}
+		}
 	}
 
 	private void addGroupLink(String groupId, SshServers server) {
@@ -223,7 +225,7 @@ class DbStorageService extends ConfService {
 				d1.addToServers(server)
 				if (!d1.save(flush:true)) {
 					if (config.debug == "on") {
-						d1.errors.allErrors.each{println it}
+						d1.errors.allErrors.each{log.info it}
 					}
 				}
 			}
@@ -237,7 +239,7 @@ class DbStorageService extends ConfService {
 			CommandLogger logInstance = new CommandLogger(commands: [])
 			if (!logInstance.save(flush:true)) {
 				if (config.debug == "on") {
-					logInstance.errors.allErrors.each{println it}
+					logInstance.errors.allErrors.each{log.info it}
 				}
 			}
 			return logInstance
@@ -249,7 +251,7 @@ class DbStorageService extends ConfService {
 			ConnectionLogger logInstance = new ConnectionLogger(connections: [], commands: [])
 			if (!logInstance.save(flush:true)) {
 				if (config.debug == "on") {
-					logInstance.errors.allErrors.each{println it}
+					logInstance.errors.allErrors.each{log.info it}
 				}
 			}
 			return logInstance
@@ -260,16 +262,18 @@ class DbStorageService extends ConfService {
 		CommandLogs logInstance
 		CommandLogs.withTransaction {
 			CommandLogger comlog
+			
 			ConnectionLogger con = ConnectionLogger.get(conId)
 			if (comId) {
 				comlog = CommandLogger.get(comId)
 			}else{
 				comlog = addComLog()
 			}
+			
 			logInstance = new CommandLogs(user: user, sshUser: sshUser, contents: message, comlog: comlog, conlog: con)
 			if (!logInstance.save(flush:true)) {
 				if (config.debug == "on") {
-					logInstance.errors.allErrors.each{println it}
+					logInstance.errors.allErrors.each{log.info it}
 				}
 			}
 		}

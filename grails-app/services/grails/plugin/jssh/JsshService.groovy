@@ -24,7 +24,7 @@ import com.sshtools.j2ssh.transport.publickey.SshPrivateKeyFile
  *  This is the traditional / older method which has no client / server modelling
  *  Data is instead passed through a load of async calls.
  */
-class JsshService extends ConfService {
+class JsshService extends JsshConfService {
 
 	private boolean isAuthenticated = false
 	private boolean pauseLog = false

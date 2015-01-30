@@ -4,7 +4,7 @@ import java.rmi.server.UID
 import java.security.SecureRandom
 
 
-class RandService {
+class JsshRandService {
 
 	static prng = new SecureRandom()
 	

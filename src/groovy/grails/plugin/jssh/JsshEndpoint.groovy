@@ -40,14 +40,14 @@ import com.sshtools.j2ssh.session.SessionChannelClient
  */
 @WebListener
 @ServerEndpoint("/j2ssh/{job}")
-class JsshEndpoint extends ConfService implements ServletContextListener {
+class JsshEndpoint extends JsshConfService implements ServletContextListener {
 
 
 	private final Logger log = LoggerFactory.getLogger(getClass().name)
 
 	private ConfigObject config
 
-	private AuthService authService
+	private JsshAuthService jsshAuthService
 	private JsshService jsshService
 	private J2sshService j2sshService
 	private MessagingService messagingService
@@ -92,7 +92,7 @@ class JsshEndpoint extends ConfService implements ServletContextListener {
 		def ctx= SCH.servletContext.getAttribute(GA.APPLICATION_CONTEXT)
 		def grailsApplication = ctx.grailsApplication
 		config = grailsApplication.config.jssh
-		authService = ctx.authService
+		jsshAuthService = ctx.jsshAuthService
 		jsshService = ctx.jsshService
 		j2sshService = ctx.j2sshService
 		messagingService = ctx.messagingService
@@ -105,7 +105,7 @@ class JsshEndpoint extends ConfService implements ServletContextListener {
 		String username = userSession.userProperties.get("username") as String
 		String job  =  userSession.userProperties.get("job") as String
 		if (config.debug == "on") {
-			println "@onMessage: $username: $job > $message\n\n"
+			log.info "@onMessage: $username: $job > $message\n\n"
 		}
 		// Standard Private Messages
 		if (message.startsWith('/pm')) {
@@ -130,8 +130,6 @@ class JsshEndpoint extends ConfService implements ServletContextListener {
 				user = users
 			}
 			String msg = values.msg as String
-			
-			println "${username } sending message ${users} ${msg}"
 			if (msg.startsWith('{')) {
 				messagingService.forwardMessage(user,msg)
 			}else{
@@ -182,7 +180,7 @@ class JsshEndpoint extends ConfService implements ServletContextListener {
 					if  (data.DISCO == "true") {
 						userSession.close()
 					}else{
-						authService.authenticate(ssh, session, properties, userSession, data)
+						jsshAuthService.authenticate(ssh, session, properties, userSession, data)
 					}
 				}
 			} else{

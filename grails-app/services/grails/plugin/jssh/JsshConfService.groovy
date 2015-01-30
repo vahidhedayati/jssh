@@ -4,7 +4,7 @@ import javax.websocket.Session
 
 
 
-class ConfService {
+class JsshConfService {
 
 	static transactional  =  false
 

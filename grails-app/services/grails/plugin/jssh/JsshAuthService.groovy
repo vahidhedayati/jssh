@@ -1,9 +1,5 @@
 package grails.plugin.jssh
 
-import java.util.Map;
-
-import grails.converters.JSON
-
 import javax.websocket.Session
 
 import org.codehaus.groovy.grails.web.json.JSONObject
@@ -20,9 +16,9 @@ import com.sshtools.j2ssh.session.SessionChannelClient
  *  have a look for multiUser in processService which used to be all in here.
  *   
  */
-class AuthService {
+class JsshAuthService {
 
-	def randService
+	def jsshRandService
 	def jsshService
 	def j2sshService
 
@@ -34,7 +30,7 @@ class AuthService {
 	public void authenticate(SshClient ssh, SessionChannelClient session=null,
 			SshConnectionProperties properties=null,Session userSession, JSONObject data) {
 
-		String jsshUser = data.jsshUser ?: randService.randomise('jsshUser')
+		String jsshUser = data.jsshUser ?: jsshRandService.randomise('jsshUser')
 		userSession.userProperties.put("username", jsshUser)
 		verifyGeneric(data)
 		userSession.userProperties.put("pingRate", pingRate)

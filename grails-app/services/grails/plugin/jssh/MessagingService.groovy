@@ -5,7 +5,7 @@ import grails.converters.JSON
 import javax.websocket.Session
 
 
-class MessagingService extends ConfService  {
+class MessagingService extends JsshConfService  {
 
 
 	def sendFrontEndPM2(Session userSession, String user,String message) {

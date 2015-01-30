@@ -8,7 +8,6 @@ import org.codehaus.groovy.grails.web.json.JSONObject
 
 import com.sshtools.j2ssh.SshClient
 import com.sshtools.j2ssh.configuration.SshConnectionProperties
-import com.sshtools.j2ssh.session.SessionChannelClient
 
 /*
  * Vahid Hedayati Jan 2015
@@ -18,14 +17,14 @@ import com.sshtools.j2ssh.session.SessionChannelClient
  *  processes backend results to frontend
  * 
  */
-public class ClientProcessService extends ConfService  {
+public class JsshClientProcessService extends JsshConfService  {
 
 
-	def clientListenerService
+	def jsshClientListenerService
 	def messagingService
 	def j2sshService
-	def authService
-	def dbStorageService
+	def jsshAuthService
+	def jsshDbStorageService
 
 	private SshClient mySsh
 
@@ -70,8 +69,10 @@ public class ClientProcessService extends ConfService  {
 
 			String comloggerId = userSession.userProperties.get("comloggerId") as String
 			String conloggerId = userSession.userProperties.get("conloggerId") as String
+			String realUser = userSession.userProperties.get("realUser") as String ?: username
+			
 			if (comloggerId && conloggerId) {
-				dbStorageService.storeCommand(msg, user, conloggerId, username, comloggerId)
+				jsshDbStorageService.storeCommand(msg, realUser, conloggerId, user, comloggerId)
 			}
 
 			def asyncProcess = new Thread({
@@ -89,7 +90,7 @@ public class ClientProcessService extends ConfService  {
 			String user = values.user as String
 			String msg = values.msg as String
 
-			String output = dbStorageService.storeGroup(msg,user)
+			String output = jsshDbStorageService.storeGroup(msg,user)
 			messagingService.sendBackEndFM(username, output)
 
 		}else if  (message.startsWith('DISCO:-')) {

@@ -14,15 +14,19 @@ divId="logs1"
 		username="${ss.sshuser.username}"
 		sshKeyPass = "${ss.sshuser.sshKeyPass }"
 		sshKey="${ss.sshuser.sshKey}"
+		port="${ss.sshPort}"
+		 
+		jobName="exampleMultiConnect"
+		userCommand="${userCommand}"
+		adminTemplate=""
 			
-		port="${ss.sshPort}" 
-			jobName="exampleMultiConnect"
-			userCommand="${userCommand}"
-			adminTemplate=""
-			jsshUser="${jsshUsername+"_"+ss.id}" 
-			divId="divId${ss.id}" 
-			/>
-		<div id="divId${ss.id}"></div>
+		jsshUser="${jsshUsername+"_"+ss.id}"
+		realUser="${jsshUsername }"
+			 
+		divId="divId${ss.id}" 
+		/>
+		
+		
 	</g:each>
 
 </g:if>

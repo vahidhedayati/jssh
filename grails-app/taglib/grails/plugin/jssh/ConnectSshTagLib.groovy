@@ -6,15 +6,15 @@ import grails.plugin.jssh.logging.CommandLogger
 
 import javax.websocket.Session
 
-class ConnectSshTagLib extends ConfService {
+class ConnectSshTagLib extends JsshConfService {
 	static namespace = "jssh"
 
 	def connectSsh
 	def jsshConfig
 	def pluginbuddyService
-	def randService
-	def clientListenerService
-	def dbStorageService
+	def jsshRandService
+	def jsshClientListenerService
+	def jsshDbStorageService
 
 	private ArrayList hosts
 
@@ -22,7 +22,7 @@ class ConnectSshTagLib extends ConfService {
 
 	private String wshostname, hideConsoleMenu, hideSendBlock, hideSessionCtrl,
 	hideWhatsRunning, hideDiscoButton, hidePauseControl, hideNewShellButton, jobName,
-	jsshUser, divId, enablePong, pingRate, addAppName
+	jsshUser, realUser, divId, enablePong, pingRate, addAppName
 
 	private String jUser, conLogId, conloggerId, comloggerId
 
@@ -110,7 +110,7 @@ class ConnectSshTagLib extends ConfService {
 		socketOpts(attrs)
 
 		// Only register commands and transactions from new conn method
-		genDb(username, hosts, hostname, jsshUser, userCommand, port, sshKey, sshKeyPass)
+		genDb(username, hosts, hostname, realUser, userCommand, port, sshKey, sshKeyPass)
 
 		def cuser= jsshUser
 
@@ -162,6 +162,7 @@ class ConnectSshTagLib extends ConfService {
 		if (jUser) {
 			connMap.put('jUser', jUser)
 		}
+		connMap.put('realUser', realUser)
 		connMap.put('conLogId', conLogId)
 		connMap.put('conloggerId', conloggerId)
 		connMap.put('comloggerId', comloggerId)
@@ -172,7 +173,7 @@ class ConnectSshTagLib extends ConfService {
 		if (hosts) {
 			connMap.put('hosts', hosts)
 		}
-		Session oSession = clientListenerService.p_connect(uri, cuser, connMap)
+		Session oSession = jsshClientListenerService.p_connect(uri, cuser, connMap)
 	}
 
 	private void loadTemplate(String template, String pluginTemplate, Map model) {
@@ -219,7 +220,7 @@ class ConnectSshTagLib extends ConfService {
 		this.jobName = attrs.remove('jobName')?.toString()
 
 		if (!jobName) {
-			jobName=randService.shortRand('job')
+			jobName=jsshRandService.shortRand('job')
 		}
 
 		if (!attrs.hideSendBlock) {
@@ -260,9 +261,14 @@ class ConnectSshTagLib extends ConfService {
 
 		this.jsshUser = attrs.remove('jsshUser')?.toString()
 		if (!jsshUser) {
-			jsshUser=randService.randomise('jsshUser')
+			jsshUser=jsshRandService.randomise('jsshUser')
 		}
 
+		this.realUser = attrs.remove('realUser')?.toString()
+		if (!realUser) {
+			realUser = jsshUser
+		}
+		
 		this.divId = attrs.remove('divId')?.toString()
 		this.enablePong = attrs.remove('enablePong')?.toString() ?: config.enablePong
 		// In milliseconds how to long to wait before sending next ping
@@ -273,23 +279,23 @@ class ConnectSshTagLib extends ConfService {
 
 	}
 
-	private void genDb(String sshUser, ArrayList hosts, String hostname, String username, String userCommand, String port, 
+	private void genDb(String sshUser, ArrayList hosts, String hostname, String realuser, String userCommand, String port, 
 		String sshKey=null, String sshKeyPass=null) {
 		if (hosts) {
 			hosts.each { host ->
-				addUserHost(host, port, username, sshUser, sshKey, sshKeyPass)
+				addUserHost(host, port, realuser, sshUser, sshKey, sshKeyPass)
 			}
 		}else{
-			addUserHost(hostname, port, username, sshUser, sshKey, sshKeyPass)
+			addUserHost(hostname, port, realuser, sshUser, sshKey, sshKeyPass)
 		}
-		this.conloggerId = dbStorageService.storeConnection(hostname, port, username, sshUser, conLogId)
-		this.comloggerId = dbStorageService.storeCommand(userCommand, username, conLogId, sshUser)
+		this.conloggerId = jsshDbStorageService.storeConnection(hostname, port, realuser, sshUser, '')
+		this.comloggerId = jsshDbStorageService.storeCommand(userCommand, realuser, conLogId, sshUser)
 	}
 
-	private void addUserHost(String hostname, String port, String username, String sshUser, String sshKey=null, String sshKeyPass=null) {
-		SshServers server = dbStorageService.addServer(username, hostname, port ?: '22', '' )
-		def SshUser =  dbStorageService.addSShUser(username, sshUser, sshKey ?: '', sshKeyPass ?: '', server.id as String )
-		Map<String,String> jU = dbStorageService.addJsshUser(username, server)
+	private void addUserHost(String hostname, String port, String realuser, String sshUser, String sshKey=null, String sshKeyPass=null) {
+		SshServers server = jsshDbStorageService.addServer(realuser, hostname, port ?: '22', '' )
+		def SshUser =  jsshDbStorageService.addSShUser(realuser, sshUser, sshKey ?: '', sshKeyPass ?: '', server.id as String )
+		Map<String,String> jU = jsshDbStorageService.addJsshUser(realuser, server)
 		this.jUser = jU.user
 		this.conLogId = jU.conId
 	}

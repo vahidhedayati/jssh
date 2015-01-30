@@ -6,7 +6,7 @@ import grails.converters.JSON
 import javax.websocket.ContainerProvider
 import javax.websocket.Session
 
-public class ClientListenerService extends ConfService {
+public class JsshClientListenerService extends JsshConfService {
 
 	def messagingService
 
@@ -31,6 +31,7 @@ public class ClientListenerService extends ConfService {
 		if (map.jUser) {
 			oSession.userProperties.put("jUser", map.jUser)
 		}
+		oSession.userProperties.put("realUser", map.realUser)
 		oSession.userProperties.put("conLogId", map.conLogId)
 		oSession.userProperties.put("conloggerId", map.conloggerId)
 		oSession.userProperties.put("comloggerId", map.comloggerId)

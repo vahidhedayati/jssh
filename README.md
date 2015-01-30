@@ -8,7 +8,7 @@ Websocket ssh interaction can be incorporated to an existing grails app running 
 
 Dependency :
 
-	compile ":jssh:1.0" 
+	compile ":jssh:1.1" 
 
 This plugin provides a variety of taglib calls within your application to then interact with SSH connection to a Unix/Linux machine. Once you have successfully configured connected your browser will provide something similar to a shell console and with the later Websocket methods you can literally interact live with your SSH connection to the back end Linux host.
 
@@ -47,11 +47,11 @@ Will be releasing a new video to cover multi broadcast method once I get it work
 
 ### Sessions
 ```
- [1] HTTP Session 
+ [1] HTTP Session 					 | 1 HTTP Session per webpage 
       |
- [2] [2X..N] WebSocket sessions
+ [2]  2X .. N WebSocket sessions     | 2 WebSocket sessions per call on a page multiply by 2 for per call on 1 page
       |
- [1] [1X..N] SSH Sessions    
+ [1]  1X .. N SSH Sessions           | 1 SSH Session per above call
 ```
 
 So 1 HTTP session that triggers 2 socket connections per call which then triggers 1 ssh connection from the back-end websocket connection. The SSH session is actually recreated each time you run a new command. new shell/execute/close shell. This done async so tasks like tail -f continue running allowing you to run on top.

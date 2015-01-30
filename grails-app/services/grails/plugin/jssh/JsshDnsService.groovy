@@ -1,6 +1,6 @@
 package grails.plugin.jssh
 
-class DnsService {
+class JsshDnsService {
 	
 
 	Map hostLookup(String host) {

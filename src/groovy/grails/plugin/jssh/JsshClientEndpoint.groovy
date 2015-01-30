@@ -17,12 +17,12 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 @ClientEndpoint
-public class JsshClientEndpoint  extends ConfService {
+public class JsshClientEndpoint  extends JsshConfService {
 
 	private final Logger log = LoggerFactory.getLogger(getClass().name)
 	private Session userSession = null
 	private String job = null
-	private ClientProcessService clientProcessService
+	private JsshClientProcessService jsshClientProcessService
 
 	@OnOpen
 	public void handleOpen(Session userSession,EndpointConfig c,@PathParam("job") String job) {
@@ -30,21 +30,21 @@ public class JsshClientEndpoint  extends ConfService {
 		this.job = job
 		def ctx= SCH.servletContext.getAttribute(GA.APPLICATION_CONTEXT)
 		
-		clientProcessService = ctx.clientProcessService
+		jsshClientProcessService = ctx.jsshClientProcessService
 		//userSession.userProperties.put("job", job)
 		
 	}
 
 	@OnClose
 	public void onClose(final Session userSession, final CloseReason reason) {
-		clientProcessService.handleClose(userSession)
+		jsshClientProcessService.handleClose(userSession)
 		this.userSession = null
 	}
 
 	@OnMessage
 	public void onMessage(String message, Session userSession){
 		try {
-			clientProcessService.processResponse(userSession,message)
+			jsshClientProcessService.processResponse(userSession,message)
 		} catch (IOException ex) {
 			ex.printStackTrace()
 		}
@@ -52,7 +52,7 @@ public class JsshClientEndpoint  extends ConfService {
 
 	@OnError
 	public void handleError(Throwable t) {
-		clientProcessService.handleClose(userSession)
+		jsshClientProcessService.handleClose(userSession)
 		t.printStackTrace()
 	}
 	
