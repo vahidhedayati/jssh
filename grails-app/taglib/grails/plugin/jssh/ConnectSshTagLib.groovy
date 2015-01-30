@@ -18,7 +18,7 @@ class ConnectSshTagLib extends JsshConfService {
 
 	private ArrayList hosts
 
-	private String hostname, username, userCommand, password, template, port, adminTemplate, sshKey, sshKeyPass
+	private String hostname, username, userCommand, password, template, port, adminTemplate, sshKey, sshKeyPass, uri, wsprotocol
 
 	private String wshostname, hideConsoleMenu, hideSendBlock, hideSessionCtrl,
 	hideWhatsRunning, hideDiscoButton, hidePauseControl, hideNewShellButton, jobName,
@@ -58,10 +58,7 @@ class ConnectSshTagLib extends JsshConfService {
 		socketOpts(attrs)
 
 		boolean frontend = attrs.remove('frontend')?.toBoolean() ?: false
-		String uri="ws://${wshostname}/${appName}/${APP}/"
-		if (addAppName=="no") {
-			uri="ws://${hostname}/${APP}/"
-		}
+
 		def model = [hideWhatsRunning:hideWhatsRunning, hideDiscoButton:hideDiscoButton, hidePauseControl:hidePauseControl,
 			hideSessionCtrl:hideSessionCtrl, hideNewShellButton:hideNewShellButton, hideConsoleMenu:hideConsoleMenu,
 			hideSendBlock:hideSendBlock, wshostname:wshostname, hostname:hostname, port:port, addAppName:addAppName,
@@ -87,12 +84,9 @@ class ConnectSshTagLib extends JsshConfService {
 		*/
 		
 		socketOpts(attrs)
-		String uri="ws://${wshostname}/${appName}/${APP}/"
-		if (addAppName=="no") {
-			uri="ws://${hostname}/${APP}/"
-		}
-		uri = uri + jobName
+
 		boolean frontend = true
+		
 		def model = [frontend:frontend, divId: divId, jobName: jobName,  
 			uri:uri, job: jobName,	wshostname: wshostname, frontuser: jsshUser, jsshUser: jsshUser]
 		loadTemplate(template, '/connectSsh/broadcast', model)
@@ -119,12 +113,7 @@ class ConnectSshTagLib extends JsshConfService {
 
 
 		boolean frontend = true
-		String uri="ws://${wshostname}/${appName}/${APP}/"
-		if (addAppName=="no") {
-			uri="ws://${hostname}/${APP}/"
-		}
 
-		uri = uri + cjob
 		if (!appName) {
 			appName = grailsApplication.metadata['app.name']
 		}
@@ -185,6 +174,7 @@ class ConnectSshTagLib extends JsshConfService {
 	}
 
 	private void genericOpts(attrs) {
+		
 		if (attrs.hostname && (!attrs.hosts)) {
 			this.hostname = attrs.remove('hostname')?.toString() ?: 'localhost'
 		}
@@ -192,7 +182,7 @@ class ConnectSshTagLib extends JsshConfService {
 		if (attrs.hosts instanceof ArrayList) {
 			this.hosts = attrs.hostname
 		}
-
+	
 		this.sshKey = attrs.remove('sshKey')?.toString() ?: config.KEY ?: ''
 		this.sshKeyPass = attrs.remove('sshKeyPass')?.toString() ?: config.KEYPASS ?: ''
 		this.username = attrs.remove('username')?.toString() ?: config.USER ?: ''
@@ -201,14 +191,32 @@ class ConnectSshTagLib extends JsshConfService {
 		this.template = attrs.remove('template')?.toString()
 		this.adminTemplate = attrs.remove('adminTemplate')?.toString() ?: ''
 		this.port = attrs.remove('port')?.toString() ?: '22'
+		
 	}
 
 	private void socketOpts(attrs) {
+		
 		genericOpts(attrs)
+		
+		this.addAppName =  config.addAppName ?: 'YES'
+		
+		this.wsprotocol = attrs.remove('wsprotocol')?.toString() ?: config.wsprotocol ?: 'ws'
+		
 		if (!attrs.wshostname) {
 			this.wshostname = config.wshostname ?: 'localhost:8080'
 		}else{
 			this.wshostname = attrs.wshostname
+		}
+		
+		this.jobName = attrs.remove('jobName')?.toString()
+
+		if (!jobName) {
+			jobName=jsshRandService.shortRand('job')
+		}
+		
+		this.uri="${wsprotocol}://${wshostname}/${appName}/${APP}/${jobName}"
+		if (addAppName=="no") {
+			this.uri="${wsprotocol}://${wshostname}/${APP}/${jobName}"
 		}
 
 		if (!attrs.hideConsoleMenu) {
@@ -217,11 +225,6 @@ class ConnectSshTagLib extends JsshConfService {
 			this.hideConsoleMenu = attrs.hideConsoleMenu
 		}
 
-		this.jobName = attrs.remove('jobName')?.toString()
-
-		if (!jobName) {
-			jobName=jsshRandService.shortRand('job')
-		}
 
 		if (!attrs.hideSendBlock) {
 			this.hideSendBlock = config.hideSendBlock ?: 'YES'
@@ -274,7 +277,7 @@ class ConnectSshTagLib extends JsshConfService {
 		// In milliseconds how to long to wait before sending next ping
 		this.pingRate = attrs.remove('pingRate')?.toString() ?: config.pingRate ?: '60000'
 
-		this.addAppName =  config.addAppName ?: 'YES'
+		
 
 
 	}
