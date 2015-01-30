@@ -7,6 +7,7 @@ import grails.plugin.jssh.logging.CommandLogger
 import javax.websocket.Session
 
 class ConnectSshTagLib extends JsshConfService {
+	
 	static namespace = "jssh"
 
 	def connectSsh
@@ -16,16 +17,99 @@ class ConnectSshTagLib extends JsshConfService {
 	def jsshClientListenerService
 	def jsshDbStorageService
 
-	private ArrayList hosts
+	private String 	hostname, username, userCommand, password, template, port, adminTemplate, sshKey, sshKeyPass, uri, wsprotocol
 
-	private String hostname, username, userCommand, password, template, port, adminTemplate, sshKey, sshKeyPass, uri, wsprotocol
+	private String 	wshostname, hideConsoleMenu, hideSendBlock, hideSessionCtrl,hideWhatsRunning, hideDiscoButton, hidePauseControl, 
+					hideNewShellButton, jobName, jsshUser, realUser, divId, enablePong, pingRate, addAppName
 
-	private String wshostname, hideConsoleMenu, hideSendBlock, hideSessionCtrl,
-	hideWhatsRunning, hideDiscoButton, hidePauseControl, hideNewShellButton, jobName,
-	jsshUser, realUser, divId, enablePong, pingRate, addAppName
+	private String 	jUser, conLogId, conloggerId, comloggerId
 
-	private String jUser, conLogId, conloggerId, comloggerId
 
+	/* jssh:broadcast only required on top of jssh:conn if used multiple times on 1 page
+	 * will send a broadcast message to all the connections
+	 * All JobNames on jssh:conn must match the same jobName as broadcast for this
+	 * Provide divId + jobName + template(optional)
+	 */
+	def broadcast = { attrs ->
+
+		socketOpts(attrs)
+
+		boolean frontend = true
+
+		def model = [frontend:frontend, divId: divId, jobName: jobName,
+			uri:uri, job: jobName,	wshostname: wshostname, frontuser: jsshUser, jsshUser: jsshUser]
+		loadTemplate(template, '/connectSsh/broadcast', model)
+	}
+
+
+
+	/* NEW : Client / Server SSH Model - Server or Master being backend SSH connection / client
+	 *  being websocket client
+	 * That listens to Websocket server/master that sends connection info back to client
+	 */
+
+	def conn = { attrs ->
+
+		socketOpts(attrs)
+
+		// Only register commands and transactions from new conn method
+		genDb(username, hostname, realUser, userCommand, port, sshKey, sshKeyPass)
+
+		def cuser= jsshUser
+
+		def cjob = jobName
+		String frontuser = cuser+frontend
+
+
+		boolean frontend = true
+
+		if (!appName) {
+			appName = grailsApplication.metadata['app.name']
+		}
+
+		def connMap = [frontend: frontend,  frontuser: frontuser,  backuser: cuser, user: username, username:username, password: password,
+			port: port, enablePong: enablePong, pingRate: pingRate, usercommand: userCommand, divId:divId, jsshApp: APP, uri:uri, job: cjob,
+			hideWhatsRunning: hideWhatsRunning,	hideDiscoButton: hideDiscoButton, hidePauseControl: hidePauseControl, hideSessionCtrl: hideSessionCtrl,
+			hideNewShellButton: hideNewShellButton, hideConsoleMenu: hideConsoleMenu, hideSendBlock: hideSendBlock,	wshostname: wshostname]
+
+		Map adminMap = [frontuser: frontuser, backuser: cuser, job:cjob]
+		loadTemplate(adminTemplate,"/connectSsh/scsockmodal",adminMap)
+
+		connMap.put('jsshUser', frontuser)
+		if (hostname) {
+			connMap.put('hostname', hostname)
+			loadTemplate(template,'/connectSsh/socketConnect', connMap)
+
+			loadBackEnd(uri, connMap, cuser)
+		}
+
+	}
+
+	/*
+	 * Older socket method
+	 * Direct socket connection between browser and ssh connection
+	 */
+	def socketconnect =  { attrs ->
+
+		socketOpts(attrs)
+
+		boolean frontend = attrs.remove('frontend')?.toBoolean() ?: false
+
+		def model = [hideWhatsRunning:hideWhatsRunning, hideDiscoButton:hideDiscoButton, hidePauseControl:hidePauseControl,
+			hideSessionCtrl:hideSessionCtrl, hideNewShellButton:hideNewShellButton, hideConsoleMenu:hideConsoleMenu,
+			hideSendBlock:hideSendBlock, wshostname:wshostname, hostname:hostname, port:port, addAppName:addAppName,
+			username:username, password:password, userCommand:userCommand, divId:divId, uri:uri,
+			enablePong:enablePong, pingRate:pingRate, jobName:jobName, jsshUser:jsshUser, frontend:frontend]
+
+		loadTemplate(template, "/connectSsh/socketprocess", model)
+	}
+
+
+
+
+	/* Ajax method of connection
+	 * This is not recommended since it can only really be used once
+	 */
 	def ajaxconnect =  { attrs ->
 
 		genericOpts(attrs)
@@ -53,98 +137,6 @@ class ConnectSshTagLib extends JsshConfService {
 		loadTemplate(template, '/connectSsh/process', model)
 	}
 
-	def socketconnect =  { attrs ->
-
-		socketOpts(attrs)
-
-		boolean frontend = attrs.remove('frontend')?.toBoolean() ?: false
-
-		def model = [hideWhatsRunning:hideWhatsRunning, hideDiscoButton:hideDiscoButton, hidePauseControl:hidePauseControl,
-			hideSessionCtrl:hideSessionCtrl, hideNewShellButton:hideNewShellButton, hideConsoleMenu:hideConsoleMenu,
-			hideSendBlock:hideSendBlock, wshostname:wshostname, hostname:hostname, port:port, addAppName:addAppName,
-			username:username, password:password, userCommand:userCommand, divId:divId, uri:uri,
-			enablePong:enablePong, pingRate:pingRate, jobName:jobName, jsshUser:jsshUser, frontend:frontend]
-
-		loadTemplate(template, "/connectSsh/socketprocess", model)
-	}
-
-
-	/* jssh:broadcast only required on top of jssh:conn if used multiple times on 1 page
-	 * will send a broadcast message to all the connections
-	 * All JobNames on jssh:conn must match the same jobName as broadcast for this
-	 * Provide divId + jobName + template(optional) 
-	 */ 
-	def broadcast = { attrs ->
-		/*
-		this.jobName = attrs.remove('jobName')?.toString()
-		
-		if (!jobName) {
-			throwTagError("Tag [broadcast] is missing required attribute [jobName]")
-		}
-		*/
-		
-		socketOpts(attrs)
-
-		boolean frontend = true
-		
-		def model = [frontend:frontend, divId: divId, jobName: jobName,  
-			uri:uri, job: jobName,	wshostname: wshostname, frontuser: jsshUser, jsshUser: jsshUser]
-		loadTemplate(template, '/connectSsh/broadcast', model)
-	} 
-	
-	
-
-	/* NEW : Client / Server SSH Model - Server or Master being backend SSH connection / client 
-	 *  being websocket client
-	 * That listens to Websocket server/master that sends connection info back to client
-	 */
-
-	def conn = { attrs ->
-
-		socketOpts(attrs)
-
-		// Only register commands and transactions from new conn method
-		genDb(username, hosts, hostname, realUser, userCommand, port, sshKey, sshKeyPass)
-
-		def cuser= jsshUser
-
-		def cjob = jobName
-		String frontuser = cuser+frontend
-
-
-		boolean frontend = true
-
-		if (!appName) {
-			appName = grailsApplication.metadata['app.name']
-		}
-
-		def connMap = [frontend: frontend,  frontuser: frontuser,  backuser: cuser, user: username, username:username, password: password,
-			port: port, enablePong: enablePong, pingRate: pingRate, usercommand: userCommand, divId:divId, jsshApp: APP, uri:uri, job: cjob,
-			hideWhatsRunning: hideWhatsRunning,	hideDiscoButton: hideDiscoButton, hidePauseControl: hidePauseControl, hideSessionCtrl: hideSessionCtrl,
-			hideNewShellButton: hideNewShellButton, hideConsoleMenu: hideConsoleMenu, hideSendBlock: hideSendBlock,	wshostname: wshostname]
-
-		Map adminMap = [frontuser: frontuser, backuser: cuser, job:cjob]
-		loadTemplate(adminTemplate,"/connectSsh/scsockmodal",adminMap)
-
-		connMap.put('jsshUser', frontuser)
-		if (hostname) {
-			connMap.put('hostname', hostname)
-			loadTemplate(template,'/connectSsh/socketConnect', connMap)
-			
-			loadBackEnd(uri, connMap, cuser)
-		}
-		// TODO -
-		/*	
-		 if (hosts) {
-		 hosts.each { hostn ->
-		 connMap.put('hostname', hostn)
-		 loadTemplate(template,'/connectSsh/socketConnect', connMap)
-		 loadBackEnd(uri, connMap, cuser)
-		 }
-		 }
-		 */
-	}
-
 	private void loadBackEnd(String uri, Map connMap, String cuser) {
 		connMap.remove('jsshUser')
 		connMap.put('jsshUser', cuser)
@@ -158,13 +150,15 @@ class ConnectSshTagLib extends JsshConfService {
 		connMap.put('hostname', hostname)
 		connMap.put('sshKey', sshKey)
 		connMap.put('sshKeyPass', sshKeyPass)
-		
-		if (hosts) {
-			connMap.put('hosts', hosts)
-		}
+		connMap.put('enablePong', enablePong)
+		connMap.put('pingRate', pingRate)
+
 		Session oSession = jsshClientListenerService.p_connect(uri, cuser, connMap)
 	}
 
+	/* 
+	 * load templates 
+	 */
 	private void loadTemplate(String template, String pluginTemplate, Map model) {
 		if (template) {
 			out << g.render(template:template, model: model)
@@ -173,16 +167,13 @@ class ConnectSshTagLib extends JsshConfService {
 		}
 	}
 
+	/* 
+	 * Generic options used for all calls
+	 */
 	private void genericOpts(attrs) {
-		
-		if (attrs.hostname && (!attrs.hosts)) {
+		if (attrs.hostname) {
 			this.hostname = attrs.remove('hostname')?.toString() ?: 'localhost'
 		}
-
-		if (attrs.hosts instanceof ArrayList) {
-			this.hosts = attrs.hostname
-		}
-	
 		this.sshKey = attrs.remove('sshKey')?.toString() ?: config.KEY ?: ''
 		this.sshKeyPass = attrs.remove('sshKeyPass')?.toString() ?: config.KEYPASS ?: ''
 		this.username = attrs.remove('username')?.toString() ?: config.USER ?: ''
@@ -191,29 +182,32 @@ class ConnectSshTagLib extends JsshConfService {
 		this.template = attrs.remove('template')?.toString()
 		this.adminTemplate = attrs.remove('adminTemplate')?.toString() ?: ''
 		this.port = attrs.remove('port')?.toString() ?: '22'
-		
 	}
 
+
+	/* Socket options 
+	 * used by older / newer methods of socket connection	
+	 */
 	private void socketOpts(attrs) {
-		
+
 		genericOpts(attrs)
-		
+
 		this.addAppName =  config.addAppName ?: 'YES'
-		
+
 		this.wsprotocol = attrs.remove('wsprotocol')?.toString() ?: config.wsprotocol ?: 'ws'
-		
+
 		if (!attrs.wshostname) {
 			this.wshostname = config.wshostname ?: 'localhost:8080'
 		}else{
 			this.wshostname = attrs.wshostname
 		}
-		
+
 		this.jobName = attrs.remove('jobName')?.toString()
 
 		if (!jobName) {
 			jobName=jsshRandService.shortRand('job')
 		}
-		
+
 		this.uri="${wsprotocol}://${wshostname}/${appName}/${APP}/${jobName}"
 		if (addAppName=="no") {
 			this.uri="${wsprotocol}://${wshostname}/${APP}/${jobName}"
@@ -271,30 +265,26 @@ class ConnectSshTagLib extends JsshConfService {
 		if (!realUser) {
 			realUser = jsshUser
 		}
-		
+
 		this.divId = attrs.remove('divId')?.toString()
 		this.enablePong = attrs.remove('enablePong')?.toString() ?: config.enablePong
 		// In milliseconds how to long to wait before sending next ping
 		this.pingRate = attrs.remove('pingRate')?.toString() ?: config.pingRate ?: '60000'
-
-		
-
-
 	}
 
-	private void genDb(String sshUser, ArrayList hosts, String hostname, String realuser, String userCommand, String port, 
+	/*
+	 * Update DB with configuration from socket connections
+	 */
+	private void genDb(String sshUser, String hostname, String realuser, String userCommand, String port,
 		String sshKey=null, String sshKeyPass=null) {
-		if (hosts) {
-			hosts.each { host ->
-				addUserHost(host, port, realuser, sshUser, sshKey, sshKeyPass)
-			}
-		}else{
-			addUserHost(hostname, port, realuser, sshUser, sshKey, sshKeyPass)
-		}
+		addUserHost(hostname, port, realuser, sshUser, sshKey, sshKeyPass)
 		this.conloggerId = jsshDbStorageService.storeConnection(hostname, port, realuser, sshUser, '')
 		this.comloggerId = jsshDbStorageService.storeCommand(userCommand, realuser, conLogId, sshUser)
 	}
 
+	/*
+	 * Part of genDb
+	 */
 	private void addUserHost(String hostname, String port, String realuser, String sshUser, String sshKey=null, String sshKeyPass=null) {
 		SshServers server = jsshDbStorageService.addServer(realuser, hostname, port ?: '22', '' )
 		def SshUser =  jsshDbStorageService.addSShUser(realuser, sshUser, sshKey ?: '', sshKeyPass ?: '', server.id as String )

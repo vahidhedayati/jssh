@@ -36,6 +36,9 @@ public class JsshClientListenerService extends JsshConfService {
 		oSession.userProperties.put("conloggerId", map.conloggerId)
 		oSession.userProperties.put("comloggerId", map.comloggerId)
 		oSession.userProperties.put("host", map.hostname)
+		oSession.userProperties.put('enablePong', map.enablePong)
+		oSession.userProperties.put('pingRate', map.pingRate)
+		
 
 		if (map.hosts) {
 			oSession.userProperties.put("hosts", map.hosts)

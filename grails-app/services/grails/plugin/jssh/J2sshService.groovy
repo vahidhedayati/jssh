@@ -22,13 +22,16 @@ class J2sshService extends JsshConfService {
 
 	def messagingService
 
-	public void pingPong(Session userSession, Integer pingRate) {
+	public void pingPong(Session userSession, Integer pingRate=null) {
 		if (userSession && userSession.isOpen()) {
 			String user = userSession.userProperties.get("username") as String
-			boolean sendPong = false
-			while ((sendPong==false)&&(userSession && userSession.isOpen())) {
-				sleep(pingRate ?: 60000)
-				messagingService.sendFrontEndPM(userSession, user,'ping')
+			if (!pingRate) {
+				pingRate = userSession.userProperties.get("pingRate") as Integer
+			}
+			
+			while ((userSession && userSession.isOpen())) {
+					sleep(pingRate ?: 60000)
+					messagingService.sendFrontEndPM(userSession, user,'ping')
 			}
 		}
 	}
@@ -86,7 +89,17 @@ class J2sshService extends JsshConfService {
 			///userSession.userProperties.put(host, ssh)
 			userSession.userProperties.put('host', host)
 			userSession.userProperties.put('sshClient', ssh)
-
+			
+			/*
+			boolean enablePong =  userSession.userProperties.get('enablePong') as Boolean
+			if (enablePong) {
+				def asyncProcess1 = new Thread({
+				int pingRate = userSession.userProperties.get("pingRate") as Integer
+				pingPong(userSession, pingRate)
+				} as Runnable )
+				asyncProcess1.start()
+			}
+			*/
 			def asyncProcess = new Thread({
 				processConnection(ssh, userSession, usercommand)
 			} as Runnable )

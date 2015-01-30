@@ -18,8 +18,7 @@
 	}
 	
 	function processMessage${divId}(message) {
-		//console.log(JSON.stringify(message));
-		//console.log(message);
+	
 		var json;
 		try {
 	  		json = JSON.parse(message.data);
@@ -27,11 +26,15 @@
 	  		json = null;
 		}
 		if(json) {
+			//console.log(JSON.stringify(message));
+			
 			var jsonData=JSON.parse(message.data);
 			$('#connectionCount${divId}').html(jsonData.connCount);
 		}else{
-			if (message.data == "ping") {
-				webSocket${divId}.send('PONG');
+			//console.log("1: "+message.data);
+			
+			if (message.data == "/fm ${backuser},ping") {
+				webSocket${divId}.send(JSON.stringify({ 'frontend':"true",'COMMAND':"true", 'system': 'PONG'}));
 			}else{
 				$('#messagesTextarea${divId}').append(escapeHtml(message.data));
 				scrollToBottom${divId}();

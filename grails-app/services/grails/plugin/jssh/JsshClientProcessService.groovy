@@ -74,13 +74,15 @@ public class JsshClientProcessService extends JsshConfService  {
 			if (comloggerId && conloggerId) {
 				jsshDbStorageService.storeCommand(msg, realUser, conloggerId, user, comloggerId)
 			}
-
+			
 			def asyncProcess = new Thread({
 				//SshClient mssh =  userSession.userProperties.get(chost) as SshClient
 				//userSession.userProperties.put('host', chost)
 				SshClient mssh =  userSession.userProperties.get('sshClient') as SshClient
 				j2sshService.processConnection(mssh, userSession, msg)
 
+				
+				
 			} as Runnable )
 			asyncProcess.start()
 
@@ -96,6 +98,7 @@ public class JsshClientProcessService extends JsshConfService  {
 		}else if  (message.startsWith('DISCO:-')) {
 			//userSession.close()
 			handleClose( userSession)
+		
 		}else if (message.startsWith('/system')) {
 			def values = parseInput("/system ",message)
 			String user = values.user as String
@@ -115,7 +118,10 @@ public class JsshClientProcessService extends JsshConfService  {
 		boolean pm = false
 		if (rmesg.hostname) {
 			verifyGeneric(rmesg)
-			userSession.userProperties.put("pingRate", pingRate)
+			//userSession.userProperties.put("pingRate", rmesg.pingRate)
+			
+		
+			
 			boolean frontend = rmesg.frontend.toBoolean()
 			if (frontend) {
 				multiUser(userSession)
@@ -133,6 +139,8 @@ public class JsshClientProcessService extends JsshConfService  {
 					userSession.userProperties.put("status", "pause")
 				}else if (system == "RESUME:-") {
 					userSession.userProperties.put("status", "resume")
+				}else if (message.equals('PONG')) {
+					j2sshService.pingPong(userSession)
 				}else if (system == "disconnect") {
 					//clientListenerService.disconnect(userSession)
 					handleClose( userSession)
@@ -143,7 +151,6 @@ public class JsshClientProcessService extends JsshConfService  {
 
 	private void multiUser(Session userSession) {
 		j2sshService.sshConnect(  user, userpass, host,	usercommand, port, sshKey, sshKeyPass, userSession)
-
 	}
 
 	private void verifyGeneric(JSONObject data) {
