@@ -69,11 +69,19 @@ On the main index screen there is now a NEW Socket connection method, use it to 
 
 ```gsp
 
-<jssh:conn hostname="${hostname}" username="${username}"
-	port="${port}" password="${password}"
+<jssh:conn 
+    hostname="${hostname}" 
+    username="${username}"
+	port="${port}" 
+	password="${password}"
 	userCommand="${userCommand}"
-	jsshUser="${jsshUser}" divId="${divId}" />
-<div id="${divId}"></div>
+	realuser="${session.username}"
+	jsshUser="${jsshUser}"  //do not set this if you want auto gen id  
+	divId="${divId}"
+	enablePong="true"
+	pingRate="50000"
+ />
+
 ```					
 
 		
@@ -100,13 +108,15 @@ hideSessionCtrl="${hideSessionCtrl }"
 hideConsoleMenu="${hideConsoleMenu}"
 hideSendBlock="${hideSendBlock}"
 hideNewShellButton="${hideNewShellButton}"
-
+enablePong="true"
+pingRate="50000"
 />
 ```
 
-##### Socket Method -- Multipe calls - remoteForm - refer to plugin connectSsh/index page and go to remote Form..
+##### Socket Method -- Multipe calls - remoteForm - 
 
-As above but:
+As above but: refer to plugin connectSsh/index page and go to remote Form..
+I have used this method and called it many times on 1 page by reusing the <jssh:socketconnect tag multiple times.
 
 ```gsp
 <jssh:socketconnect 
@@ -158,6 +168,3 @@ This command once you have keys would need to be done per host that needs key ac
 ```
 ssh-copy-id -i $HOME/.ssh/id_rsa.pub $user@$remote_home
 ```
-
-
-
