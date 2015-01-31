@@ -12,8 +12,6 @@ Dependency :
 
 This plugin provides a variety of taglib calls within your application to then interact with SSH connection to a Unix/Linux machine. Once you have successfully configured connected your browser will provide something similar to a shell console and with the later Websocket methods you can literally interact live with your SSH connection to the back end Linux host.
 
-##### Releasing 0.29-SNAPSHOT to fix a variety of bugs in 0.29 and set the ground for the future of the plugin.
-I am releasing this because it is the ground works for the next phase which requires changes within the code. There were quite a lot of issues with 0.29 and this will fix a lot of those bugs + enhancements in the new feature although not complete. Still useful.
 
 
 ## Config.groovy additions required: 
@@ -32,14 +30,14 @@ Video of jssh 0.9, whilst waiting on creations of stuff there was some discussio
 
 [jssh 0.9 full walk through 43 mins? wow a lot of BS :) ](https://www.youtube.com/watch?v=r-dBVUmT9Uo)
 
-Will be releasing a new video to cover multi broadcast method once I get it working hopefully be releasing jssh-1.0 then.
 	 	
 
 
 ## Interaction Methods:
 
-##### [Socket Client/Server](https://github.com/vahidhedayati/jssh/blob/master/grails-app/views/connectSsh/scsocketconnect.gsp)
-#### [mutli-connection broadcasting to multiple SSH connections](https://github.com/vahidhedayati/jssh/wiki/mutli-connection---broadcasting-to-multi-nodes)
+## 1> [Socket Client/Server](https://github.com/vahidhedayati/jssh/blob/master/grails-app/views/connectSsh/scsocketconnect.gsp)
+
+##### [mutli-connection broadcasting to multiple SSH connections](https://github.com/vahidhedayati/jssh/wiki/mutli-connection---broadcasting-to-multi-nodes)
 
 [New Client/Server Websocket SSH tag lib call](https://github.com/vahidhedayati/jssh/wiki/Websocket-client-server-taglib-call)
 
@@ -85,7 +83,7 @@ On the main index screen there is now a NEW Socket connection method, use it to 
 ```					
 
 		
-##### [Socket Method](https://github.com/vahidhedayati/jssh/blob/master/grails-app/views/connectSsh/socketprocess.gsp)
+## 2A> [Socket Method](https://github.com/vahidhedayati/jssh/blob/master/grails-app/views/connectSsh/socketprocess.gsp)
 
 [jssh-websocket-taglib-call](https://github.com/vahidhedayati/jssh/wiki/jssh-websocket-taglib-call)
 
@@ -113,7 +111,7 @@ pingRate="50000"
 />
 ```
 
-##### Socket Method -- Multipe calls - remoteForm - 
+## 2B> Socket Method -- Multipe calls - remoteForm - 
 
 As above but: refer to plugin connectSsh/index page and go to remote Form..
 I have used this method and called it many times on 1 page by reusing the <jssh:socketconnect tag multiple times.
@@ -125,7 +123,7 @@ I have used this method and called it many times on 1 page by reusing the <jssh:
 <div id="${divId}"></div>
 ```
 
-##### [Ajax Taglib](https://github.com/vahidhedayati/jssh/blob/master/grails-app/views/connectSsh/ajaxprocess.gsp)
+## 3> [Ajax Taglib](https://github.com/vahidhedayati/jssh/blob/master/grails-app/views/connectSsh/ajaxprocess.gsp)
 
 [wiki on jssh existing app using ajax polling](https://github.com/vahidhedayati/jssh/wiki/using-jssh-within-existing-application)
 
