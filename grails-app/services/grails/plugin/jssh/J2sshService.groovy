@@ -25,25 +25,15 @@ class J2sshService extends JsshConfService {
 	public void pingPong(Session userSession, Integer pingRate, String username) {
 		if (userSession && userSession.isOpen()) {
 			String user = userSession.userProperties.get("username") as String
-			//println "-- ${user} ${username} pinging"
-			if (!pingRate) {
-				//	pingRate = userSession.userProperties.get("pingRate") as Integer
-			}
-
-			//println "-pingpong--- ${user}"
-			//while ((userSession && userSession.isOpen())) {
-			/*def asyncProcess = new Thread({
-			 sleep(pingRate ?: 60000)
-			 jsshMessagingService.sendFrontEndPM(userSession, user,'ping')
-			 } as Runnable )
-			 asyncProcess.start()
-			 //}
-			 * 
-			 */
+			def asyncProcess = new Thread({
+				sleep(pingRate ?: 60000)
+				jsshMessagingService.sendFrontEndPM(userSession,user,'ping','/fm')
+			} as Runnable )
+			asyncProcess.start()
 		}
 	}
 
-	private Boolean sshConnect(String user, String userpass, String host, String usercommand, int port,
+	private Boolean sshConnect(Boolean enablePong, Integer pingRate, String user, String userpass, String host, String usercommand, int port,
 			String sshKey, String sshKeyPass, Session userSession)  {
 		String suser = userSession.userProperties.get("username") as String
 		String sshuser = config.USER ?: ''
@@ -104,21 +94,7 @@ class J2sshService extends JsshConfService {
 
 			// Evaluate the result
 			if (isAuthenticated) {
-
-				///userSession.userProperties.put(host, ssh)
 				userSession.userProperties.put('host', host)
-
-
-				/*
-				 boolean enablePong =  userSession.userProperties.get('enablePong') as Boolean
-				 if (enablePong) {
-				 def asyncProcess1 = new Thread({
-				 int pingRate = userSession.userProperties.get("pingRate") as Integer
-				 pingPong(userSession, pingRate)
-				 } as Runnable )
-				 asyncProcess1.start()
-				 }
-				 */
 				try {
 					def asyncProcess = new Thread({
 						processConnection(ssh, userSession, usercommand)
@@ -127,7 +103,9 @@ class J2sshService extends JsshConfService {
 				} catch (Exception e) {
 					e.printStackTrace()
 				}
-
+				if (enablePong) {
+					pingPong(userSession, pingRate, username)
+				}
 			}else{
 				def authType = "using key file  "
 				if (password) { authType = "using password" }
@@ -161,11 +139,6 @@ class J2sshService extends JsshConfService {
 			if (!usercommand.endsWith('\n')) {
 				usercommand = usercommand+'\n'
 			}
-
-			//if (usercommand == "disconnect") {
-			//	disconnect( session, ssh, user )
-			//}
-
 			session.getOutputStream().write(usercommand.getBytes())
 			InputStream input = session.getInputStream()
 			byte[] buffer = new byte[255]

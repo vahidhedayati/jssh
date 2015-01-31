@@ -26,20 +26,18 @@
 	  		json = null;
 		}
 		if(json) {
-			//console.log(JSON.stringify(message));
-			
 			var jsonData=JSON.parse(message.data);
 			$('#connectionCount${divId}').html(jsonData.connCount);
 		}else{
-			//console.log("1: "+message.data);
-			console.log("1: "+message.data);
-			
-			if (message.data == "/fm ${backuser},ping") {
+			if (message.data == "/bm ${frontuser},ping") {
 				webSocket${divId}.send(JSON.stringify({ 'frontend':"true",'COMMAND':"true", 'system': 'PONG'}));
 			}else{
-				
-				$('#messagesTextarea${divId}').append(escapeHtml(message.data));
-				scrollToBottom${divId}();
+				if ((message.data != undefined)||(message.data != "")) {
+					//if  (${divId}!= undefined) {
+						$('#messagesTextarea${divId}').append(escapeHtml(message.data));
+						scrollToBottom${divId}();
+					//}
+				}
 			}
 		}
 	}

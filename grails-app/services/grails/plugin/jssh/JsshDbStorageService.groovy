@@ -45,7 +45,7 @@ class JsshDbStorageService extends JsshConfService {
 			sg = SshServerGroups.findOrSaveByNameAndUser(name, user)
 			if (!sg.save(flush:true)) {
 				if (config.debug == "on") {
-					sg.errors.allErrors.each{log.info it}
+					sg.errors.allErrors.each{log.error it}
 				}
 			}
 
@@ -55,7 +55,7 @@ class JsshDbStorageService extends JsshConfService {
 			user.addToGroups(sg)
 			if (!user.save(flush:true)) {
 				if (config.debug == "on") {
-					user.errors.allErrors.each{log.info it}
+					user.errors.allErrors.each{log.error it}
 				}
 			}
 			return "\n\nGroup ${sg.name } should now be added for ${user.username}"
@@ -75,7 +75,7 @@ class JsshDbStorageService extends JsshConfService {
 			logInstance = new ConnectionLogs(jsshUser: user, sshUser: sshUser, hostName: hostName, port: port, conlog: conlog)
 			if (!logInstance.save(flush:true)) {
 				if (config.debug == "on") {
-					logInstance.errors.allErrors.each{log.info it}
+					logInstance.errors.allErrors.each{log.error it}
 				}
 			}
 		}
@@ -95,7 +95,7 @@ class JsshDbStorageService extends JsshConfService {
 				user = new JsshUser(username:username, conlog: addlog, servers: server, groups: ssg)
 				if (!user.save(flush:true)) {
 					if (config.debug == "on") {
-						user.errors.allErrors.each{log.info it}
+						user.errors.allErrors.each{log.error it}
 					}
 				}
 			}
@@ -129,7 +129,7 @@ class JsshDbStorageService extends JsshConfService {
 				server = new SshServers(hostName: hostName, ipAddress: ip, sshPort:port)
 				if (!server.save(flush:true)) {
 					if (config.debug == "on") {
-						server.errors.allErrors.each{log.info it}
+						server.errors.allErrors.each{log.error it}
 					}
 				}
 			}
@@ -138,7 +138,7 @@ class JsshDbStorageService extends JsshConfService {
 			user.addToServers(server)
 			if (!user.save(flush:true)) {
 				if (config.debug == "on") {
-					user.errors.allErrors.each{log.info it}
+					user.errors.allErrors.each{log.error it}
 				}
 			}
 		}
@@ -163,7 +163,7 @@ class JsshDbStorageService extends JsshConfService {
 
 				if (!sg.save(flush:true)) {
 					if (config.debug == "on") {
-						sg.errors.allErrors.each{log.info it}
+						sg.errors.allErrors.each{log.error it}
 					}
 				}
 			}
@@ -183,7 +183,7 @@ class JsshDbStorageService extends JsshConfService {
 					}
 				}
 			}
-			log.info sb.toString()
+			log.error sb.toString()
 		}
 	}
 
@@ -199,7 +199,7 @@ class JsshDbStorageService extends JsshConfService {
 				}
 				if (!suser.save(flush:true)) {
 					if (config.debug == "on") {
-						suser.errors.allErrors.each{log.info it}
+						suser.errors.allErrors.each{log.error it}
 					}
 				}
 			}
@@ -212,7 +212,7 @@ class JsshDbStorageService extends JsshConfService {
 			server.sshuser = suser
 			if (!server.save(flush:true)) {
 				if (config.debug == "on") {
-					server.errors.allErrors.each{log.info it}
+					server.errors.allErrors.each{log.error it}
 				}
 			}
 		}
@@ -225,7 +225,7 @@ class JsshDbStorageService extends JsshConfService {
 				d1.addToServers(server)
 				if (!d1.save(flush:true)) {
 					if (config.debug == "on") {
-						d1.errors.allErrors.each{log.info it}
+						d1.errors.allErrors.each{log.error it}
 					}
 				}
 			}
@@ -239,7 +239,7 @@ class JsshDbStorageService extends JsshConfService {
 			CommandLogger logInstance = new CommandLogger(commands: [])
 			if (!logInstance.save(flush:true)) {
 				if (config.debug == "on") {
-					logInstance.errors.allErrors.each{log.info it}
+					logInstance.errors.allErrors.each{log.error it}
 				}
 			}
 			return logInstance
@@ -251,7 +251,7 @@ class JsshDbStorageService extends JsshConfService {
 			ConnectionLogger logInstance = new ConnectionLogger(connections: [], commands: [])
 			if (!logInstance.save(flush:true)) {
 				if (config.debug == "on") {
-					logInstance.errors.allErrors.each{log.info it}
+					logInstance.errors.allErrors.each{log.error it}
 				}
 			}
 			return logInstance
@@ -273,7 +273,7 @@ class JsshDbStorageService extends JsshConfService {
 			logInstance = new CommandLogs(user: user, sshUser: sshUser, contents: message, comlog: comlog, conlog: con)
 			if (!logInstance.save(flush:true)) {
 				if (config.debug == "on") {
-					logInstance.errors.allErrors.each{log.info it}
+					logInstance.errors.allErrors.each{log.error it}
 				}
 			}
 		}

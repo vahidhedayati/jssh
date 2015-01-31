@@ -35,33 +35,7 @@ public class JsshClientProcessService extends JsshConfService  {
 	private boolean enablePong
 	private int pingRate
 
-	public void handleClose(Session userSession) {
-		String uusername = userSession.userProperties.get("username") as String
-		String ujob = userSession.userProperties.get("job") as String
-		try {
-			synchronized (sshUsers) {
-				sshUsers?.each { crec->
-					if (crec && crec.isOpen()) {
-						String cjob =  crec.userProperties.get("job") as String
-						String cuser = crec.userProperties.get("username") as String
-						if (ujob == cjob) {
-							if (!cuser.endsWith(frontend)) {
-								jsshMessagingService.sendMsg(crec, "_DISCONNECT")
-							}else{
-								if (config.debug == "on") {
-									log.info "Closing Websocket for ${cuser}"
-								}
-								crec.close()
-							}
-						}
-					}
-				}
-			}
-		} catch (IOException e) {
-			log.error ("handleClose failed", e)
-		}
 
-	}
 
 	public void processResponse(Session userSession, String message) {
 
@@ -107,17 +81,12 @@ public class JsshClientProcessService extends JsshConfService  {
 			} catch (Exception e) {
 				e.printStackTrace()
 			}
-
-
-		}else if (message.startsWith('/addGroup')) {
-
-			def values = parseInput("/addGroup ",message)
-			String user = values.user as String
-			String msg = values.msg as String
-
-			String output = jsshDbStorageService.storeGroup(msg,user)
-			jsshMessagingService.sendBackEndFM(username, output)
-
+			//}else if (message.startsWith('/addGroup')) {
+			//	def values = parseInput("/addGroup ",message)
+			//	String user = values.user as String
+			//	String msg = values.msg as String
+			//	String output = jsshDbStorageService.storeGroup(msg,user)
+			//	jsshMessagingService.sendBackEndFM(username, output)
 		}else if (message.startsWith('/system')) {
 			def values = parseInput("/system ",message)
 			String user = values.user as String
@@ -143,18 +112,9 @@ public class JsshClientProcessService extends JsshConfService  {
 			verifyGeneric(rmesg)
 
 			boolean frontend = rmesg.frontend.toBoolean()
-
-			if (frontend) {
-				go = multiUser(userSession)
-			}
-			//println "-- ${enablePong1} $username -- in parseJSON"
 			boolean go2 = isConfigEnabled(enablePong1)
-			//if (go == false) {
-			//jsshMessagingService.sendBackEndFM(username, )
-			//	jsshMessagingService.sendFrontEndPM2(userSession, user,'ssh connection to ${host} refused')
-			//}
-			if (go2 && go) {
-				j2sshService.pingPong(userSession, pingRate1 as Integer, username)
+			if (frontend) {
+				go = multiUser(userSession, go2, pingRate1 as Integer)
 			}
 		}
 
@@ -169,8 +129,8 @@ public class JsshClientProcessService extends JsshConfService  {
 					userSession.userProperties.put("status", "pause")
 				}else if (system == "RESUME:-") {
 					userSession.userProperties.put("status", "resume")
-				}else if (message.equals('PONG')) {
-					if (enablePong1 && go) {
+				}else if (system.equals('PONG')) {
+					if (enablePong1) {
 						j2sshService.pingPong(userSession, pingRate1, username)
 					}
 				}
@@ -178,8 +138,8 @@ public class JsshClientProcessService extends JsshConfService  {
 		}
 	}
 
-	private Boolean multiUser(Session userSession) {
-		return j2sshService.sshConnect(  user, userpass, host,	usercommand, port, sshKey, sshKeyPass, userSession)
+	private Boolean multiUser(Session userSession, boolean enablePong1, int pingRate1) {
+		return j2sshService.sshConnect( enablePong1, pingRate1, user, userpass, host,	usercommand, port, sshKey, sshKeyPass, userSession)
 	}
 
 	private void verifyGeneric(JSONObject data) {

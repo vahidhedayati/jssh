@@ -3,7 +3,7 @@ import grails.plugin.jssh.JsshConfig
 import grails.plugin.jssh.JsshEndpoint
 
 class JsshGrailsPlugin {
-    def version = "1.1"
+    def version = "1.2"
 	def grailsVersion = "2.0 > *"
 	def title = "j2ssh SSH Plugin"
 	def author = "Vahid Hedayati"

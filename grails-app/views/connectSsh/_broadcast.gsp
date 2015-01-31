@@ -52,7 +52,9 @@
 			}
 		}
 	}
-		function closeConnection${divId}() {
+	
+	
+	function closeConnection${divId}() {
 		webSocket${divId}.send(JSON.stringify({ 'frontend':"true",'DISCO':"true", 'system': 'disconnect'}));
 		webSocket${divId}.onclose = function() { }
         webSocket${divId}.close();
@@ -90,7 +92,6 @@
 		return ison;
 	}	
 
-	
 	window.onbeforeunload = function() {
 		//webSocket${divId}.onclose = function() { }
 		webSocket${divId}.send(JSON.stringify({ 'frontend':"true",'DISCO':"true", 'system': 'disconnect'}));

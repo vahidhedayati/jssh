@@ -34,8 +34,11 @@ import com.sshtools.j2ssh.session.SessionChannelClient
  * It now handles two types of websocket connections
  * The primary being older method which is a direct websocket connection to Jssh libraries.
  * 
- * Latter method has complicated things from my point of view since a lot of things has now broken due to this change
- * The change in short performs two socket connections 1 being front-end webpage 2nd being backend connection
+ * It is probably confusing to try follow the logic but in short if there is a frontend
+ * it is assumed the Endpoint call is being done via the new socket jssh:conn method and messages
+ * are forwarded or redirected to jsshClientEndPoint.
+ * There are exceptions such as /actions which some only new conn method calls and thus
+ * calls are directed back to jsshClientEndpoint or its associate client classes.
  * 
  */
 @WebListener
@@ -51,7 +54,6 @@ class JsshEndpoint extends JsshConfService implements ServletContextListener {
 	private JsshService jsshService
 	private J2sshService j2sshService
 	private JsshMessagingService jsshMessagingService
-	private JsshClientProcessService jsshClientProcessService
 
 	private SshClient ssh = new SshClient()
 	private SessionChannelClient session
@@ -97,9 +99,8 @@ class JsshEndpoint extends JsshConfService implements ServletContextListener {
 		jsshService = ctx.jsshService
 		j2sshService = ctx.j2sshService
 		jsshMessagingService = ctx.jsshMessagingService
-		jsshClientProcessService = ctx.jsshClientProcessService
+	
 		userSession.userProperties.put("job", job)
-
 	}
 
 	@OnMessage
@@ -142,17 +143,13 @@ class JsshEndpoint extends JsshConfService implements ServletContextListener {
 			def values = parseInput("/bcast ",message)
 			String cjob = values.user as String
 			String msg = values.msg as String
-
-			//messagingService.sendJobMessage(cjob,msg)
 			jsshMessagingService.sendJobPM(userSession, cjob, msg)
-
-
-
-
-		}else if (message.startsWith('/addGroup')) {
-			def values = parseInput("/addGroup ",message)
-			String msg = values.msg as String
-			jsshMessagingService.fwdFendMsg(username,"/addGroup ${username},$msg")
+			
+		//}else if (message.startsWith('/addGroup')) {
+		//	def values = parseInput("/addGroup ",message)
+		//	String msg = values.msg as String
+		//	jsshMessagingService.fwdFendMsg(username,"/addGroup ${username},$msg")
+			
 			// All other actions
 		}else{
 			def data = JSON.parse(message)
@@ -170,10 +167,9 @@ class JsshEndpoint extends JsshConfService implements ServletContextListener {
 			if (data) {
 				if (bfrontend) {
 					if (!data.client) {
-						// 	Disconnect both the front-end and backend -
 						if  (data.DISCO == "true") {
-							//jsshMessagingService.sendBackPM(username, message)
-							jsshClientProcessService.handleClose(userSession)
+							userSession.userProperties.put("status", "disconnect")
+							jsshAuthService.handleClose(userSession)
 						}else if (data.COMMAND == "true") {
 							jsshMessagingService.sendBackPM(username, message,"system")
 						}else{
@@ -188,15 +184,6 @@ class JsshEndpoint extends JsshConfService implements ServletContextListener {
 					}
 				}
 			} else{
-				/*if  (data.system) { 
-				 println "EndPoint Has ${data.system} wooooot"
-				 if (data.system == "disconnect") {
-				 //clientListenerService.disconnect(userSession)
-				 println "EndPoint Has closing ${user} session ------------"
-				 } 
-				 }
-				 */
-
 				/* New websocket Client/Server Method
 				 * Master (backend) does connection and processes commands sent via front-end
 				 */
