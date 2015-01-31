@@ -50,7 +50,8 @@ class JsshEndpoint extends JsshConfService implements ServletContextListener {
 	private JsshAuthService jsshAuthService
 	private JsshService jsshService
 	private J2sshService j2sshService
-	private MessagingService messagingService
+	private JsshMessagingService jsshMessagingService
+	private JsshClientProcessService jsshClientProcessService
 
 	private SshClient ssh = new SshClient()
 	private SessionChannelClient session
@@ -95,13 +96,15 @@ class JsshEndpoint extends JsshConfService implements ServletContextListener {
 		jsshAuthService = ctx.jsshAuthService
 		jsshService = ctx.jsshService
 		j2sshService = ctx.j2sshService
-		messagingService = ctx.messagingService
+		jsshMessagingService = ctx.jsshMessagingService
+		jsshClientProcessService = ctx.jsshClientProcessService
 		userSession.userProperties.put("job", job)
 
 	}
 
 	@OnMessage
 	public void handleMessage(String message, Session userSession) {
+
 		String username = userSession.userProperties.get("username") as String
 		String job  =  userSession.userProperties.get("job") as String
 		if (config.debug == "on") {
@@ -113,7 +116,7 @@ class JsshEndpoint extends JsshConfService implements ServletContextListener {
 			String user = values.user as String
 			String msg = values.msg as String
 			if (user != username) {
-				messagingService.privateMessage(userSession, user,msg,'/pm')
+				jsshMessagingService.privateMessage(userSession, user,msg,'/pm')
 			}else{
 				log.error "Messaging yourself?"
 			}
@@ -131,25 +134,25 @@ class JsshEndpoint extends JsshConfService implements ServletContextListener {
 			}
 			String msg = values.msg as String
 			if (msg.startsWith('{')) {
-				messagingService.forwardMessage(user,msg)
+				jsshMessagingService.forwardMessage(user,msg)
 			}else{
-				messagingService.forwardMessage(user,"/bm $users,$msg")
+				jsshMessagingService.forwardMessage(user,"/bm $users,$msg")
 			}
 		}else if (message.startsWith('/bcast')) {
 			def values = parseInput("/bcast ",message)
 			String cjob = values.user as String
 			String msg = values.msg as String
-			
-			//messagingService.sendJobMessage(cjob,msg)
-			messagingService.sendJobPM(userSession, cjob, msg)
 
-			
-			
-			
+			//messagingService.sendJobMessage(cjob,msg)
+			jsshMessagingService.sendJobPM(userSession, cjob, msg)
+
+
+
+
 		}else if (message.startsWith('/addGroup')) {
 			def values = parseInput("/addGroup ",message)
 			String msg = values.msg as String
-			messagingService.fwdFendMsg(username,"/addGroup ${username},$msg")
+			jsshMessagingService.fwdFendMsg(username,"/addGroup ${username},$msg")
 			// All other actions
 		}else{
 			def data = JSON.parse(message)
@@ -169,9 +172,10 @@ class JsshEndpoint extends JsshConfService implements ServletContextListener {
 					if (!data.client) {
 						// 	Disconnect both the front-end and backend -
 						if  (data.DISCO == "true") {
-							messagingService.sendBackPM(username, message)
+							//jsshMessagingService.sendBackPM(username, message)
+							jsshClientProcessService.handleClose(userSession)
 						}else if (data.COMMAND == "true") {
-							messagingService.sendBackPM(username, message,"system")
+							jsshMessagingService.sendBackPM(username, message,"system")
 						}else{
 							userSession.basicRemote.sendText("${message}")
 						}
@@ -184,6 +188,14 @@ class JsshEndpoint extends JsshConfService implements ServletContextListener {
 					}
 				}
 			} else{
+				/*if  (data.system) { 
+				 println "EndPoint Has ${data.system} wooooot"
+				 if (data.system == "disconnect") {
+				 //clientListenerService.disconnect(userSession)
+				 println "EndPoint Has closing ${user} session ------------"
+				 } 
+				 }
+				 */
 
 				/* New websocket Client/Server Method
 				 * Master (backend) does connection and processes commands sent via front-end

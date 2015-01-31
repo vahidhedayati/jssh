@@ -122,6 +122,7 @@ class JsshService extends JsshConfService {
 	public void pingPong(Session userSession) {
 		int pingRate = userSession.userProperties.get("pingRate") as Integer
 		if (userSession && userSession.isOpen()) {
+			try {
 			def asyncProcess = new Thread({
 				if (config.debug == "on") {
 					log.debug "Ping being sent from backend to front end "
@@ -130,6 +131,10 @@ class JsshService extends JsshConfService {
 				userSession.basicRemote.sendText('ping')
 			} as Runnable )
 			asyncProcess.start()
+			} catch (Exception e) {
+			
+			//	e.printStackTrace()
+			}
 		}
 	}
 

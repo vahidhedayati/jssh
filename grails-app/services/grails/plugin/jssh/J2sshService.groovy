@@ -20,24 +20,31 @@ class J2sshService extends JsshConfService {
 
 	private boolean isAuthenticated = false
 
-	def messagingService
+	def jsshMessagingService
 
-	public void pingPong(Session userSession, Integer pingRate=null) {
+	public void pingPong(Session userSession, Integer pingRate, String username) {
 		if (userSession && userSession.isOpen()) {
 			String user = userSession.userProperties.get("username") as String
+			//println "-- ${user} ${username} pinging"
 			if (!pingRate) {
-				pingRate = userSession.userProperties.get("pingRate") as Integer
+				//	pingRate = userSession.userProperties.get("pingRate") as Integer
 			}
-			
-			while ((userSession && userSession.isOpen())) {
-					sleep(pingRate ?: 60000)
-					messagingService.sendFrontEndPM(userSession, user,'ping')
-			}
+
+			//println "-pingpong--- ${user}"
+			//while ((userSession && userSession.isOpen())) {
+			/*def asyncProcess = new Thread({
+			 sleep(pingRate ?: 60000)
+			 jsshMessagingService.sendFrontEndPM(userSession, user,'ping')
+			 } as Runnable )
+			 asyncProcess.start()
+			 //}
+			 * 
+			 */
 		}
 	}
 
-	private void sshConnect(String user, String userpass, String host, String usercommand, int port,
-		String sshKey, String sshKeyPass, Session userSession)  {
+	private Boolean sshConnect(String user, String userpass, String host, String usercommand, int port,
+			String sshKey, String sshKeyPass, Session userSession)  {
 		String suser = userSession.userProperties.get("username") as String
 		String sshuser = config.USER ?: ''
 		String sshpass = config.PASS ?: ''
@@ -52,108 +59,159 @@ class J2sshService extends JsshConfService {
 		int result=0
 
 		SshConnectionProperties properties = new SshConnectionProperties()
-		properties.setHost(host)
-		properties.setPort(sshPort)
-		SshClient ssh = new SshClient()
-		ssh.connect(properties, new IgnoreHostKeyVerification())
-		// User has a key authenticate using SSH Key
-		if (!password) {
-			PublicKeyAuthenticationClient pk = new PublicKeyAuthenticationClient()
-			pk.setUsername(username)
-
-			SshPrivateKeyFile file = SshPrivateKeyFile.parse(new File(sshKey ?: ''))
-			if (file.isPassphraseProtected()) {
-				keyfilePass = sshKeyPass ?: ''
-			}
-			SshPrivateKey key = file.toPrivateKey(keyfilePass);
-			pk.setKey(key)
-			// Try the authentication
-			result = ssh.authenticate(pk)
-			if (result == AuthenticationProtocolState.COMPLETE) {
-				isAuthenticated = true
-			}
+		boolean go = true
+		SshClient ssh
+		try {
+			properties.setHost(host)
+			properties.setPort(sshPort)
+			ssh = new SshClient()
+			ssh.connect(properties, new IgnoreHostKeyVerification())
+		} catch (Exception e) {
+			go = false
+			//jsshMessagingService.sendFrontEndPM(userSession, user,"ssh connection to ${host} refused")
 		}
-		// A password has been provided - attempt to ssh using password
-		else{
-			PasswordAuthenticationClient pwd = new PasswordAuthenticationClient()
-			pwd.setUsername(username)
-			pwd.setPassword(password)
-			result = ssh.authenticate(pwd)
-			if(result == 4)  {
-				isAuthenticated = true
-			}
-		}
-		// Evaluate the result
-		if (isAuthenticated) {
+		if (go && ssh) {
 
-			///userSession.userProperties.put(host, ssh)
-			userSession.userProperties.put('host', host)
+			// User has a key authenticate using SSH Key
+			if (!password) {
+				PublicKeyAuthenticationClient pk = new PublicKeyAuthenticationClient()
+				pk.setUsername(username)
+
+				SshPrivateKeyFile file = SshPrivateKeyFile.parse(new File(sshKey ?: ''))
+				if (file.isPassphraseProtected()) {
+					keyfilePass = sshKeyPass ?: ''
+				}
+				SshPrivateKey key = file.toPrivateKey(keyfilePass);
+				pk.setKey(key)
+				// Try the authentication
+				result = ssh.authenticate(pk)
+				if (result == AuthenticationProtocolState.COMPLETE) {
+					isAuthenticated = true
+				}
+			}
+			// A password has been provided - attempt to ssh using password
+			else{
+				PasswordAuthenticationClient pwd = new PasswordAuthenticationClient()
+				pwd.setUsername(username)
+				pwd.setPassword(password)
+				result = ssh.authenticate(pwd)
+				if(result == 4)  {
+					isAuthenticated = true
+				}
+			}
+
 			userSession.userProperties.put('sshClient', ssh)
-			
-			/*
-			boolean enablePong =  userSession.userProperties.get('enablePong') as Boolean
-			if (enablePong) {
-				def asyncProcess1 = new Thread({
-				int pingRate = userSession.userProperties.get("pingRate") as Integer
-				pingPong(userSession, pingRate)
-				} as Runnable )
-				asyncProcess1.start()
-			}
-			*/
-			def asyncProcess = new Thread({
-				processConnection(ssh, userSession, usercommand)
-			} as Runnable )
-			asyncProcess.start()
 
-		}else{
-			def authType = "using key file  "
-			if (password) { authType = "using password" }
-			String failMessage = "SSH: Failed authentication user: ${username} on ${host} ${authType}"
-			messagingService.sendFrontEndPM( userSession, user, failMessage)
+			// Evaluate the result
+			if (isAuthenticated) {
+
+				///userSession.userProperties.put(host, ssh)
+				userSession.userProperties.put('host', host)
+
+
+				/*
+				 boolean enablePong =  userSession.userProperties.get('enablePong') as Boolean
+				 if (enablePong) {
+				 def asyncProcess1 = new Thread({
+				 int pingRate = userSession.userProperties.get("pingRate") as Integer
+				 pingPong(userSession, pingRate)
+				 } as Runnable )
+				 asyncProcess1.start()
+				 }
+				 */
+				try {
+					def asyncProcess = new Thread({
+						processConnection(ssh, userSession, usercommand)
+					} as Runnable )
+					asyncProcess.start()
+				} catch (Exception e) {
+					e.printStackTrace()
+				}
+
+			}else{
+				def authType = "using key file  "
+				if (password) { authType = "using password" }
+				String failMessage = "SSH: Failed authentication user: ${username} on ${host} ${authType}"
+				jsshMessagingService.sendFrontEndPM( userSession, user, failMessage)
+			}
 		}
 
+		return isAuthenticated
+	}
+
+	private void closeConnection(SshClient mssh, String user) {
+		disconnect( null, mssh, user )
 	}
 
 	private void processConnection(SshClient ssh, Session userSession, String usercommand) {
-		SessionChannelClient session = new SessionChannelClient()
-		StringBuilder catchup = new StringBuilder()
-		int timeout = 1000
-		session = ssh.openSessionChannel()
-		String user = userSession.userProperties.get("username") as String
-		SessionOutputReader sor = new SessionOutputReader(session)
-		if (session.requestPseudoTerminal("gogrid",80,24, 0 , 0, "")) {
-			if (session.startShell()) {
-				ChannelOutputStream out = session.getOutputStream()
+		String suser = userSession.userProperties.get("username") as String
+		if (ssh && ssh.isConnected()) {
+			SessionChannelClient session = new SessionChannelClient()
+			StringBuilder catchup = new StringBuilder()
+			int timeout = 1000
+			session = ssh.openSessionChannel()
+			String user = userSession.userProperties.get("username") as String
+			SessionOutputReader sor = new SessionOutputReader(session)
+			if (session.requestPseudoTerminal("gogrid",80,24, 0 , 0, "")) {
+				if (session.startShell()) {
+					ChannelOutputStream out = session.getOutputStream()
 
-			}
-		}
-		if (!usercommand.endsWith('\n')) {
-			usercommand = usercommand+'\n'
-		}
-		session.getOutputStream().write(usercommand.getBytes())
-		InputStream input = session.getInputStream()
-		byte[] buffer = new byte[255]
-		int read;
-		int i=0
-		if (userSession && userSession.isOpen()) {
-			while ((read = input.read(buffer))>0) {
-				String status = userSession.userProperties.get("status") as String
-				String out1 = new String(buffer, 0, read)
-				if (status == "pause") {
-					catchup.append(out1)
-				}else{
-					if (catchup) {
-						messagingService.sendFrontEndPM2(userSession, user, catchup as String)
-						catchup = new StringBuilder()
-					}
-					messagingService.sendFrontEndPM2(userSession, user, parseBash(out1))
 				}
 			}
-		}
-		def cc = ssh.getActiveChannelCount() ?: 1
-		if (cc>0) {
-			session.close()
-			session.getState().waitForState(ChannelState.CHANNEL_CLOSED, timeout);
+			if (!usercommand.endsWith('\n')) {
+				usercommand = usercommand+'\n'
+			}
+
+			//if (usercommand == "disconnect") {
+			//	disconnect( session, ssh, user )
+			//}
+
+			session.getOutputStream().write(usercommand.getBytes())
+			InputStream input = session.getInputStream()
+			byte[] buffer = new byte[255]
+			int read;
+			int i=0
+			boolean go = true
+			if (userSession && userSession.isOpen()) {
+				while (((read = input.read(buffer))>0)&&(go)) {
+
+					String status = userSession.userProperties.get("status") as String
+					String out1 = new String(buffer, 0, read)
+					if (status == "pause") {
+						catchup.append(out1)
+					}else if (status == "disconnect") {
+						disconnect( session, ssh, user )
+					}else{
+						if (catchup) {
+							jsshMessagingService.sendFrontEndPM2(userSession, user, catchup as String)
+							catchup = new StringBuilder()
+						}
+						jsshMessagingService.sendFrontEndPM2(userSession, user, parseBash(out1))
+					}
+
+				}
+
+				def cc = ssh.getActiveChannelCount() ?: 1
+				if (cc>0) {
+					session.close()
+					session.getState().waitForState(ChannelState.CHANNEL_CLOSED, timeout);
+				}
+			}else{
+				disconnect( session, ssh, user )
+			}
+		}else{
+			jsshMessagingService.sendFrontEndPM2(userSession, suser, "no connection, ${usercommand} not executed")
 		}
 	}
+
+	private void disconnect(SessionChannelClient session=null,SshClient ssh,String user ) {
+		if (config.debug == "on") {
+			log.info"ssh session being closed for ${user}"
+		}
+		if (session) {
+			session.close()
+		}
+		ssh.disconnect()
+	}
+
 }

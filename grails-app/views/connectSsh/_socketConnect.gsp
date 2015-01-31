@@ -32,10 +32,12 @@
 			$('#connectionCount${divId}').html(jsonData.connCount);
 		}else{
 			//console.log("1: "+message.data);
+			console.log("1: "+message.data);
 			
 			if (message.data == "/fm ${backuser},ping") {
 				webSocket${divId}.send(JSON.stringify({ 'frontend':"true",'COMMAND':"true", 'system': 'PONG'}));
 			}else{
+				
 				$('#messagesTextarea${divId}').append(escapeHtml(message.data));
 				scrollToBottom${divId}();
 			}
@@ -56,7 +58,7 @@
 		webSocket${divId}.send(JSON.stringify({ 'frontend':"true",'DISCO':"true", 'system': 'disconnect'}));
 		webSocket${divId}.onclose = function() { }
         webSocket${divId}.close();
-        if (${divId}=="Basic") {
+        if ( (${divId}!= undefined) && (${divId}=="Basic")) {
         	window.history.back();
         }else{
         	$("#mySshBox${divId}").html('');
@@ -121,6 +123,6 @@
 	window.onbeforeunload = function() {
 		//webSocket${divId}.onclose = function() { }
 		webSocket${divId}.send(JSON.stringify({ 'frontend':"true",'DISCO':"true", 'system': 'disconnect'}));
-		webSocket${divId}.close();
+		//webSocket${divId}.close();
 	}
 </g:javascript>

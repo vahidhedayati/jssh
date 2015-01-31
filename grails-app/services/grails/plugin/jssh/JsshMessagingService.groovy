@@ -5,7 +5,7 @@ import grails.converters.JSON
 import javax.websocket.Session
 
 
-class MessagingService extends JsshConfService  {
+class JsshMessagingService extends JsshConfService  {
 
 
 	def sendFrontEndPM2(Session userSession, String user,String message) {
@@ -13,7 +13,7 @@ class MessagingService extends JsshConfService  {
 		def found = findUser( user)
 		if (!found) {
 			int i = 0
-			while (i < 30 && (found==false)) {
+			while (i < 60 && (found==false)) {
 				sleep(200)
 				found = findUser( user)
 				i++
@@ -32,7 +32,7 @@ class MessagingService extends JsshConfService  {
 		def found = findUser( user)
 		if (!found) {
 			int i = 0
-			while (i < 30 && (found==false)) {
+			while (i < 60 && (found==false)) {
 				sleep(200)
 				found = findUser( user)
 				i++

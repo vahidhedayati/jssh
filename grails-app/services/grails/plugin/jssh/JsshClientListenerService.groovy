@@ -8,7 +8,7 @@ import javax.websocket.Session
 
 public class JsshClientListenerService extends JsshConfService {
 
-	def messagingService
+	def jsshMessagingService
 
 	Session p_connect(String _uri, String username,  Map map){
 		URI oUri
@@ -38,7 +38,7 @@ public class JsshClientListenerService extends JsshConfService {
 		oSession.userProperties.put("host", map.hostname)
 		oSession.userProperties.put('enablePong', map.enablePong)
 		oSession.userProperties.put('pingRate', map.pingRate)
-		
+
 
 		if (map.hosts) {
 			oSession.userProperties.put("hosts", map.hosts)
@@ -51,7 +51,7 @@ public class JsshClientListenerService extends JsshConfService {
 	public Session disconnect(Session _oSession){
 		try{
 			if(_oSession && _oSession.isOpen()){
-				messagingService.sendMessage(_oSession, DISCONNECTOR)
+				jsshMessagingService.sendMessage(_oSession, DISCONNECTOR)
 			}
 		}catch (Exception e){
 			e.printStackTrace()
