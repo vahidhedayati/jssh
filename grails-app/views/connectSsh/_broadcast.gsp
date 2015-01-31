@@ -1,3 +1,9 @@
+<g:if test="${enduser?.verifyAppVersion().equals('assets')}">
+	<g:render template="/assets" />
+</g:if>
+<g:else>
+	<g:render template="/resources" />
+</g:else>
 <div class="dark">
 
 	
@@ -58,7 +64,7 @@
 		webSocket${divId}.send(JSON.stringify({ 'frontend':"true",'DISCO':"true", 'system': 'disconnect'}));
 		webSocket${divId}.onclose = function() { }
         webSocket${divId}.close();
-        if (${divId}=="Basic") {
+        if ((${divId}!= undefined) && (${divId}=="Basic")) {
         	window.history.back();
         }else{
         	$("#mySshBox${divId}").html('');

@@ -27,7 +27,9 @@ class J2sshService extends JsshConfService {
 			String user = userSession.userProperties.get("username") as String
 			def asyncProcess = new Thread({
 				sleep(pingRate ?: 60000)
-				jsshMessagingService.sendFrontEndPM(userSession,user,'ping','/fm')
+				if (userSession && userSession.isOpen()) {
+					jsshMessagingService.sendFrontEndPM(userSession,user,'ping','/fm')
+				}
 			} as Runnable )
 			asyncProcess.start()
 		}
@@ -139,6 +141,7 @@ class J2sshService extends JsshConfService {
 			if (!usercommand.endsWith('\n')) {
 				usercommand = usercommand+'\n'
 			}
+
 			session.getOutputStream().write(usercommand.getBytes())
 			InputStream input = session.getInputStream()
 			byte[] buffer = new byte[255]

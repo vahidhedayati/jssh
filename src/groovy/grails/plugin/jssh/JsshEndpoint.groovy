@@ -54,6 +54,7 @@ class JsshEndpoint extends JsshConfService implements ServletContextListener {
 	private JsshService jsshService
 	private J2sshService j2sshService
 	private JsshMessagingService jsshMessagingService
+	private JsshClientProcessService jsshClientProcessService
 
 	private SshClient ssh = new SshClient()
 	private SessionChannelClient session
@@ -99,7 +100,7 @@ class JsshEndpoint extends JsshConfService implements ServletContextListener {
 		jsshService = ctx.jsshService
 		j2sshService = ctx.j2sshService
 		jsshMessagingService = ctx.jsshMessagingService
-	
+		jsshClientProcessService = ctx.jsshClientProcessService
 		userSession.userProperties.put("job", job)
 	}
 
@@ -111,6 +112,7 @@ class JsshEndpoint extends JsshConfService implements ServletContextListener {
 		if (config.debug == "on") {
 			log.info "@onMessage: $username: $job > $message\n\n"
 		}
+		
 		// Standard Private Messages
 		if (message.startsWith('/pm')) {
 			def values = parseInput("/pm ",message)
@@ -145,11 +147,7 @@ class JsshEndpoint extends JsshConfService implements ServletContextListener {
 			String msg = values.msg as String
 			jsshMessagingService.sendJobPM(userSession, cjob, msg)
 			
-		//}else if (message.startsWith('/addGroup')) {
-		//	def values = parseInput("/addGroup ",message)
-		//	String msg = values.msg as String
-		//	jsshMessagingService.fwdFendMsg(username,"/addGroup ${username},$msg")
-			
+
 			// All other actions
 		}else{
 			def data = JSON.parse(message)
@@ -169,7 +167,7 @@ class JsshEndpoint extends JsshConfService implements ServletContextListener {
 					if (!data.client) {
 						if  (data.DISCO == "true") {
 							userSession.userProperties.put("status", "disconnect")
-							jsshAuthService.handleClose(userSession)
+							jsshClientProcessService.handleClose(userSession)
 						}else if (data.COMMAND == "true") {
 							jsshMessagingService.sendBackPM(username, message,"system")
 						}else{

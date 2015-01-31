@@ -6,8 +6,7 @@ import javax.websocket.Session
 
 
 class JsshMessagingService extends JsshConfService  {
-	
-	def jsshAuthService
+
 
 	def sendFrontEndPM2(Session userSession, String user,String message) {
 		if (userSession && userSession.isOpen()) {
@@ -17,8 +16,7 @@ class JsshMessagingService extends JsshConfService  {
 				def crec = usersSession(user)
 				crec.basicRemote.sendText("${message}")
 			}else{
-				log.error "COULD NOT FIND ${user} : $message. Closing this connection\n"
-				jsshAuthService.handleClose(userSession)
+				log.error "COULD NOT FIND ${user} : $message "
 			}
 		}
 	}
@@ -33,8 +31,7 @@ class JsshMessagingService extends JsshConfService  {
 			if (found) {
 				userSession.basicRemote.sendText("${mtype} ${user},${message}")
 			}else{
-				log.error "COULD NOT FIND ${user} : $message. Closing this connection\n"
-				jsshAuthService.handleClose(userSession)
+				log.error "COULD NOT FIND ${user} : $message "
 			}
 		}
 	}
@@ -178,18 +175,6 @@ class JsshMessagingService extends JsshConfService  {
 		}
 	}
 
-	private boolean loopUser(String user) {
-		boolean found = findUser( user)
-		if (!found) {
-			int i = 0
-			while (i < 60 && (found==false)) {
-				sleep(200)
-				found = findUser( user)
-				i++
-			}
-		}
-		return found
-	}
 
 	Session usersSession(String username) {
 		Session userSession
@@ -209,5 +194,20 @@ class JsshMessagingService extends JsshConfService  {
 		}
 		return userSession
 	}
+
+
+	private boolean loopUser(String user) {
+		boolean found = findUser(user)
+		if (!found) {
+			int i = 0
+			while (i < 60 && (found==false)) {
+				sleep(200)
+				found = findUser( user)
+				i++
+			}
+		}
+		return found
+	}
+
 
 }

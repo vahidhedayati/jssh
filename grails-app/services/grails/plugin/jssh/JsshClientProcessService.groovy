@@ -35,7 +35,35 @@ public class JsshClientProcessService extends JsshConfService  {
 	private boolean enablePong
 	private int pingRate
 
+	public void handleClose(Session userSession) {
+		String uusername = userSession.userProperties.get("username") as String
+		String ujob = userSession.userProperties.get("job") as String
+		try {
+			synchronized (sshUsers) {
+				sshUsers?.each { crec->
+					if (crec && crec.isOpen()) {
+						String cjob =  crec.userProperties.get("job") as String
+						String cuser = crec.userProperties.get("username") as String
+						if (ujob == cjob) {
+							
+							if (!cuser.endsWith(frontend)) {
+								jsshMessagingService.sendMsg(crec, "_DISCONNECT")
+							}else{
+								if (config.debug == "on") {
+									log.info "Closing Websocket for ${cuser}"
+								}
+								crec.close()
+								sleep(200)
+							}
+						}
+					}
+				}
+			}
+		} catch (IOException e) {
+			log.error ("handleClose failed", e)
+		}
 
+	}
 
 	public void processResponse(Session userSession, String message) {
 
@@ -51,6 +79,7 @@ public class JsshClientProcessService extends JsshConfService  {
 			SshClient amssh  =  userSession.userProperties.get('sshClient') as SshClient
 			j2sshService.closeConnection(amssh, username)
 			userSession.close()
+			sleep(200)
 		}else if  (message.startsWith('/bm')) {
 			def values = parseInput("/fm ",message)
 			String cuser, chost
@@ -81,12 +110,8 @@ public class JsshClientProcessService extends JsshConfService  {
 			} catch (Exception e) {
 				e.printStackTrace()
 			}
-			//}else if (message.startsWith('/addGroup')) {
-			//	def values = parseInput("/addGroup ",message)
-			//	String user = values.user as String
-			//	String msg = values.msg as String
-			//	String output = jsshDbStorageService.storeGroup(msg,user)
-			//	jsshMessagingService.sendBackEndFM(username, output)
+
+
 		}else if (message.startsWith('/system')) {
 			def values = parseInput("/system ",message)
 			String user = values.user as String

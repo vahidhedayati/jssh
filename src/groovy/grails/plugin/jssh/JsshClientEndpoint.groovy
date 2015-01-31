@@ -22,10 +22,8 @@ public class JsshClientEndpoint  extends JsshConfService {
 	private final Logger log = LoggerFactory.getLogger(getClass().name)
 	private Session userSession = null
 	private String job = null
-	
 	private JsshClientProcessService jsshClientProcessService
-	private JsshAuthService jsshAuthService
-	
+
 	@OnOpen
 	public void handleOpen(Session userSession,EndpointConfig c,@PathParam("job") String job) {
 		this.userSession = userSession
@@ -33,14 +31,13 @@ public class JsshClientEndpoint  extends JsshConfService {
 		def ctx= SCH.servletContext.getAttribute(GA.APPLICATION_CONTEXT)
 		
 		jsshClientProcessService = ctx.jsshClientProcessService
-		jsshAuthService = ctx.jsshAuthService
 		//userSession.userProperties.put("job", job)
 		
 	}
 
 	@OnClose
 	public void onClose(final Session userSession, final CloseReason reason) {
-		jsshAuthService.handleClose(userSession)
+		jsshClientProcessService.handleClose(userSession)
 		this.userSession = null
 	}
 
@@ -55,7 +52,7 @@ public class JsshClientEndpoint  extends JsshConfService {
 
 	@OnError
 	public void handleError(Throwable t) {
-		jsshAuthService.handleClose(userSession)
+		jsshClientProcessService.handleClose(userSession)
 		t.printStackTrace()
 	}
 	

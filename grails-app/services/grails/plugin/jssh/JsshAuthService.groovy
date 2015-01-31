@@ -16,7 +16,7 @@ import com.sshtools.j2ssh.session.SessionChannelClient
  *  have a look for multiUser in processService which used to be all in here.
  *   
  */
-class JsshAuthService extends JsshConfService {
+class JsshAuthService {
 
 	def jsshRandService
 	def jsshService
@@ -27,37 +27,6 @@ class JsshAuthService extends JsshConfService {
 	private boolean enablePong
 	private int pingRate
 
-	// Shared handleClose for jssh:conn call method 
-	// moved here so that jsshMessaging service can use it
-	public void handleClose(Session userSession) {
-		String uusername = userSession.userProperties.get("username") as String
-		String ujob = userSession.userProperties.get("job") as String
-		try {
-			synchronized (sshUsers) {
-				sshUsers?.each { crec->
-					if (crec && crec.isOpen()) {
-						String cjob =  crec.userProperties.get("job") as String
-						String cuser = crec.userProperties.get("username") as String
-						if (ujob == cjob) {
-
-							if (!cuser.endsWith(frontend)) {
-								jsshMessagingService.sendMsg(crec, "_DISCONNECT")
-							}else{
-								if (config.debug == "on") {
-									log.info "Closing Websocket for ${cuser}"
-								}
-								crec.close()
-							}
-						}
-					}
-				}
-			}
-		} catch (IOException e) {
-			log.error ("handleClose failed", e)
-		}
-
-	}
-	
 	public void authenticate(SshClient ssh, SessionChannelClient session=null,
 			SshConnectionProperties properties=null,Session userSession, JSONObject data) {
 
@@ -92,7 +61,6 @@ class JsshAuthService extends JsshConfService {
 		}
 	}
 
-			
 	private void verifyGeneric(JSONObject data) {
 		this.host = data.hostname ?: ''
 		//this.port

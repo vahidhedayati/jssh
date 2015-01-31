@@ -17,8 +17,7 @@
 		webSocket${divId}.send(JSON.stringify({'client': 'yes', 'frontend':"${frontend}",'jsshUser':"${frontuser}"}))
 	}
 	
-	function processMessage${divId}(message) {
-	
+	function processMessage${divId}(message) {	
 		var json;
 		try {
 	  		json = JSON.parse(message.data);
@@ -33,30 +32,26 @@
 				webSocket${divId}.send(JSON.stringify({ 'frontend':"true",'COMMAND':"true", 'system': 'PONG'}));
 			}else{
 				if ((message.data != undefined)||(message.data != "")) {
-					//if  (${divId}!= undefined) {
-						$('#messagesTextarea${divId}').append(escapeHtml(message.data));
-						scrollToBottom${divId}();
-					//}
+					$('#messagesTextarea${divId}').append(escapeHtml(message.data));
+					scrollToBottom${divId}();
 				}
 			}
 		}
 	}
 	
 	function Pause${divId}() {
-		//webSocket${divId}.send("PAUSE:-");
 		webSocket${divId}.send(JSON.stringify({ 'frontend':"true",'COMMAND':"true", 'system': 'PAUSE:-'}));
     }
     
 	function Resume${divId}() {
 		webSocket${divId}.send(JSON.stringify({ 'frontend':"true",'COMMAND':"true", 'system': 'RESUME:-'}));
-		//webSocket${divId}.send("RESUME:-");
     }
     
 	function closeConnection${divId}() {
 		webSocket${divId}.send(JSON.stringify({ 'frontend':"true",'DISCO':"true", 'system': 'disconnect'}));
 		webSocket${divId}.onclose = function() { }
         webSocket${divId}.close();
-        if ( (${divId}!= undefined) && (${divId}=="Basic")) {
+        if ((${divId}!= undefined) && (${divId}=="Basic")) {
         	window.history.back();
         }else{
         	$("#mySshBox${divId}").html('');
