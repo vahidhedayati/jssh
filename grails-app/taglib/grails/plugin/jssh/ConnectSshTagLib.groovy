@@ -1,8 +1,4 @@
-
-
 package grails.plugin.jssh
-
-import grails.plugin.jssh.logging.CommandLogger
 
 import javax.websocket.Session
 

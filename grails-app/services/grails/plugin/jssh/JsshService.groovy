@@ -123,36 +123,33 @@ class JsshService extends JsshConfService {
 		int pingRate = userSession.userProperties.get("pingRate") as Integer
 		if (userSession && userSession.isOpen()) {
 			try {
-			def asyncProcess = new Thread({
-				if (config.debug == "on") {
-					log.debug "Ping being sent from backend to front end "
-				}
-				sleep(pingRate ?: 60000)
-				userSession.basicRemote.sendText('ping')
-			} as Runnable )
-			asyncProcess.start()
+				def asyncProcess = new Thread({
+					if (debug) {
+						log.debug "Ping being sent from backend to front end "
+					}
+					sleep(pingRate ?: 60000)
+					verifySession(userSession,'ping')
+				} as Runnable )
+				asyncProcess.start()
 			} catch (Exception e) {
-			
-			//	e.printStackTrace()
+				//	e.printStackTrace()
 			}
 		}
 	}
 
 	private void closeShell(SshClient ssh, SessionChannelClient session, Session userSession) {
-		def myMsg = [:]
 		int timeout = 1000;
 		def cc = ssh.getActiveChannelCount() ?: 1
 		if (cc>1) {
 			session.close()
 			session.getState().waitForState(ChannelState.CHANNEL_CLOSED, timeout);
-			userSession.basicRemote.sendText('Shell closed')
+			verifySession(userSession,'Shell closed')
 		}else{
-			userSession.basicRemote.sendText('Only 1 shell - could not close master window - try closing session : '+cc)
+			verifySession(userSession,'Only 1 shell - could not close master window - try closing session : '+cc)
 		}
 		def ncc = ssh.getActiveChannelCount() ?: 1
-		myMsg.put("connCount", ncc.toString())
-		def myMsgj = myMsg as JSON
-		userSession.basicRemote.sendText(myMsgj as String)
+		Map myMsg = ["connCount" : ncc.toString()]
+		verifySession(userSession,(myMsg as JSON).toString())
 	}
 
 	private void asyncProc(SshClient ssh,  SessionChannelClient session, Session userSession, String message) {
@@ -170,11 +167,9 @@ class JsshService extends JsshConfService {
 		}
 
 		def cc = ssh.getActiveChannelCount() ?: 1
-		def myMsg = [:]
-		myMsg.put("connCount", cc.toString())
-		def myMsgj = myMsg as JSON
-		userSession.basicRemote.sendText(myMsgj as String)
-		userSession.basicRemote.sendText('New shell created, console window : '+cc)
+		Map myMsg = ["connCount" : cc.toString()]
+		verifySession(userSession,(myMsg as JSON).toString())
+		verifySession(userSession, 'New shell created, console window : '+cc)
 	}
 
 	private void sshConnect(SshClient ssh, SessionChannelClient session=null, SshConnectionProperties properties=null,  String user, String userpass,
@@ -231,7 +226,7 @@ class JsshService extends JsshConfService {
 			def authType = "using key file  "
 			if (password) { authType = "using password" }
 			String failMessage = "SSH: Failed authentication user: ${username} on ${host} ${authType}"
-			userSession.basicRemote.sendText(failMessage)
+			verifySession(userSession, failMessage)
 		}
 	}
 
@@ -255,15 +250,21 @@ class JsshService extends JsshConfService {
 				}else{
 					if (resumed) {
 						resumed = false
-						userSession.basicRemote.sendText(parseBash(catchup as String))
+						verifySession(userSession, parseBash(catchup as String))
 						catchup = new StringBuilder()
 					}
-					userSession.basicRemote.sendText(parseBash(out1))
+					verifySession(userSession, parseBash(out1))
 				}
 			}
 		}
 	}
 
+	private void verifySession(Session userSession, String command) {
+		if (userSession && userSession.isOpen()) {
+			userSession.basicRemote.sendText(command)
+		}
+	}
+	
 	/*
 	 private void execCmd(SshClient ssh, SessionChannelClient session, String cmd, Session userSession) {
 	 try {

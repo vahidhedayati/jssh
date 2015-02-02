@@ -45,11 +45,10 @@ public class JsshClientProcessService extends JsshConfService  {
 						String cjob =  crec.userProperties.get("job") as String
 						String cuser = crec.userProperties.get("username") as String
 						if (ujob == cjob) {
-							
 							if (!cuser.endsWith(frontend)) {
 								jsshMessagingService.sendMsg(crec, "_DISCONNECT")
 							}else{
-								if (config.debug == "on") {
+								if (debug) {
 									log.info "Closing Websocket for ${cuser}"
 								}
 								crec.close()
@@ -62,7 +61,6 @@ public class JsshClientProcessService extends JsshConfService  {
 		} catch (IOException e) {
 			log.error ("handleClose failed", e)
 		}
-
 	}
 
 	public void processResponse(Session userSession, String message) {
@@ -169,7 +167,6 @@ public class JsshClientProcessService extends JsshConfService  {
 
 	private void verifyGeneric(JSONObject data) {
 		this.host = data.hostname ?: ''
-		//this.port
 
 		if (data.port) {
 			this.port = data.port.toInteger()

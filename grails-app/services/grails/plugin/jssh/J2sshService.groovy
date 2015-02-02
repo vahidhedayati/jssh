@@ -181,7 +181,7 @@ class J2sshService extends JsshConfService {
 	}
 
 	private void disconnect(SessionChannelClient session=null,SshClient ssh,String user ) {
-		if (config.debug == "on") {
+		if (debug) {
 			log.info"ssh session being closed for ${user}"
 		}
 		if (session) {

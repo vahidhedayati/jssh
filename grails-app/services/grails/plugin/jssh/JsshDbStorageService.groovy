@@ -35,8 +35,6 @@ class JsshDbStorageService extends JsshConfService {
 		return returnResult
 	}
 
-	//public String storeServers(ArrayList servers, String gpId, String username) {}
-
 	public String storeGroup(String name, String username) {
 		username = parseFrontEnd(username)
 		JsshUser user = JsshUser.findByUsername(username)
@@ -44,23 +42,20 @@ class JsshDbStorageService extends JsshConfService {
 		SshServerGroups.withTransaction {
 			sg = SshServerGroups.findOrSaveByNameAndUser(name, user)
 			if (!sg.save(flush:true)) {
-				if (config.debug == "on") {
+				if (debug) {
 					sg.errors.allErrors.each{log.error it}
 				}
 			}
-
-
 		}
 		if (user && sg) {
 			user.addToGroups(sg)
 			if (!user.save(flush:true)) {
-				if (config.debug == "on") {
+				if (debug) {
 					user.errors.allErrors.each{log.error it}
 				}
 			}
 			return "\n\nGroup ${sg.name } should now be added for ${user.username}"
 		}
-
 	}
 
 	public String storeConnection(String hostName, String port, String user,  String sshUser, String conId = null) {
@@ -74,7 +69,7 @@ class JsshDbStorageService extends JsshConfService {
 			}
 			logInstance = new ConnectionLogs(jsshUser: user, sshUser: sshUser, hostName: hostName, port: port, conlog: conlog)
 			if (!logInstance.save(flush:true)) {
-				if (config.debug == "on") {
+				if (debug) {
 					logInstance.errors.allErrors.each{log.error it}
 				}
 			}
@@ -94,7 +89,7 @@ class JsshDbStorageService extends JsshConfService {
 				}
 				user = new JsshUser(username:username, conlog: addlog, servers: server, groups: ssg)
 				if (!user.save(flush:true)) {
-					if (config.debug == "on") {
+					if (debug) {
 						user.errors.allErrors.each{log.error it}
 					}
 				}
@@ -128,7 +123,7 @@ class JsshDbStorageService extends JsshConfService {
 
 				server = new SshServers(hostName: hostName, ipAddress: ip, sshPort:port)
 				if (!server.save(flush:true)) {
-					if (config.debug == "on") {
+					if (debug) {
 						server.errors.allErrors.each{log.error it}
 					}
 				}
@@ -137,7 +132,7 @@ class JsshDbStorageService extends JsshConfService {
 		if (user) {
 			user.addToServers(server)
 			if (!user.save(flush:true)) {
-				if (config.debug == "on") {
+				if (debug) {
 					user.errors.allErrors.each{log.error it}
 				}
 			}
@@ -150,7 +145,6 @@ class JsshDbStorageService extends JsshConfService {
 			SshServers server = SshServers.findByHostName(sn)
 			addGroupLink(groupId, server)
 		}
-
 	}
 
 	public SshServerGroups addGroup(String name, String serverId) {
@@ -162,7 +156,7 @@ class JsshDbStorageService extends JsshConfService {
 				sg = new SshServerGroups(name:name, servers: ss)
 
 				if (!sg.save(flush:true)) {
-					if (config.debug == "on") {
+					if (debug) {
 						sg.errors.allErrors.each{log.error it}
 					}
 				}
@@ -198,7 +192,7 @@ class JsshDbStorageService extends JsshConfService {
 					suser.addToServers(server)
 				}
 				if (!suser.save(flush:true)) {
-					if (config.debug == "on") {
+					if (debug) {
 						suser.errors.allErrors.each{log.error it}
 					}
 				}
@@ -207,11 +201,10 @@ class JsshDbStorageService extends JsshConfService {
 				user.addToSshuser(suser)
 			}
 		}
-		
 		if (server && (!server.sshuser)) {
 			server.sshuser = suser
 			if (!server.save(flush:true)) {
-				if (config.debug == "on") {
+				if (debug) {
 					server.errors.allErrors.each{log.error it}
 				}
 			}
@@ -224,13 +217,12 @@ class JsshDbStorageService extends JsshConfService {
 			if (d1) {
 				d1.addToServers(server)
 				if (!d1.save(flush:true)) {
-					if (config.debug == "on") {
+					if (debug) {
 						d1.errors.allErrors.each{log.error it}
 					}
 				}
 			}
 		}
-
 	}
 
 	private CommandLogger addComLog() {
@@ -238,7 +230,7 @@ class JsshDbStorageService extends JsshConfService {
 			//ConnectionLogs con = ConnectionLogs.get(conId)
 			CommandLogger logInstance = new CommandLogger(commands: [])
 			if (!logInstance.save(flush:true)) {
-				if (config.debug == "on") {
+				if (debug) {
 					logInstance.errors.allErrors.each{log.error it}
 				}
 			}
@@ -250,7 +242,7 @@ class JsshDbStorageService extends JsshConfService {
 		ConnectionLogger.withTransaction {
 			ConnectionLogger logInstance = new ConnectionLogger(connections: [], commands: [])
 			if (!logInstance.save(flush:true)) {
-				if (config.debug == "on") {
+				if (debug) {
 					logInstance.errors.allErrors.each{log.error it}
 				}
 			}
@@ -262,7 +254,6 @@ class JsshDbStorageService extends JsshConfService {
 		CommandLogs logInstance
 		CommandLogs.withTransaction {
 			CommandLogger comlog
-			
 			ConnectionLogger con = ConnectionLogger.get(conId)
 			if (comId) {
 				comlog = CommandLogger.get(comId)
@@ -272,7 +263,7 @@ class JsshDbStorageService extends JsshConfService {
 			
 			logInstance = new CommandLogs(user: user, sshUser: sshUser, contents: message, comlog: comlog, conlog: con)
 			if (!logInstance.save(flush:true)) {
-				if (config.debug == "on") {
+				if (debug) {
 					logInstance.errors.allErrors.each{log.error it}
 				}
 			}

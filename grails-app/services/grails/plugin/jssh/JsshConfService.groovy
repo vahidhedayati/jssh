@@ -25,6 +25,14 @@ class JsshConfService {
 		return config.frontenduser ?: '_frontend'
 	}
 
+	public Boolean getDebug () {
+		boolean on = false
+		if (config.debug == "on") { 
+			on = true
+		}
+		return on
+	}
+	
 	public String getAppName(){
 		String addAppName = config.add.appName ?: 'yes'
 		if (addAppName) {
