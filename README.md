@@ -155,7 +155,7 @@ I have used this method and called it many times on 1 page by reusing the <jssh:
 
 [Screenshots](https://github.com/vahidhedayati/jssh/wiki/Screenshots)
 
-SSH Keys:
+#### SSH Keys:
 
 Bsaically for the new websocket multi method you will need to use keys. And this is the easiest way of setting up the trust. You need to keep the actual keys per account on an accessible file system to the webserver serving this plugin. Since although an end user can configure keys via the web interface / Config.groovy. The actual key files will need read access from tomcat to be able to make SSH connections.
 
@@ -166,3 +166,14 @@ This command once you have keys would need to be done per host that needs key ac
 ```
 ssh-copy-id -i $HOME/.ssh/id_rsa.pub $user@$remote_home
 ```
+
+#### Why pingpong ?
+Websockets by default can be configured to have a timeout for connections, setting this to 0 will set websockets to not time out.  This principal works usually in a standard websocket implementation. 
+
+(the following is my own clonclusion)
+
+In this plugin SSH connections/commands are sent via async, this then puts the websocket request as a background task that pushes messages to frontend as of and when they come in. I think this layer of async breaks the rule of a typical connection whcih is bound and awaiting response/request. 
+
+When attempting the standards on this plugin the result was upon a tail -f nothing else could be executed on remote host and if left without async it probably would have worked fine. The reason pingpong was introduced was to keep the async conection alive by sending a PONG from frontend that backend receives, sits on for set pingRate time (in millisconds), the to trigger a ping as a private message to frontend that made the initiation. The ping is received privately and another PONG is sent. This keeps the connection alive.
+
+I have been testing this and it does appear connections that previously where closed after a set period of time are now remaining/left open. 
