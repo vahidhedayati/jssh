@@ -34,7 +34,41 @@ class JsshDbStorageService extends JsshConfService {
 		}
 		return returnResult
 	}
+	
 
+	public Map findSshCommand(String type, String command) {
+		def returnResult=[:]
+		def found
+		if (type=="blacklist") {
+			 found = SshCommandBlackList.findByCommand(command)
+		}	 
+		
+		if (type=="rewrite") {
+			found = SshCommandRewrite.findByCommand(command)
+		}
+		
+		if (found) {
+			returnResult=[status: 'found', id: found.id as String]
+		}else{
+			returnResult=[status: 'not_found']
+		}
+		return returnResult
+	}
+	
+	public Map autoBlackList(String username, String cmd, String sshId) {
+		def suser = SshUser.get(sshId)
+		SshCommandBlackList found = SshCommandBlackList.findBySshuserAndCommand(suser, cmd)
+		if (!found) {
+			found = new SshCommandBlackList(sshuser: suser, command: cmd)
+			if (!found.save(flush:true)) {
+				if (debug) {
+					found.errors.allErrors.each{log.error it}
+				}
+			}
+			return [record_added: found.id]
+		} 
+	}
+	 
 	public String storeGroup(String name, String username) {
 		username = parseFrontEnd(username)
 		JsshUser user = JsshUser.findByUsername(username)
@@ -181,35 +215,43 @@ class JsshDbStorageService extends JsshConfService {
 		}
 	}
 
-	public addSShUser(String username, String sshUsername, String sshKey=null, String sshKeyPass=null,  String serverId) {
+	private SshUser addSshUser(String friendlyName, String username, String sshUsername, String sshKey=null, String sshKeyPass=null) {
 		JsshUser user = JsshUser.findByUsername(username)
 		SshUser suser = SshUser.findByUsername(sshUsername)
-		SshServers server = SshServers.get(serverId)
 		if (!suser) {
 			SshUser.withTransaction {
-				suser = SshUser.findOrSaveWhere(username: sshUsername, sshKey: sshKey, sshKeyPass: sshKeyPass)
-				if (server) {
-					suser.addToServers(server)
-				}
+				suser = SshUser.findOrSaveWhere(friendlyName: friendlyName, username: sshUsername, sshKey: sshKey, sshKeyPass: sshKeyPass)
 				if (!suser.save(flush:true)) {
 					if (debug) {
 						suser.errors.allErrors.each{log.error it}
 					}
 				}
 			}
-			if (user) {
-				user.addToSshuser(suser)
-			}
 		}
-		if (server && (!server.sshuser)) {
-			server.sshuser = suser
-			if (!server.save(flush:true)) {
-				if (debug) {
-					server.errors.allErrors.each{log.error it}
+		if (user) {
+			user.addToSshuser(suser)
+		}
+		return suser
+	}
+
+
+	public addSShUser(String friendlyName, String username, String sshUsername, String sshKey=null, String sshKeyPass=null,  ArrayList serverId) {
+		SshUser suser=addSshUser(friendlyName, username, sshUsername, sshKey, sshKeyPass)
+		if (serverId) {
+			serverId.each { ss ->
+				SshServers server = SshServers.get(ss)
+				suser.addToServers(server)
+				server.sshuser = suser
+				if (!server.save(flush:true)) {
+					if (debug) {
+						server.errors.allErrors.each{log.error it}
+					}
 				}
 			}
 		}
 	}
+
+
 
 	private void addGroupLink(String groupId, SshServers server) {
 		SshServerGroups.withTransaction {
@@ -260,7 +302,7 @@ class JsshDbStorageService extends JsshConfService {
 			}else{
 				comlog = addComLog()
 			}
-			
+
 			logInstance = new CommandLogs(user: user, sshUser: sshUser, contents: message, comlog: comlog, conlog: con)
 			if (!logInstance.save(flush:true)) {
 				if (debug) {

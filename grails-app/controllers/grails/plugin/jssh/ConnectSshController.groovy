@@ -53,10 +53,8 @@ class ConnectSshController extends JsshConfService {
 
 		Map map =  [jsshUser: jsshUser, hostname: hostname, username: username, userCommand:userCommand,
 			password: password, divId: divId, sshTitle: sshTitle, menuMap:menuMap]
-
 		render view:view, model: map
 	}
-
 
 	// Ajax Polling related actions
 	def resetOutput() {
@@ -102,7 +100,7 @@ class ConnectSshController extends JsshConfService {
 			serverList = SshServerGroups.findAllByUser(ju)
 			sshUserList = ju.sshuser
 		}
-		render template: '/admin/'+template, model: [serverList:serverList, username: username, sshUserList: sshUserList]
+		render template: '/admin/'+template, model: [template:template, serverList:serverList, username: username, sshUserList: sshUserList]
 	}
 
 	def groupConnection(String jsshUsername, String groupId, String userCommand) {
@@ -135,6 +133,29 @@ class ConnectSshController extends JsshConfService {
 		}
 	}
 
+	def loadBlackList(String username, String sshId) {
+		SshUser su = SshUser.get(sshId)
+		def blacklist
+		if (su) {
+			blacklist = su.blacklist
+		}
+		if (blacklist) {
+			render template: '/admin/loadBlackList', model: [blacklist:blacklist]
+		}else{
+			render ""
+		}
+	}
+	
+	def findSshCommand(String type, String command) {
+		render jsshDbStorageService.findSshCommand(type, command) as JSON
+	}
+	
+	def autoBlackList(String username, String cmd, String sshId) {
+		//println "AUTO BLACK LIST HAS ${username} ${cmd} ${sshId}"
+		render jsshDbStorageService.autoBlackList(username, cmd, sshId) as JSON
+		
+	}
+	
 	def addHostDetails(String username, String hostName, String ip, String port) {
 		render jsshDbStorageService.addServer(username, hostName, port ?: '22', ip ?: '') as String
 	}
@@ -148,8 +169,14 @@ class ConnectSshController extends JsshConfService {
 		render template: '/admin/addHost', model: map
 	}
 
-	def adduserDetails(String username, String sshUsername, String sshKey, String sshKeyPass,  String serverId) {
-		jsshDbStorageService.addSShUser(username, sshUsername, sshKey, serverId)
+	def adduserDetails(String friendlyName, String username, String sshUsername, String sshKey, String sshKeyPass) { 
+		//def serverId = SshServers.getAll(params.list('serverId'))
+		ArrayList serverId=params.list('serverId')
+		if (!serverId && params.groupId) {
+			def ssg = SshServerGroups.get(params.groupId)
+			serverId = ssg.servers.id as ArrayList
+		}
+		jsshDbStorageService.addSShUser(friendlyName, username, sshUsername, sshKey, serverId)
 		render "SSH User has been added"
 	}
 
@@ -157,6 +184,7 @@ class ConnectSshController extends JsshConfService {
 		jsshDbStorageService.storeGroup(name, username)
 		render "Group should now be added"
 	}
+	
 	def addGroupServers(String groupId) {
 		def serverList = params.serverList
 		if (serverList) {

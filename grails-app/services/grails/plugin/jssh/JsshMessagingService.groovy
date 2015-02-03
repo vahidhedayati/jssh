@@ -14,7 +14,9 @@ class JsshMessagingService extends JsshConfService  {
 			boolean found = loopUser (user)
 			if (found) {
 				def crec = usersSession(user)
-				crec.basicRemote.sendText("${message}")
+				if (crec && crec.isOpen()) {
+					crec.basicRemote.sendText("${message}")
+				}
 			}else{
 				log.error "COULD NOT FIND ${user} : $message "
 			}
@@ -39,9 +41,11 @@ class JsshMessagingService extends JsshConfService  {
 	def sendBackEndFM(String user,String message) {
 		user = parseFrontEnd(user)
 		String fend = addFrontEnd(user)
-		Session cuser = usersSession(fend)
-		String user1 = cuser.userProperties.get("username") as String
-		cuser.basicRemote.sendText("/fm ${user},${message}")
+		Session crec = usersSession(fend)
+		if (crec && crec.isOpen()) {
+			String cuser = crec.userProperties.get("username") as String
+			crec.basicRemote.sendText("/fm ${cuser},${message}")
+		}
 	}
 
 	boolean findUser(String username) {
@@ -50,7 +54,7 @@ class JsshMessagingService extends JsshConfService  {
 			synchronized (sshUsers) {
 				sshUsers?.each { crec->
 					if (crec && crec.isOpen()) {
-						def cuser = crec.userProperties.get("username").toString()
+						String cuser = crec.userProperties.get("username").toString()
 						if (cuser.equals(username)) {
 							found = true
 						}
@@ -64,12 +68,16 @@ class JsshMessagingService extends JsshConfService  {
 	}
 
 	public void sendMessage(Session userSession,final String message) {
-		userSession.basicRemote.sendText(message)
+		if (userSession && userSession.isOpen()) {
+			userSession.basicRemote.sendText(message)
+		}
 	}
 
 	def sendMsg(Session userSession,String msg) {
 		try {
-			userSession.basicRemote.sendText(msg)
+			if (userSession && userSession.isOpen()) {
+				userSession.basicRemote.sendText(msg)
+			}
 		} catch (IOException e) {
 		}
 	}
@@ -81,7 +89,7 @@ class JsshMessagingService extends JsshConfService  {
 
 	def forwardMessage(String username, String message) {
 		Session user = usersSession(username)
-		if (user) {
+		if (user && user.isOpen()) {
 			user.basicRemote.sendText(message)
 		}
 	}
@@ -89,7 +97,7 @@ class JsshMessagingService extends JsshConfService  {
 	def fwdFendMsg(String username, String message) {
 		username = parseFrontEnd(username)
 		Session user = usersSession(username)
-		if (user) {
+		if (user && user.isOpen()) {
 			user.basicRemote.sendText(message)
 		}
 	}

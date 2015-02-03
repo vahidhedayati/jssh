@@ -4,7 +4,7 @@
 </div>
 
 
-<ul class="nav-pills pull-right navbar-nav nav">
+<ul class="nav-pills pull-center navbar-nav nav">
 	<li class="dropdown"><a href="#" data-toggle="dropdown"
 		class="dropdown-toggle"> <i class="glyphicon glyphicon-cog"
 			title="Admin menu"></i><b class="caret"></b>
@@ -39,6 +39,18 @@
 			
 			
 			<li><a data-toggle="modal" href="#masterAdminContainer"
+				onclick="javascript:addSshUserBlackList();"> <g:message
+						code="jssh.add.ssh.user.blacklist.default" default="SSHUser CMD BlackList" />
+			</a></li>
+			
+			
+			<li><a data-toggle="modal" href="#masterAdminContainer"
+				onclick="javascript:addSshUserRewrite();"> <g:message
+						code="jssh.add.ssh.user.command.rewrite.default" default="SSHUser CMD Rewrite" />
+			</a></li>
+			
+			
+			<li><a data-toggle="modal" href="#masterAdminContainer"
 				onclick="javascript:connectGroup();"> <g:message
 						code="jssh.connect.group.default" default="Connect To Group" />
 			</a></li>
@@ -69,6 +81,22 @@
 	
 	}
 	
+	function autoBlackList(user,cmd,sshId) {
+		$.get("/"+getApp()+"/connectSsh/autoBlackList?username=${backuser}&cmd="+cmd+"&sshId="+sshId,function(data){
+			$('#inviteUserContainer').hide().html(data).fadeIn('slow');
+		});
+		$('#invitecontainer').show();
+	
+	}
+		
+	function loadBlackList(value) {
+	 	$.get("/"+getApp()+"/connectSsh/loadBlackList?username=${backuser}&sshId="+value,function(data){
+			$('#selectedValues').hide().html(data).fadeIn('slow');
+		});
+	
+	}
+	
+	
 	function connectGroup() { 
 		$.get("/"+getApp()+"/connectSsh/loadGroup?username=${backuser}&template=connectGroup",function(data){
 			$('#adminContainer').hide().html(data).fadeIn('slow');
@@ -96,4 +124,22 @@
 		});
 		$('#adminsTemplateContainer').show();
 	}	
+	
+	function addSshUserBlackList() {
+		 $.get("/"+getApp()+"/connectSsh/loadGroup?username=${backuser}&template=addBlackList",function(data){
+			$('#adminContainer').hide().html(data).fadeIn('slow');
+			//verifyCommandValue(data)
+		});
+		$('#adminsTemplateContainer').show();
+	}	
+	
+	function addSshUserRewrite() {
+		 $.get("/"+getApp()+"/connectSsh/loadGroup?username=${backuser}&template=addRewrite",function(data){
+			$('#adminContainer').hide().html(data).fadeIn('slow');
+		});
+		$('#adminsTemplateContainer').show();
+	}	
+	
+	
+	
 </g:javascript>

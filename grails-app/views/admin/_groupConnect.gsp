@@ -18,7 +18,7 @@ divId="logs1"
 		 
 		jobName="exampleMultiConnect"
 		userCommand="${userCommand}"
-		adminTemplate=""
+		adminTemplate="/admin/blankAdmin"
 			
 		jsshUser="${jsshUsername+"_"+ss.id}"
 		realUser="${jsshUsername }"

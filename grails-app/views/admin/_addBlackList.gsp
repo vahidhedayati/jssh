@@ -8,11 +8,11 @@
 		</h3>
 	</div>
 </div>
-<g:if test="${serverList}">
+<g:if test="${sshUserList}">
 	<g:formRemote 
 	name="urlParams"  
 	class="form-horizontal" 
-	url="[controller:'connectSsh', action:'addGroupServers']" 
+	url="[controller:'connectSsh', action:'addBlackList']" 
 	update="returnAnswer"  
 	onComplete="closeModal();"
 	>
@@ -22,11 +22,11 @@
 		<div class='col-sm-5'>
 			<div class='form-group'>
 				<label for="groupname"> <g:message
-						code="jssh.select.group.name.label" default="Select Group" />
+						code="jssh.select.ssh.user.name.label" default="Select SSH User" />
 				</label>
-				<g:select name="groupId" id="mySelect" from="${serverList}" optionKey="id" optionValue="name" 
+				<g:select name="sshuserId" id="mySelect" from="${sshUserList}" optionKey="id" optionValue="username" 
 				required="required" 
-				 class="one-to-one" noSelection="['':'Choose Group']" onChange="showServers(this.value);loadGroup(this.value);"/>
+				 class="one-to-one" noSelection="['':'Choose SshUser']" onChange="showBlackList(this.value);loadBlackList(this.value);"/>
 			</div>
 		</div>
 	</div>
@@ -35,9 +35,9 @@
 		<div class='col-sm-5'>
 			<div class='form-group'>
 				<label for="groupname"> <g:message
-						code="jssh.new.group.name.label" default="Add Server" />
+						code="jssh.new.blacklist.command.label" default="Add BlackList Command" />
 				</label>
-				<g:render template="/admin/autoServer" />
+				<g:render template="/admin/autoBlackList" />
 				
 				<div id="selectedValues">
 				</div>
@@ -48,12 +48,12 @@
 </div>
 
 <div class="modal-footer">
-	<g:submitButton  name="something" class="btn btn-primary"  value="Update Group" />
+	<g:submitButton  name="something" class="btn btn-primary"  value="Update BlackList for SSHUSER" />
 </div>
 </g:formRemote>
 </g:if>
 <g:else>
-No groups have been created as yet!
+No SSH USERS  been created as yet!
 </g:else>
 <div id="invitecontainer" style="display:none;">
 		<g:render template="/admin/inviteContainer"/>

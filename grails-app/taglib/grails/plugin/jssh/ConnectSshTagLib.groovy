@@ -283,7 +283,8 @@ class ConnectSshTagLib extends JsshConfService {
 	 */
 	private void addUserHost(String hostname, String port, String realuser, String sshUser, String sshKey=null, String sshKeyPass=null) {
 		SshServers server = jsshDbStorageService.addServer(realuser, hostname, port ?: '22', '' )
-		def SshUser =  jsshDbStorageService.addSShUser(realuser, sshUser, sshKey ?: '', sshKeyPass ?: '', server.id as String )
+		def SshUser =  jsshDbStorageService.addSShUser(realuser, realuser, sshUser, sshKey ?: '', sshKeyPass ?: '', [server.id] as ArrayList )
+		
 		Map<String,String> jU = jsshDbStorageService.addJsshUser(realuser, server)
 		this.jUser = jU.user
 		this.conLogId = jU.conId

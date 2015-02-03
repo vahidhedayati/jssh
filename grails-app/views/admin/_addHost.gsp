@@ -1,6 +1,6 @@
 		<div class='modal-header'>
 <button type='button' class='close' data-dismiss='modal' aria-hidden='true'>×</button>
-<div id='myModalLabel'><h3>${message(code: 'jssh.'+actionName+'.label', default: ''+actionName+'')}</h3>
+<div id='myModalLabel'><h3>${message(code: 'jssh.'+template+'.label', default: ''+template+'')}</h3>
 
 </div>
 </div>

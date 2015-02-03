@@ -25,7 +25,7 @@
 	</div>';
 					$('#return_result').html(return_this);
 					
-					$('#sshUsername').val(" ");
+					$('#sshUsername').val("");
 			}
 			}
 			});

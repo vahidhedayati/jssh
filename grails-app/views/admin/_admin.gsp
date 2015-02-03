@@ -15,6 +15,11 @@
 		document.getElementById('gpId').value = value;
 	}
 
+	function showBlackList(value) {
+		$('#serverRow').show();
+		document.getElementById('shId').value = value;
+	}
+	
 	function sendGroup() {
 		var group = document.getElementById('groupName').value;
 		webSocket${divId}.send("/addGroup ,"+group);

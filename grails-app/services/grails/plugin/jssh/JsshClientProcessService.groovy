@@ -45,14 +45,18 @@ public class JsshClientProcessService extends JsshConfService  {
 						String cjob =  crec.userProperties.get("job") as String
 						String cuser = crec.userProperties.get("username") as String
 						if (ujob == cjob) {
-							if (!cuser.endsWith(frontend)) {
-								jsshMessagingService.sendMsg(crec, "_DISCONNECT")
-							}else{
-								if (debug) {
-									log.info "Closing Websocket for ${cuser}"
+							if (crec && crec.isOpen()) {
+								if (!cuser.endsWith(frontend)) {
+									jsshMessagingService.sendMsg(crec, "_DISCONNECT")
+								}else{
+									if (debug) {
+										log.info "Closing Websocket for ${cuser}"
+									}
+									if (crec && crec.isOpen()) {
+										crec.close()
+										sleep(100)
+									}
 								}
-								crec.close()
-								sleep(200)
 							}
 						}
 					}
@@ -77,7 +81,7 @@ public class JsshClientProcessService extends JsshConfService  {
 			SshClient amssh  =  userSession.userProperties.get('sshClient') as SshClient
 			j2sshService.closeConnection(amssh, username)
 			userSession.close()
-			sleep(200)
+			sleep(100)
 		}else if  (message.startsWith('/bm')) {
 			def values = parseInput("/fm ",message)
 			String cuser, chost
