@@ -49,41 +49,7 @@ Video of jssh 0.9, whilst waiting on creations of stuff there was some discussio
 [1.3 Command blacklist / command rewrites](https://github.com/vahidhedayati/jssh/wiki/Websocket-client-server-command-utils)
 
 
-### Sessions
-
-On the main index screen there is now a NEW Socket connection method, use it to take advantage of the new web features to add groups/servers/ssh users and then connect to multi server. So you log in as your Jssh User create the group and as that user in the future those groups are available for usage.
-
-```
- [1] HTTP Session 					 | 1 HTTP Session per webpage 
-      |
- [2]  2X .. N WebSocket sessions     | 2 WebSocket sessions per call on a page multiply by 2 for per call on 1 page
-      |
- [1]  1X .. N SSH Sessions           | 1 SSH Session per above call
-```
-
-Your 1 connected HTTP session, triggers 2 socket connections per call which then triggers 1 ssh connection from the back-end websocket connection. The SSH session is recreated each time you run a new command. new shell/execute/close shell. This done async so tasks like tail -f continue running allowing you to run on top.
-
-Your front-end websocket connection is a receiver. It does not actually trigger anything beyond a websocket connection that tallies up to the naming convention of the back-end. The back-end then transmits messages to its pair or front-end user. When a front-end sends a command - the command goes through websockets and finds back-end. By re-transmitted the /fm message to /bm (frontmessage/backmessage) which ClientProcessService picks up and executes ssh command and process loops as per above.
-
-
-jsshUser = This could/should be your actual webuser logged in user, since it will now actually log their interactions with SSH, what they connect to and what commands they send. There is no UI available for this at the moment. If not provided a random jsshUser is generated.
-
-If you are using the same taglib multiple times on one page, remove jsshUser (so it gets set randomly) define
-
-```gsp
-realUser="${session.username}" 
-```
-
-This will ensure the real actual logged in user is being logged for what they do / connect to and any configuration as per user command blocks etc in 1.3 to kick in.
-
-
-The other thing to take notice of when calling multiple times: [_groupConnect.gsp](https://github.com/vahidhedayati/jssh/blob/master/grails-app/views/admin/_groupConnect.gsp)
-
-``` gsp
-adminTemplate="/admin/blankAdmin"
-```
-With adminTemplate seto to a blank gsp page - the cog that allows definition of servers / groups disappears. This should be practiced since the logged in user is a random id and groups so forth will be non existant on next ssh since its highly unlikely they will log in as the same random user. Besides it will clog up the DB.
-
+### [Sessions](https://github.com/vahidhedayati/jssh/wiki/conn-sessions)
 
 
 
