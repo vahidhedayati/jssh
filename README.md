@@ -10,13 +10,11 @@ Dependency :
 
 	compile ":jssh:1.3" 
 
-This plugin provides a variety of taglib calls within your application to then interact with SSH connection to a Unix/Linux machine. Once you have successfully configured connected your browser will provide something similar to a shell console and with the later Websocket methods you can literally interact live with your SSH connection to the back end Linux host.
+This plugin is a web based solution that acts like putty or any other ssh console that requires installation (not easily available on phones etc). It provides a variety of taglib calls that you can call from within your application to then interact with SSH connection(s) to Unix/Linux/Osx machines. 
 
-As of 1.3 jssh now provides features to define command BlackList + command Rewrites that can be used in conjunction with jssh:conn process of group/server/user/ creations. Once the Cog is used to generated Groups / Servers bound to the groups / SSH users bound to the group. Finally new options to add either blacklist of commands and or commands that get re-written when user attempts to execute command via the web interface. So Plugin acts as the man in the middle that watches input and if the input matches either black list or rewrite list of a given command definition for that specific SSH user then the actions are taken.
+Once you have successfully configured connected your browser will provide something similar to a shell console and with the later Websocket methods you can literally interact live with your SSH connection(s).
 
-BlackList & command Rewrites are bound to defined SSH users and can be define differently per SSH user configuration.
- 
- 
+
 
 
 ## Config.groovy additions required: 
@@ -48,9 +46,13 @@ Video of jssh 0.9, whilst waiting on creations of stuff there was some discussio
 
 [New Client/Server Websocket SSH tag lib call](https://github.com/vahidhedayati/jssh/wiki/Websocket-client-server-taglib-call)
 
+[1.3 Command blacklist / command rewrites](https://github.com/vahidhedayati/jssh/wiki/Websocket-client-server-command-utils)
 
 
 ### Sessions
+
+On the main index screen there is now a NEW Socket connection method, use it to take advantage of the new web features to add groups/servers/ssh users and then connect to multi server. So you log in as your Jssh User create the group and as that user in the future those groups are available for usage.
+
 ```
  [1] HTTP Session 					 | 1 HTTP Session per webpage 
       |
@@ -59,17 +61,30 @@ Video of jssh 0.9, whilst waiting on creations of stuff there was some discussio
  [1]  1X .. N SSH Sessions           | 1 SSH Session per above call
 ```
 
-So 1 HTTP session that triggers 2 socket connections per call which then triggers 1 ssh connection from the back-end websocket connection. The SSH session is actually recreated each time you run a new command. new shell/execute/close shell. This done async so tasks like tail -f continue running allowing you to run on top.
+Your 1 connected HTTP session, triggers 2 socket connections per call which then triggers 1 ssh connection from the back-end websocket connection. The SSH session is recreated each time you run a new command. new shell/execute/close shell. This done async so tasks like tail -f continue running allowing you to run on top.
 
 Your front-end websocket connection is a receiver. It does not actually trigger anything beyond a websocket connection that tallies up to the naming convention of the back-end. The back-end then transmits messages to its pair or front-end user. When a front-end sends a command - the command goes through websockets and finds back-end. By re-transmitted the /fm message to /bm (frontmessage/backmessage) which ClientProcessService picks up and executes ssh command and process loops as per above.
 
 
-jsshUser = This could be your actual logged in user, since it will now actually log their interactions with SSH, what they connect to and what commands they send. There is no UI available for this at the moment. If not provided a random jsshUser is generated.
+jsshUser = This could/should be your actual webuser logged in user, since it will now actually log their interactions with SSH, what they connect to and what commands they send. There is no UI available for this at the moment. If not provided a random jsshUser is generated.
 
-At the moment it should work fine in single use. When you multi call - the user has to differentiate so I am still thinking about this and there are easy options just not had time as yet.
+If you are using the same taglib multiple times on one page, remove jsshUser (so it gets set randomly) define
+
+```gsp
+realUser="${session.username}" 
+```
+
+This will ensure the real actual logged in user is being logged for what they do / connect to and any configuration as per user command blocks etc in 1.3 to kick in.
 
 
-On the main index screen there is now a NEW Socket connection method, use it to take advantage of the new web features to add groups/servers/ssh users and then connect to multi server. So you log in as your Jssh User create the group and as that user in the future those groups are available for usage.
+The other thing to take notice of when calling multiple times: [_groupConnect.gsp](https://github.com/vahidhedayati/jssh/blob/master/grails-app/views/admin/_groupConnect.gsp)
+
+``` gsp
+adminTemplate="/admin/blankAdmin"
+```
+With adminTemplate seto to a blank gsp page - the cog that allows definition of servers / groups disappears. This should be practiced since the logged in user is a random id and groups so forth will be non existant on next ssh since its highly unlikely they will log in as the same random user. Besides it will clog up the DB.
+
+
 
 
 ```gsp
@@ -164,9 +179,9 @@ I have used this method and called it many times on 1 page by reusing the <jssh:
 
 #### SSH Keys:
 
-Bsaically for the new websocket multi method you will need to use keys. And this is the easiest way of setting up the trust. You need to keep the actual keys per account on an accessible file system to the webserver serving this plugin. Since although an end user can configure keys via the web interface / Config.groovy. The actual key files will need read access from tomcat to be able to make SSH connections.
+Bsaically for the new websocket multi method you will need to use keys. You need to keep the actual keys per account on an accessible file system to the webserver serving your app, key files require read access for your tomcat user in order to make SSH connections.
 
-This is really a solution for those lets say that have generic system accounts in place. So admin that can do pretty much everything. Webuser that can do things within the scope of apache and so on. With that in place and the keys available to your site you can then let end users log in with their real ids. Use the shared ids which is all then mapped within the plugin.
+This is really a solution for those lets say that have generic system accounts in place. So admin that can do pretty much everything. Webuser that can do things within the scope of apache and so on. With that in place and the keys available to your site you can then let end users log in with their real ids. Use the shared ids which is all then mapped within the plugin. Each webuser can be configured to use lets say admin account in a different way with different blacklists/rewrites.
 
 This command once you have keys would need to be done per host that needs key access, most people would use puppet or similar to push out the generic keys to all hosts.
 
@@ -175,12 +190,11 @@ ssh-copy-id -i $HOME/.ssh/id_rsa.pub $user@$remote_home
 ```
 
 #### Why pingpong ?
+
 Websockets by default can be configured to have a timeout for connections, setting this to 0 will set websockets to not time out.  This principal works usually in a standard websocket implementation. 
 
 (the following is my own clonclusion)
 
-In this plugin SSH connections/commands are sent via async, this then puts the websocket request as a background task that pushes messages to frontend as of and when they come in. I think this layer of async breaks the rule of a typical connection whcih is bound and awaiting response/request. 
+In this plugin SSH connections/commands are sent via async, this puts the websocket request as a background task that pushes messages to frontend as of and when they come in. I think this layer of async breaks the rule of a typical connection whcih is bound and awaiting response/request. 
 
-When attempting the standards on this plugin the result was upon a tail -f nothing else could be executed on remote host and if left without async it probably would have worked fine. The reason pingpong was introduced was to keep the async conection alive by sending a PONG from frontend that backend receives, sits on for set pingRate time (in millisconds), the to trigger a ping as a private message to frontend that made the initiation. The ping is received privately and another PONG is sent. This keeps the connection alive.
-
-I have been testing this and it does appear connections that previously where closed after a set period of time are now remaining/left open. 
+The reason pingpong was introduced was to keep the async conection alive by sending an invisible ping/pong between backend/frontend connections.
