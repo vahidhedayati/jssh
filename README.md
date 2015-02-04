@@ -143,24 +143,6 @@ I have used this method and called it many times on 1 page by reusing the <jssh:
 
 [Screenshots](https://github.com/vahidhedayati/jssh/wiki/Screenshots)
 
-#### SSH Keys:
+#### [SSH Keys:](https://github.com/vahidhedayati/jssh/wiki/ssh-keys)
 
-Bsaically for the new websocket multi method you will need to use keys. You need to keep the actual keys per account on an accessible file system to the webserver serving your app, key files require read access for your tomcat user in order to make SSH connections.
-
-This is really a solution for those lets say that have generic system accounts in place. So admin that can do pretty much everything. Webuser that can do things within the scope of apache and so on. With that in place and the keys available to your site you can then let end users log in with their real ids. Use the shared ids which is all then mapped within the plugin. Each webuser can be configured to use lets say admin account in a different way with different blacklists/rewrites.
-
-This command once you have keys would need to be done per host that needs key access, most people would use puppet or similar to push out the generic keys to all hosts.
-
-```
-ssh-copy-id -i $HOME/.ssh/id_rsa.pub $user@$remote_home
-```
-
-#### Why pingpong ?
-
-Websockets by default can be configured to have a timeout for connections, setting this to 0 will set websockets to not time out.  This principal works usually in a standard websocket implementation. 
-
-(the following is my own clonclusion)
-
-In this plugin SSH connections/commands are sent via async, this puts the websocket request as a background task that pushes messages to frontend as of and when they come in. I think this layer of async breaks the rule of a typical connection whcih is bound and awaiting response/request. 
-
-The reason pingpong was introduced was to keep the async conection alive by sending an invisible ping/pong between backend/frontend connections.
+#### [Why pingpong ?](https://github.com/vahidhedayati/jssh/wiki/why-pingong)
