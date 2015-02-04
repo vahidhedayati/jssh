@@ -10,7 +10,7 @@ Dependency :
 
 	compile ":jssh:1.3" 
 
-This plugin is a web based solution that acts like putty or any other ssh console that requires installation (not easily available on phones etc). It provides a variety of taglib calls that you can call from within your application to then interact with SSH connection(s) to Unix/Linux/Osx machines. 
+This plugin is a web based solution that acts like a basic putty i.e. sshkey or username/password. It provides a variety of taglib calls that you can call from within your application to then interact with SSH connection(s) to Unix/Linux/Osx machines. 
 
 Once you have successfully configured connected your browser will provide something similar to a shell console and with the later Websocket methods you can literally interact live with your SSH connection(s).
 
