@@ -27,9 +27,11 @@ BlackList & command Rewrites are bound to defined SSH users and can be define di
  
 [Change information](https://github.com/vahidhedayati/jssh/wiki/VersionInfo)
 
-## Video
+## Videos
 
 Video of jssh 0.9, whilst waiting on creations of stuff there was some discussion into the back-end plugin code and how it interacts via websockets:
+
+[jssh 1.3 sshuser configuration per webuser + command restrictions(blacklist) / command rewrites](https://www.youtube.com/watch?v=tkGavxbrnh8) 
 
 [jssh 1.0 broadcast ssh commands to multiple remote hosts 8 Mins](https://www.youtube.com/watch?v=HcJauTC6b8I)
 
