@@ -97,6 +97,8 @@ class J2sshService extends JsshConfService {
 			// Evaluate the result
 			if (isAuthenticated) {
 				userSession.userProperties.put('host', host)
+				userSession.userProperties.put('connectedUsername', username)
+
 				try {
 					def asyncProcess = new Thread({
 						processConnection(ssh, userSession, usercommand)
@@ -124,13 +126,14 @@ class J2sshService extends JsshConfService {
 	}
 
 	private void processConnection(SshClient ssh, Session userSession, String usercommand) {
-		String suser = userSession.userProperties.get("username") as String
+		String user = userSession.userProperties.get("username") as String
+		String connectedUser = userSession.userProperties.get("connectedUsername") as String
 		if (ssh && ssh.isConnected()) {
 			SessionChannelClient session = new SessionChannelClient()
 			StringBuilder catchup = new StringBuilder()
 			int timeout = 1000
 			session = ssh.openSessionChannel()
-			String user = userSession.userProperties.get("username") as String
+
 			SessionOutputReader sor = new SessionOutputReader(session)
 			if (session.requestPseudoTerminal("gogrid",80,24, 0 , 0, "")) {
 				if (session.startShell()) {
@@ -138,46 +141,89 @@ class J2sshService extends JsshConfService {
 
 				}
 			}
-			if (!usercommand.endsWith('\n')) {
-				usercommand = usercommand+'\n'
-			}
 
-			session.getOutputStream().write(usercommand.getBytes())
-			InputStream input = session.getInputStream()
-			byte[] buffer = new byte[255]
-			int read;
-			int i=0
-			boolean go = true
-			if (userSession && userSession.isOpen()) {
-				while (((read = input.read(buffer))>0)&&(go)) {
+			boolean verifyNotBlocked = verifyBlackList(connectedUser, usercommand)
+			
+			
+			if (verifyNotBlocked)  {
 
-					String status = userSession.userProperties.get("status") as String
-					String out1 = new String(buffer, 0, read)
-					if (status == "pause") {
-						catchup.append(out1)
-					}else if (status == "disconnect") {
-						disconnect( session, ssh, user )
-					}else{
-						if (catchup) {
-							jsshMessagingService.sendFrontEndPM2(userSession, user, catchup as String)
-							catchup = new StringBuilder()
+				usercommand = verifyRewrite(connectedUser, usercommand)
+				
+				if (!usercommand.endsWith('\n')) {
+					usercommand = usercommand+'\n'
+				}
+
+				session.getOutputStream().write(usercommand.getBytes())
+				InputStream input = session.getInputStream()
+				byte[] buffer = new byte[255]
+				int read;
+				int i=0
+				boolean go = true
+				if (userSession && userSession.isOpen()) {
+					while (((read = input.read(buffer))>0)&&(go)) {
+
+						String status = userSession.userProperties.get("status") as String
+						String out1 = new String(buffer, 0, read)
+						if (status == "pause") {
+							catchup.append(out1)
+						}else if (status == "disconnect") {
+							disconnect( session, ssh, user )
+						}else{
+							if (catchup) {
+								jsshMessagingService.sendFrontEndPM2(userSession, user, catchup as String)
+								catchup = new StringBuilder()
+							}
+							jsshMessagingService.sendFrontEndPM2(userSession, user, parseBash(out1))
 						}
-						jsshMessagingService.sendFrontEndPM2(userSession, user, parseBash(out1))
+
 					}
 
-				}
-
-				def cc = ssh.getActiveChannelCount() ?: 1
-				if (cc>0) {
-					session.close()
-					session.getState().waitForState(ChannelState.CHANNEL_CLOSED, timeout);
+					def cc = ssh.getActiveChannelCount() ?: 1
+					if (cc>0) {
+						session.close()
+						session.getState().waitForState(ChannelState.CHANNEL_CLOSED, timeout);
+					}
+				}else{
+					disconnect( session, ssh, user )
 				}
 			}else{
-				disconnect( session, ssh, user )
+				jsshMessagingService.sendFrontEndPM2(userSession, user, "Command ${usercommand} appears to be in blackList")
 			}
 		}else{
-			jsshMessagingService.sendFrontEndPM2(userSession, suser, "no connection, ${usercommand} not executed")
+			jsshMessagingService.sendFrontEndPM2(userSession, user, "no connection, ${usercommand} not executed")
 		}
+	}
+
+	private Boolean verifyBlackList(String connectedUser, String userCommand) {
+		boolean goahead = true
+		SshCommandBlackList.withTransaction {
+			SshUser suser = SshUser.findByUsername(connectedUser)
+			if (suser) {
+				def blackList = SshCommandBlackList.findAllBySshuser(suser)
+				blackList.each { bword ->
+					if (userCommand.contains(bword.command)) {
+						goahead = false
+					}
+				}
+			}
+		}
+		return goahead
+	}
+	
+	private String verifyRewrite(String connectedUser, String userCommand) {
+		SshCommandRewrite.withTransaction {
+			SshUser suser = SshUser.findByUsername(connectedUser)
+			if (suser) {
+				def rewrite = SshCommandRewrite.findAllBySshuser(suser)
+				rewrite.each { bword ->
+					if (userCommand.contains(bword.command)) {
+						userCommand = userCommand.replace("${bword.command}", "${bword.replacement}")
+					}
+					
+				}
+			}
+		}
+		return userCommand
 	}
 
 	private void disconnect(SessionChannelClient session=null,SshClient ssh,String user ) {

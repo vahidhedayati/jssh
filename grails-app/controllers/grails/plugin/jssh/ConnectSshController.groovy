@@ -133,14 +133,20 @@ class ConnectSshController extends JsshConfService {
 		}
 	}
 
-	def loadBlackList(String username, String sshId) {
+	
+	
+	def loadList(String username, String sshId, String listType) {
 		SshUser su = SshUser.get(sshId)
-		def blacklist
+		def currentList
 		if (su) {
-			blacklist = su.blacklist
+			if (listType == "rewrite") {
+				currentList = su.rewrite
+			}else{
+				currentList = su.blacklist
+			}
 		}
-		if (blacklist) {
-			render template: '/admin/loadBlackList', model: [blacklist:blacklist]
+		if (currentList) {
+			render template: '/admin/loadList', model: [currentList:currentList, listType: listType]
 		}else{
 			render ""
 		}
@@ -151,10 +157,35 @@ class ConnectSshController extends JsshConfService {
 	}
 	
 	def autoBlackList(String username, String cmd, String sshId) {
-		//println "AUTO BLACK LIST HAS ${username} ${cmd} ${sshId}"
 		render jsshDbStorageService.autoBlackList(username, cmd, sshId) as JSON
-		
 	}
+	
+	def autoRewriteList(String username, String cmd, String sshUserId) {
+		Map map = [username:username, command:cmd, sshUserId:sshUserId]
+		render template: '/admin/addRewriteRule', model: map
+	}
+	
+	
+	def addRewriteList(String sshuserId) {
+		def rewriteList = params.rewrite
+		if (rewriteList) {
+			if(rewriteList instanceof String) {
+				rewriteList = [rewriteList]
+			}else{
+				rewriteList = rewriteList as ArrayList
+			}
+			ArrayList rewriteLists = rewriteList
+			jsshDbStorageService.addRewriteLists(sshuserId, rewriteLists)
+			render "GroupID  ${rewriteLists} added to ${sshuserId}"
+		}
+	}
+	
+	
+	def addRewriteDetails(String username, String command, String sshUserId, String replacement) {
+		render jsshDbStorageService.addRewriteEntry(username, sshUserId, command, replacement) as String
+	}
+	
+	
 	
 	def addHostDetails(String username, String hostName, String ip, String port) {
 		render jsshDbStorageService.addServer(username, hostName, port ?: '22', ip ?: '') as String

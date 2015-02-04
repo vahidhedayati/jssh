@@ -8,10 +8,15 @@ Websocket ssh interaction can be incorporated to an existing grails app running 
 
 Dependency :
 
-	compile ":jssh:1.2" 
+	compile ":jssh:1.3" 
 
 This plugin provides a variety of taglib calls within your application to then interact with SSH connection to a Unix/Linux machine. Once you have successfully configured connected your browser will provide something similar to a shell console and with the later Websocket methods you can literally interact live with your SSH connection to the back end Linux host.
 
+As of 1.3 jssh now provides features to define command BlackList + command Rewrites that can be used in conjunction with jssh:conn process of group/server/user/ creations. Once the Cog is used to generated Groups / Servers bound to the groups / SSH users bound to the group. Finally new options to add either blacklist of commands and or commands that get re-written when user attempts to execute command via the web interface. So Plugin acts as the man in the middle that watches input and if the input matches either black list or rewrite list of a given command definition for that specific SSH user then the actions are taken.
+
+BlackList & command Rewrites are bound to defined SSH users and can be define differently per SSH user configuration.
+ 
+ 
 
 
 ## Config.groovy additions required: 

@@ -11,16 +11,16 @@
 	function verifyCommandValue(data) {
 		var shId = document.getElementById('shId').value;
 		if ((data != '') && (shId != '')) {
-			$.getJSON('${createLink(controller:"connectSsh", action: "findSshCommand")}?type=blacklist&command='+data,function(e){
+			$.getJSON('${createLink(controller:"connectSsh", action: "findSshCommand")}?type=rewrite&command='+data,function(e){
 				var found=e.status;
 				var eid=e.id;
 				if (found=="found") {
 					if (eid != undefined) {
 							var return_this='<div class="errors" role="alert">\
 								Command '+data+' has no id, <a data-toggle="modal"\
-								href=""\
-								onclick="javascript:autoBlackList('+wrapIt(user)+','+wrapIt(data)+', '+wrapIt(sshUserId)+');">add\
-								To BlackList?</a>\
+								href="#invitecontainer1"\
+								onclick="javascript:autoRewriteList('+wrapIt(user)+','+wrapIt(data)+', '+wrapIt(shId)+');">add\
+								Rewrite Rule?</a>\
 								</div>';
 							$('#return_result').html(return_this);
 							$('#command').val("");
@@ -29,9 +29,9 @@
 					$('#response_image').html('<div id="reject"></div>');
 					var return_this='<div class="errors" role="alert">\
 						Command '+data+' not found, <a data-toggle="modal"\
-						href=""\
-						onclick="autoBlackList('+wrapIt(user)+','+wrapIt(data)+', '+wrapIt(shId)+');">add\
-						To BlackList?</a>\
+						href="#invitecontainer1"\
+						onclick="autoRewriteList('+wrapIt(user)+','+wrapIt(data)+', '+wrapIt(shId)+');">add\
+						Rewrite Rule?</a>\
 						</div>';
 					$('#return_result').html(return_this);
 				}

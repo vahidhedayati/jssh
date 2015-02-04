@@ -13,41 +13,37 @@
 
 	function verifyValue(data) {
 		var gpId = document.getElementById('gpId').value;
-		
 		if ((data != '') && (gpId != '')) {
 			$.getJSON('${createLink(controller:"connectSsh", action: "findServer")}?hostName='+data,function(e){
-			var found=e.status;
-			var eid=e.id;
-		
-			if (found=="found") {
-				if (eid != undefined) {
-					$('#response_image').html('<div id="accept"></div>');
-					$('#return_result').html('Server found: '+eid);
-					console.log('Server found: '+eid);
-					addSelection(eid, data);
-					
-					$('#serverName').val(" ");
-					resetMsg();
-				}else{
-					$('#response_image').html('<div id="question"></div>');
+				var found=e.status;
+				var eid=e.id;
+				if (found=="found") {
+					if (eid != undefined) {
+						$('#response_image').html('<div id="accept"></div>');
+						$('#return_result').html('Server found: '+eid);
+						addSelection(eid, data);
+						$('#serverName').val(" ");
+						resetMsg();
+					}else{
+						$('#response_image').html('<div id="question"></div>');
+						var return_this='<div class="errors" role="alert">\
+							#Server '+data+' has no id, <a data-toggle="modal"\
+							href="#invitecontainer1"\
+							onclick="javascript:addHost('+wrapIt(user)+','+wrapIt(data)+', '+wrapIt(groupId)+');">add\
+							Host?</a>\
+							</div>';
+						$('#return_result').html(return_this);
+					}
+				} else{
+					$('#response_image').html('<div id="reject"></div>');
 					var return_this='<div class="errors" role="alert">\
-		#Server '+data+' has no id, <a data-toggle="modal"\
-			href="#invitecontainer1"\
-			onclick="javascript:addHost('+wrapIt(user)+','+wrapIt(data)+', '+wrapIt(groupId)+');">add\
-			Host?</a>\
-	</div>';
+						Server '+data+' not found, <a data-toggle="modal"\
+						href="#invitecontainer1"\
+						onclick="javascript:addHost('+wrapIt(user)+','+wrapIt(data)+', '+wrapIt(gpId)+');">add\
+						Host?</a>\
+						</div>';
 					$('#return_result').html(return_this);
 				}
-			} else{
-				$('#response_image').html('<div id="reject"></div>');
-				var return_this='<div class="errors" role="alert">\
-		Server '+data+' not found, <a data-toggle="modal"\
-			href="#invitecontainer1"\
-				onclick="javascript:addHost('+wrapIt(user)+','+wrapIt(data)+', '+wrapIt(gpId)+');">add\
-			Host?</a>\
-	</div>';
-				$('#return_result').html(return_this);
-			}
 			});
 		}	
 	}

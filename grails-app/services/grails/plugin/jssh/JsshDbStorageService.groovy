@@ -132,6 +132,26 @@ class JsshDbStorageService extends JsshConfService {
 		return [ user: user.id as String, conId: user.conlog.id as String ]
 	}
 
+	public String addRewriteEntry(String username, String sshUserId, String command, String replacement) {
+		//SshCommandRewrite.withTransaction {
+			SshUser suser = SshUser.get(sshUserId)
+			if (suser) {
+				SshCommandRewrite found = SshCommandRewrite.findBySshuserAndCommand(suser, command)
+				if (!found) {
+					found = new SshCommandRewrite(sshuser: suser, command: command, replacement: replacement )
+					if (!found.save(flush:true)) {
+						if (debug) {
+							found.errors.allErrors.each{log.error it}
+						}
+					}
+					return "Record Added: $found.id"
+				}
+				return "Already exists: $found.id"
+			}
+		//}
+			return "${sshUserId} not found "
+	}
+	
 	public SshServers  addServer(String username, String hostName,  String port, String ip, String groupId) {
 		SshServers server = addServer(hostName,   port,  ip)
 		addGroupLink(groupId)
@@ -181,6 +201,7 @@ class JsshDbStorageService extends JsshConfService {
 		}
 	}
 
+	
 	public SshServerGroups addGroup(String name, String serverId) {
 		SshServerGroups sg
 		SshServerGroups.withTransaction {

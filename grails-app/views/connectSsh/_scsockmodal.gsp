@@ -71,29 +71,34 @@
 			$('#inviteUserContainer').hide().html(data).fadeIn('slow');
 		});
 		$('#invitecontainer').show();
-	
 	}
 	
 	function loadGroup(value) {
 	 	$.get("/"+getApp()+"/connectSsh/loadServers?username=${backuser}&gId="+value,function(data){
 			$('#selectedValues').hide().html(data).fadeIn('slow');
 		});
-	
 	}
 	
 	function autoBlackList(user,cmd,sshId) {
 		$.get("/"+getApp()+"/connectSsh/autoBlackList?username=${backuser}&cmd="+cmd+"&sshId="+sshId,function(data){
 			$('#inviteUserContainer').hide().html(data).fadeIn('slow');
+			loadList(sshId, 'blacklist');
 		});
 		$('#invitecontainer').show();
+	}
 	
+	
+	function autoRewriteList(user,cmd,sshId) {
+		$.get("/"+getApp()+"/connectSsh/autoRewriteList?username=${backuser}&cmd="+cmd+"&sshUserId="+sshId,function(data){
+			$('#inviteUserContainer').hide().html(data).fadeIn('slow');
+		});
+		$('#invitecontainer').show();
 	}
 		
-	function loadBlackList(value) {
-	 	$.get("/"+getApp()+"/connectSsh/loadBlackList?username=${backuser}&sshId="+value,function(data){
+	function loadList(value, ltype) {
+	 	$.get("/"+getApp()+"/connectSsh/loadList?username=${backuser}&listType="+ltype+"&sshId="+value,function(data){
 			$('#selectedValues').hide().html(data).fadeIn('slow');
 		});
-	
 	}
 	
 	

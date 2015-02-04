@@ -9,13 +9,12 @@
 </div>
 
 <g:javascript>
-
 	function showServers(value) {
 		$('#serverRow').show();
 		document.getElementById('gpId').value = value;
 	}
 
-	function showBlackList(value) {
+	function showList(value) {
 		$('#serverRow').show();
 		document.getElementById('shId').value = value;
 	}
