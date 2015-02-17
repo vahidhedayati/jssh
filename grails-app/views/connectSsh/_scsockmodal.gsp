@@ -1,16 +1,20 @@
+
 <div id="returnAnswer"></div>
 <div id="adminsTemplateContainer" style="display: none;">
 	<g:render template="/jsshadmin/admin" />
 </div>
 
 
-<ul class="nav-pills pull-center navbar-nav nav">
-	<li class="dropdown"><a href="#" data-toggle="btn btn-default dropdown-toggle  btn-sm"
-		class="dropdown-toggle"> <i class="glyphicon glyphicon-cog"
+<ul class="nav">
+<li>
+  <div class="dropdown">
+      <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+      
+      <i class="glyphicon glyphicon-cog"
 			title="Admin menu"></i><b class="caret"></b>
 	</a>
-
-		<ul class="dropdown-menu">
+	 <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+	
 			<li ><a tabindex="-1" href="#"><b>Admin
 						Options</b></a></li>
 			<li class="divider"></li>
