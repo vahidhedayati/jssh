@@ -58,8 +58,11 @@
 				onclick="javascript:connectGroup();"> <g:message
 						code="jssh.connect.group.default" default="Connect To Group" />
 			</a></li>
-			</div>
-		</ul></li>
+		
+		</ul>
+	</div>
+	</li>
+		
 </ul>
 
 
