@@ -31,7 +31,7 @@
 				<label for="groupname"> <g:message
 						code="jssh.new.blacklist.command.label" default="Add BlackList Command" />
 				</label>
-				<g:render template="/admin/autoBlackList" />
+				<g:render template="/jsshadmin/autoBlackList" />
 				
 				<div id="selectedValues">
 				</div>
@@ -46,5 +46,5 @@
 No SSH USERS  been created as yet!
 </g:else>
 <div id="invitecontainer" style="display:none;">
-		<g:render template="/admin/inviteContainer"/>
+		<g:render template="/jsshadmin/inviteContainer"/>
 	</div>

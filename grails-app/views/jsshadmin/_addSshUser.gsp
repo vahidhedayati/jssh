@@ -104,5 +104,5 @@
 </g:formRemote>
 
 <div id="invitecontainer" style="display:none;">
-		<g:render template="/admin/inviteContainer"/>
+		<g:render template="/jsshadmin/inviteContainer"/>
 	</div>

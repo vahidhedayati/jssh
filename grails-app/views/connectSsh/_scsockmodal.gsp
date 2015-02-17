@@ -1,21 +1,21 @@
 <div id="returnAnswer"></div>
 <div id="adminsTemplateContainer" style="display: none;">
-	<g:render template="/admin/admin" />
+	<g:render template="/jsshadmin/admin" />
 </div>
 
 
 <ul class="nav-pills pull-center navbar-nav nav">
-	<li class="dropdown"><a href="#" data-toggle="dropdown"
+	<li class="dropdown"><a href="#" data-toggle="btn btn-default dropdown-toggle  btn-sm"
 		class="dropdown-toggle"> <i class="glyphicon glyphicon-cog"
 			title="Admin menu"></i><b class="caret"></b>
 	</a>
 
 		<ul class="dropdown-menu">
-			<li class="dopdown-menu"><a tabindex="-1" href="#"><b>Admin
+			<li ><a tabindex="-1" href="#"><b>Admin
 						Options</b></a></li>
 			<li class="divider"></li>
 			<g:if env="development">
-				<li class=""><a href="${createLink(uri: '/dbconsole')}"> <i
+				<li ><a href="${createLink(uri: '/dbconsole')}"> <i
 						class="icon-dashboard"></i> <g:message
 							code="default.dbconsole.label" default="DB Console" />
 				</a></li>

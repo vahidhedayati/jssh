@@ -89,7 +89,7 @@ class ConnectSshController extends JsshConfService {
 
 	// Admin DB related features
 	def addGroup() {
-		render template: '/admin/addGroup'
+		render template: '/jsshadmin/addGroup'
 	}
 
 	def loadGroup(String username, String template) {
@@ -100,7 +100,7 @@ class ConnectSshController extends JsshConfService {
 			serverList = SshServerGroups.findAllByUser(ju)
 			sshUserList = ju.sshuser
 		}
-		render template: '/admin/'+template, model: [template:template, serverList:serverList, username: username, sshUserList: sshUserList]
+		render template: '/jsshadmin/'+template, model: [template:template, serverList:serverList, username: username, sshUserList: sshUserList]
 	}
 
 	def groupConnection(String jsshUsername, String groupId, String userCommand) {
@@ -113,7 +113,7 @@ class ConnectSshController extends JsshConfService {
 			Map model = [jsshUsername:jsshUsername , servers:servers, jobName:jobName, 
 				userCommand:userCommand, divId:divId]
 			
-			render template: '/admin/groupConnect', model: model 
+			render template: '/jsshadmin/groupConnect', model: model 
 	}
 	
 	def loadServers(String username, String gId) {
@@ -127,7 +127,7 @@ class ConnectSshController extends JsshConfService {
 			}
 		}
 		if (serverList) {
-			render template: '/admin/loadServers', model: [serverList:serverList]
+			render template: '/jsshadmin/loadServers', model: [serverList:serverList]
 		}else{
 			render ""
 		}
@@ -146,7 +146,7 @@ class ConnectSshController extends JsshConfService {
 			}
 		}
 		if (currentList) {
-			render template: '/admin/loadList', model: [currentList:currentList, listType: listType]
+			render template: '/jsshadmin/loadList', model: [currentList:currentList, listType: listType]
 		}else{
 			render ""
 		}
@@ -162,7 +162,7 @@ class ConnectSshController extends JsshConfService {
 	
 	def autoRewriteList(String username, String cmd, String sshUserId) {
 		Map map = [username:username, command:cmd, sshUserId:sshUserId]
-		render template: '/admin/addRewriteRule', model: map
+		render template: '/jsshadmin/addRewriteRule', model: map
 	}
 	
 	
@@ -197,7 +197,7 @@ class ConnectSshController extends JsshConfService {
 
 	def addHostName(String username, String hostName, String groupId) {
 		Map map = [hostName:hostName, username:username, groupId:groupId]
-		render template: '/admin/addHost', model: map
+		render template: '/jsshadmin/addHost', model: map
 	}
 
 	def adduserDetails(String friendlyName, String username, String sshUsername, String sshKey, String sshKeyPass) { 

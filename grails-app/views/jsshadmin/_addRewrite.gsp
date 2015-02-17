@@ -31,7 +31,7 @@
 				<label for="groupname"> <g:message
 						code="jssh.new.rewrite.command.label" default="Add Rewrite Command" />
 				</label>
-				<g:render template="/admin/autoRewriteList" />
+				<g:render template="/jsshadmin/autoRewriteList" />
 				
 				<div id="selectedValues">
 				</div>
@@ -47,5 +47,5 @@
 No SSH USERS  been created as yet!
 </g:else>
 <div id="invitecontainer" style="display:none;">
-		<g:render template="/admin/inviteContainer"/>
+		<g:render template="/jsshadmin/inviteContainer"/>
 	</div>

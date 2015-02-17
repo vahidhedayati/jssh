@@ -37,7 +37,7 @@
 				<label for="groupname"> <g:message
 						code="jssh.new.group.name.label" default="Add Server" />
 				</label>
-				<g:render template="/admin/autoServer" />
+				<g:render template="/jsshadmin/autoServer" />
 				
 				<div id="selectedValues">
 				</div>
@@ -56,5 +56,5 @@
 No groups have been created as yet!
 </g:else>
 <div id="invitecontainer" style="display:none;">
-		<g:render template="/admin/inviteContainer"/>
+		<g:render template="/jsshadmin/inviteContainer"/>
 	</div>
