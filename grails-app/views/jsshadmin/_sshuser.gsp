@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<meta name="layout" content="main">
-		<g:set var="entityName" value="${message(code: 'jsshuser.label', default: 'Jssh user List')}" />
+		<g:set var="entityName" value="${message(code: 'jsshuser.label', default: 'Jssh SSHUser List')}" />
 		<title><g:message code="default.list.label" args="[entityName]" /></title>
 		<g:render template="/connectSsh/jsshAdmin" model="${[loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle] }"/>
 	</head>
@@ -16,29 +16,28 @@
 			<div class="message" role="status">${flash.message}</div>
 			</g:if>
 			<div class="row">
-					 <div class="col-md-2">	<g:sortableColumn property="username" title="${message(code: 'jsshuser.username.label', default: 'Jssh UserName')}" /></div>
-						 <div class="col-md-1"><g:sortableColumn property="permissions" title="${message(code: 'jsshuser.permissions.label', default: 'permissions')}" /></div>
-						 <div class="col-md-1"><g:sortableColumn property="conlog" title="${message(code: 'jsshuser.conlog.label', default: 'conlog')}" /></div>
-						 <div class="col-md-2"><g:sortableColumn property="sshuser" title="${message(code: 'jsshuser.sshuser.label', default: 'sshuser')}" /></div>
+					 <div class="col-md-2">	<g:sortableColumn property="username" title="${message(code: 'jsshuser.username.label', default: 'username')}" /></div>
+						 <div class="col-md-1"><g:sortableColumn property="sshKey" title="${message(code: 'jsshuser.sshKey.label', default: 'sshKey')}" /></div>
+						 <div class="col-md-1"><g:sortableColumn property="sshKeyPass" title="${message(code: 'jsshuser.sshKeyPass.label', default: 'sshKeyPass')}" /></div>
 						 <div class="col-md-3"><g:sortableColumn property="servers" title="${message(code: 'jsshuser.servers.label', default: 'servers')}" /></div>
-						 <div class="col-md-2"><g:sortableColumn property="groups" title="${message(code: 'jsshuser.owner.label', default: 'groups')}" /></div>
+						 <div class="col-md-2"><g:sortableColumn property="blacklist" title="${message(code: 'jsshuser.blacklist.label', default: 'blacklist')}" /></div>
+						 <div class="col-md-2"><g:sortableColumn property="rewrite" title="${message(code: 'jsshuser.rewrite.label', default: 'rewrite')}" /></div>
 					</div>
 				<g:each in="${userInstanceList}" status="i" var="userInstance">
 					<div class="row ${(i % 2) == 0 ? 'even' : 'odd'}">
-						<div class="col-md-2"><g:link action="show" id="${userInstance.id}">${fieldValue(bean: userInstance, field: "username")}</g:link></div>
-						<div class="col-md-1">${fieldValue(bean: userInstance, field: "permissions")}</div>
-						<div class="col-md-1">${fieldValue(bean: userInstance, field: "conlog")}</div>
-						
-						<div class="col-md-2">
-							<jssh:sshList rtype="sshuser" ilist="${userInstance.sshuser}"/>
-						</div>
-						
+						<div class="col-md-2"><g:link action="show" id="${userInstance.id}">${fieldValue(bean: userInstance, field: "username")}</g:link>: ${userInstance.friendlyName }</div>
+						<div class="col-md-1">${fieldValue(bean: userInstance, field: "sshKey")}</div>
+						<div class="col-md-1">${fieldValue(bean: userInstance, field: "sshKeyPass")}</div>
+												
 						<div class="col-md-3">
 							<jssh:sshList rtype="servers" ilist="${userInstance.servers}"/>
 						</div>
-						
 						<div class="col-md-2">
-							<jssh:sshList rtype="groups" ilist="${userInstance.groups}"/>
+							<jssh:sshList rtype="blacklist" ilist="${userInstance.blacklist}"/>
+						</div>
+
+						<div class="col-md-2">
+							<jssh:sshList rtype="rewrite" ilist="${userInstance.rewrite}"/>
 						</div>
 					</div>
 				</g:each>

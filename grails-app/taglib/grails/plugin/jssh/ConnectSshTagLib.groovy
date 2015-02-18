@@ -35,7 +35,7 @@ class ConnectSshTagLib extends JsshConfService {
 		}
 		if (rtype == "sshuser") {
 			finalList.each { SshUser user ->
-				out << """		${user.username} """	
+				out << """<g:link controller="connectSsh" action="		${user.username} """	
 			}
 		}else if (rtype == "servers") {
 			finalList.each { SshServers server ->
@@ -45,7 +45,16 @@ class ConnectSshTagLib extends JsshConfService {
 			finalList.each { SshServerGroups groups ->
 				out << """		${groups.name} """				
 			}
-		}	
+		}else if (rtype == "rewrite") {
+			finalList.each { SshCommandRewrite rewrite ->
+				out << """		${rewrite.command} """				
+			}
+		}else if (rtype == "blacklist") {
+			finalList.each { SshCommandBlackList blacklist ->
+				out << """		${blacklist.command} """				
+			}
+		}
+			
 	}
 	/*
 	 * loadAdmin requires a userId
