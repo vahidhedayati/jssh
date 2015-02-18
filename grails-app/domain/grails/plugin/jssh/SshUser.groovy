@@ -24,6 +24,6 @@ class SshUser {
 	}
 	
 	String toString(){ 
-		"${friendlyName} : ${username}"
+		"${username}"
 	}
 }

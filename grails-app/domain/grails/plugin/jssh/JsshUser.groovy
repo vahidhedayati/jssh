@@ -5,7 +5,7 @@ import grails.plugin.jssh.logging.ConnectionLogger
 class JsshUser {
 
 	ConnectionLogger conlog
-	
+	JsshPermissions permissions
 	String username
 	
 	static hasMany = [sshuser: SshUser, servers: SshServers, groups: SshServerGroups]
@@ -16,7 +16,12 @@ class JsshUser {
     }
 	
 	static mapping = { 
+		permissions lazy: false
 		servers cascade: 'lock'
 		sshuser cascade: 'lock'
+	}
+	
+	String toString() {
+		"${username}"
 	}
 }

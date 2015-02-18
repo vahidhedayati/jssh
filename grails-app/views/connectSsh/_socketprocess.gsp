@@ -1,4 +1,4 @@
-<g:render template="/connectSsh/sshLayout" />
+<g:render template="/connectSsh/sshLayout" model="${[loadBootStrap:loadBootStrap, loadJQuery:loadJQuery]}"/>
 
 <g:javascript>     
 	if (!window.WebSocket) {

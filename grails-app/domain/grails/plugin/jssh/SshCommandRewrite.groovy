@@ -11,4 +11,8 @@ class SshCommandRewrite {
 	static constraints = {
 		command blank: false, unique: true
 	}
+	
+	String toString() {
+		"${command}"
+	}
 }

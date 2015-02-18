@@ -10,4 +10,8 @@ class SshCommandBlackList {
 	static constraints = {
 		command blank: false, unique: true
 	}
+	
+	String toString() {
+		"${command}"
+	}
 }

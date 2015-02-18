@@ -13,4 +13,8 @@ class SshServers {
 		sshPort nullable:true
 		sshuser nullable:true
     }
+	
+	String toString() { 
+		"${hostName}"
+	}
 }

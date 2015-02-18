@@ -12,7 +12,8 @@ class ConnectSshTagLib extends JsshConfService {
 	def jsshRandService
 	def jsshClientListenerService
 	def jsshDbStorageService
-
+	def jsshUserService
+	
 	private String 	hostname, username, userCommand, password, template, port, adminTemplate, sshKey, sshKeyPass, uri, wsprotocol
 
 	private String 	wshostname, hideConsoleMenu, hideSendBlock, hideSessionCtrl,hideWhatsRunning, hideDiscoButton, hidePauseControl, 
@@ -20,7 +21,49 @@ class ConnectSshTagLib extends JsshConfService {
 
 	private String 	jUser, conLogId, conloggerId, comloggerId
 
-
+	private Boolean loadBootStrap, loadJQuery
+	
+	
+	def sshList = { attrs ->
+		def ilist = attrs.remove('ilist')
+		String rtype = attrs.remove('rtype').toString() 
+		ArrayList finalList = []
+		if (ilist instanceof String) {
+			finalList = [ilist]
+		}else{
+			finalList = ilist as ArrayList
+		}
+		if (rtype == "sshuser") {
+			finalList.each { SshUser user ->
+				out << """		${user.username} """	
+			}
+		}else if (rtype == "servers") {
+			finalList.each { SshServers server ->
+				out << """		${server.hostName} """	
+			}
+		}else if (rtype == "groups") {
+			finalList.each { SshServerGroups groups ->
+				out << """		${groups.name} """				
+			}
+		}	
+	}
+	/*
+	 * loadAdmin requires a userId
+	 * once confirmed as admin - admin view shown on calling gsp
+	 */
+	def loadAdmin = { attrs ->
+		String jsshUser = attrs.remove('jsshUser')?.toString()
+		boolean loadBootStrap = attrs.remove('loadBootStrap')?.toBoolean() ?: true
+		boolean loadJQuery = attrs.remove('loadJQuery')?.toBoolean() ?: true
+		boolean loadStyle = attrs.remove('loadStyle')?.toBoolean() ?: true
+		if (jsshUser && jsshUserService.isAdmin(jsshUser)) {
+			session.jsshuser = jsshUser
+			session.isAdmin = 'true'
+			def model = [jsshUser:jsshUser, loadBootStrap:loadBootStrap, loadJQuery:loadJQuery , loadStyle:loadStyle]
+			loadTemplate(template, '/connectSsh/jsshAdmin', model)
+		}
+	}
+	
 	/* jssh:broadcast only required on top of jssh:conn if used multiple times on 1 page
 	 * will send a broadcast message to all the connections
 	 * All JobNames on jssh:conn must match the same jobName as broadcast for this
@@ -74,6 +117,8 @@ class ConnectSshTagLib extends JsshConfService {
 		connMap.put('jsshUser', frontuser)
 		if (hostname) {
 			connMap.put('hostname', hostname)
+			connMap.put('loadBootStrap',loadBootStrap)
+			connMap.put('loadJQuery',loadJQuery)
 			loadTemplate(template,'/connectSsh/socketConnect', connMap)
 
 			loadBackEnd(uri, connMap, cuser)
@@ -95,7 +140,8 @@ class ConnectSshTagLib extends JsshConfService {
 			hideSessionCtrl:hideSessionCtrl, hideNewShellButton:hideNewShellButton, hideConsoleMenu:hideConsoleMenu,
 			hideSendBlock:hideSendBlock, wshostname:wshostname, hostname:hostname, port:port, addAppName:addAppName,
 			username:username, password:password, userCommand:userCommand, divId:divId, uri:uri,
-			enablePong:enablePong, pingRate:pingRate, jobName:jobName, jsshUser:jsshUser, frontend:frontend]
+			enablePong:enablePong, pingRate:pingRate, jobName:jobName, jsshUser:jsshUser, frontend:frontend, 
+			loadBootStrap:loadBootStrap, loadJQuery: loadJQuery]
 
 		loadTemplate(template, "/connectSsh/socketprocess", model)
 	}
@@ -178,6 +224,8 @@ class ConnectSshTagLib extends JsshConfService {
 		this.template = attrs.remove('template')?.toString()
 		this.adminTemplate = attrs.remove('adminTemplate')?.toString() ?: ''
 		this.port = attrs.remove('port')?.toString() ?: '22'
+		this.loadBootStrap = attrs.remove('loadBootStrap')?.toBoolean() ?: true
+		this.loadJQuery = attrs.remove('loadJQuery')?.toBoolean() ?: true
 	}
 
 

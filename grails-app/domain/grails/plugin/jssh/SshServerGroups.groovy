@@ -12,4 +12,8 @@ class SshServerGroups {
     static constraints = {
 		name blank: false, unique: true
     }
+	
+	String toString() {
+		"${name}"
+	}
 }

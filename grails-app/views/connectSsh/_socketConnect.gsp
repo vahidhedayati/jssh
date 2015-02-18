@@ -1,5 +1,5 @@
 
-<g:render template="/connectSsh/sshConnectLayout" />
+<g:render template="/connectSsh/sshConnectLayout" model="${[loadBootStrap:loadBootStrap, loadJQuery:loadJQuery]}"/>
 
 <g:javascript>
 

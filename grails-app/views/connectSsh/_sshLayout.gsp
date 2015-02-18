@@ -1,8 +1,8 @@
 <g:if test="${enduser?.verifyAppVersion().equals('assets')}">
-	<g:render template="/assets" />
+	<g:render template="/assets" model="${[loadBootStrap:loadBootStrap, loadJQuery:loadJQuery]}" />
 </g:if>
 <g:else>
-	<g:render template="/resources" />
+	<g:render template="/resources" model="${[loadBootStrap:loadBootStrap, loadJQuery:loadJQuery]}"/>
 </g:else>
 <g:if test="${((!hideSendBlock) || (!hideSendBlock.equals('YES')))}">
 

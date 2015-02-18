@@ -243,5 +243,28 @@ class ConnectSshController extends JsshConfService {
 		jsshDbStorageService.activeUsers()
 		render ""
 	}
+	
+	//Admin options
+	
+	def siteAdmin(Integer max) { 
+		if (session.isAdmin.toBoolean()) {
+			boolean loadBootStrap = (params.loadBootStrap as Boolean) ?: true
+			boolean loadJQuery = (params.loadJQuery as Boolean) ?: true
+			boolean loadStyle = (params.loadStyle as Boolean) ?: true
+			params.max = Math.min(max ?: 50, 100)
+			Map model
+			if (params.lookup == "user") {
+				model = [userInstanceList: JsshUser.list(params), userInstanceTotal: JsshUser.count()]
+			}else if (params.lookup == "sshuser") {
+				model = [userInstanceList: SshUser.list(params), userInstanceTotal: SshUser.count()]
+			}else if (params.lookup == "server") {
+				model = [userInstanceList: SshServers.list(params), userInstanceTotal: SshServers.count()]
+			}
+			String template = "/jsshadmin/${params.lookup}"
+			model += [loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]
+			render template: template, model: model
+		}
+	}
+	
 
 }

@@ -18,4 +18,8 @@ class ConnectionLogger {
 		String getFormattedDateCreated() {
 		  dateCreated.format("MM/dd/yyyy 'at' h:mma")
 		}
+		
+		String toString() {
+			"${id}"
+		}
 	  }
