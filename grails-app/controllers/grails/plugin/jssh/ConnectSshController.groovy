@@ -13,7 +13,7 @@ class ConnectSshController extends JsshConfService {
 		'socketremote':'RemoteForm Websocket', 'scsocket':'NEW: Websocket Client/Server']
 
 	private boolean loadBootStrap, loadJQuery, loadStyle
-	
+
 	// Original websocket
 	def index() {
 		def process = config.disable.login ?: 'NO'
@@ -106,18 +106,18 @@ class ConnectSshController extends JsshConfService {
 	}
 
 	def groupConnection(String jsshUsername, String groupId, String userCommand) {
-			def grps = SshServerGroups.get(groupId)
-			def  servers = grps.servers
-			//def user = grps.user
-			def jobName = jsshRandService.shortRand('job')
-			def divId =  jsshRandService.shortRand('divId')
-			
-			Map model = [jsshUsername:jsshUsername , servers:servers, jobName:jobName, 
-				userCommand:userCommand, divId:divId]
-			
-			render template: '/jsshadmin/groupConnect', model: model 
+		def grps = SshServerGroups.get(groupId)
+		def  servers = grps.servers
+		//def user = grps.user
+		def jobName = jsshRandService.shortRand('job')
+		def divId =  jsshRandService.shortRand('divId')
+
+		Map model = [jsshUsername:jsshUsername , servers:servers, jobName:jobName,
+			userCommand:userCommand, divId:divId]
+
+		render template: '/jsshadmin/groupConnect', model: model
 	}
-	
+
 	def loadServers(String username, String gId) {
 		JsshUser ju = JsshUser.findByUsername(username)
 		def serverList
@@ -135,8 +135,8 @@ class ConnectSshController extends JsshConfService {
 		}
 	}
 
-	
-	
+
+
 	def loadList(String username, String sshId, String listType) {
 		SshUser su = SshUser.get(sshId)
 		def currentList
@@ -153,21 +153,21 @@ class ConnectSshController extends JsshConfService {
 			render ""
 		}
 	}
-	
+
 	def findSshCommand(String type, String command) {
 		render jsshDbStorageService.findSshCommand(type, command) as JSON
 	}
-	
+
 	def autoBlackList(String username, String cmd, String sshId) {
 		render jsshDbStorageService.autoBlackList(username, cmd, sshId) as JSON
 	}
-	
+
 	def autoRewriteList(String username, String cmd, String sshUserId) {
 		Map map = [username:username, command:cmd, sshUserId:sshUserId]
 		render template: '/jsshadmin/addRewriteRule', model: map
 	}
-	
-	
+
+
 	def addRewriteList(String sshuserId) {
 		def rewriteList = params.rewrite
 		if (rewriteList) {
@@ -181,14 +181,14 @@ class ConnectSshController extends JsshConfService {
 			render "GroupID  ${rewriteLists} added to ${sshuserId}"
 		}
 	}
-	
-	
+
+
 	def addRewriteDetails(String username, String command, String sshUserId, String replacement) {
 		render jsshDbStorageService.addRewriteEntry(username, sshUserId, command, replacement) as String
 	}
-	
-	
-	
+
+
+
 	def addHostDetails(String username, String hostName, String ip, String port) {
 		render jsshDbStorageService.addServer(username, hostName, port ?: '22', ip ?: '') as String
 	}
@@ -202,7 +202,7 @@ class ConnectSshController extends JsshConfService {
 		render template: '/jsshadmin/addHost', model: map
 	}
 
-	def adduserDetails(String friendlyName, String username, String sshUsername, String sshKey, String sshKeyPass) { 
+	def adduserDetails(String friendlyName, String username, String sshUsername, String sshKey, String sshKeyPass) {
 		//def serverId = SshServers.getAll(params.list('serverId'))
 		ArrayList serverId=params.list('serverId')
 		if (!serverId && params.groupId) {
@@ -217,7 +217,7 @@ class ConnectSshController extends JsshConfService {
 		jsshDbStorageService.storeGroup(name, username)
 		render "Group should now be added"
 	}
-	
+
 	def addGroupServers(String groupId) {
 		def serverList = params.serverList
 		if (serverList) {
@@ -245,70 +245,122 @@ class ConnectSshController extends JsshConfService {
 		jsshDbStorageService.activeUsers()
 		render ""
 	}
-	
+
 	//Admin options
-	def siteAdmin(Integer max, String lookup) { 
+	def siteAdmin(Integer max, String lookup) {
 		if (session.isAdmin && session.isAdmin.toBoolean()) {
 			verifyBooleans(params)
 			params.max = Math.min(max ?: 50, 100)
 			def userInstanceList, userInstanceTotal
-			
+
 			if (lookup == "user") {
 				if (params.id) {
 					userInstanceList = JsshUser?.get( params.id)
 					userInstanceTotal = 1
 				}else{
-				 	userInstanceList = JsshUser.list(params)
-					 userInstanceTotal = JsshUser.count()
+					userInstanceList = JsshUser.list(params)
+					userInstanceTotal = JsshUser.count()
 				}
 			}else if (lookup == "sshuser") {
 				if (params.id) {
 					userInstanceList = SshUser?.get( params.id)
 					userInstanceTotal = 1
 				}else{
-					 userInstanceList = SshUser.list(params)
-					 userInstanceTotal = SshUser.count()
+					userInstanceList = SshUser.list(params)
+					userInstanceTotal = SshUser.count()
 				}
-				
+
 			}else if (lookup == "server") {
 				if (params.id) {
 					userInstanceList = SshServers?.get( params.id)
 					userInstanceTotal = 1
 				}else{
-					 userInstanceList = SshServers.list(params)
-					 userInstanceTotal = SshServers.count()
+					userInstanceList = SshServers.list(params)
+					userInstanceTotal = SshServers.count()
 				}
 			}else if (lookup == "group") {
 				if (params.id) {
 					userInstanceList = SshServerGroups?.get( params.id)
 					userInstanceTotal = 1
 				}else{
-					 userInstanceList = SshServerGroups.list(params)
-					 userInstanceTotal = SshServerGroups.count()
+					userInstanceList = SshServerGroups.list(params)
+					userInstanceTotal = SshServerGroups.count()
 				}
 			}
-			
+
 			String template = "/jsshadmin/${lookup}"
-			Map model = [userInstanceList: userInstanceList, userInstanceTotal:userInstanceTotal,  lookup:lookup, 
+			Map model = [userInstanceList: userInstanceList, userInstanceTotal:userInstanceTotal,  lookup:lookup,
 				loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]
-			
+
 			render template: template, model: model
+			return
 		}
 		render "Acess denied"
+		return
 	}
-	
+
 	def edit(Long id, String table) {
-		String template
 		def uiterator
 		if (table == "jsshUser") {
 			uiterator = JsshUser.get(id)
-			template = "/jsshUser/edit"
+		}else if (table == "sshUser") {
+			uiterator = SshUser.get(id)
+		}else if (table == "sshServers") {
+			uiterator = SshServers.get(id)
+		}else if (table == "sshServerGroups") {
+			uiterator = SshServerGroups.get(id)
 		}
 		verifyBooleans(params)
-		if (template && uiterator) {
-		render template: template, model: [table:table, uiterator:uiterator, loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]
+		if (uiterator) {
+			Map model = [table:table, uiterator:uiterator, loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]
+			render template: "/jsshadmin/edit", model: model
+			return
 		}
 		render "Invalid selection"
+		return
+	}
+
+
+	def update(Long id,  Long version, String table) {
+
+		def uiterator
+		if (table == "jsshUser") {
+			uiterator = JsshUser.get(id)
+		}else if (table == "sshUser") {
+			uiterator = SshUser.get(id)
+		}else if (table == "sshServers") {
+			uiterator = SshServers.get(id)
+		}else if (table == "sshServerGroups") {
+			uiterator = SshServerGroups.get(id)
+		}
+		 Map model = [table:table, uiterator:uiterator, loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]
+
+		if (!uiterator) {
+			flash.message = message(code: 'default.not.found.message', args: [message(code: table+'.label', default: table), id])
+			redirect(action: "edit", params:params)
+			return
+		}
+
+		if (version != null) {
+			if (uiterator.version > version) {
+				uiterator.errors.rejectValue("version", "default.optimistic.locking.failure",
+						[message(code: table+'.label', default: table)] as Object[],
+						"Another user has updated this Applications while you were editing")
+				render(template: "/jsshadmin/edit", model:model)
+				return
+			}
+		}
+
+		uiterator.properties = params
+
+		if (!uiterator.save(flush: true)) {
+			render(template: "/jsshadmin/edit",  model: model)
+			return
+		}
+
+		flash.message = message(code: 'default.updated.message', args: [message(code: table+'.label', default: table), uiterator.id])
+		//redirect(action: "show", id: applicationsInstance.id)
+		render(template: "/jsshadmin/edit",  model: model)
 	}
 	
 	private verifyBooleans(params){
