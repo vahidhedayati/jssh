@@ -12,6 +12,8 @@ class ConnectSshController extends JsshConfService {
 	private Map menuMap = ['index':'Socket method', 'ajaxpoll':'Ajax poll',
 		'socketremote':'RemoteForm Websocket', 'scsocket':'NEW: Websocket Client/Server']
 
+	private boolean loadBootStrap, loadJQuery, loadStyle
+	
 	// Original websocket
 	def index() {
 		def process = config.disable.login ?: 'NO'
@@ -245,26 +247,66 @@ class ConnectSshController extends JsshConfService {
 	}
 	
 	//Admin options
-	
-	def siteAdmin(Integer max) { 
-		if (session.isAdmin.toBoolean()) {
-			boolean loadBootStrap = (params.loadBootStrap as Boolean) ?: true
-			boolean loadJQuery = (params.loadJQuery as Boolean) ?: true
-			boolean loadStyle = (params.loadStyle as Boolean) ?: true
+	def siteAdmin(Integer max, String lookup) { 
+		if (session.isAdmin && session.isAdmin.toBoolean()) {
+			verifyBooleans(params)
 			params.max = Math.min(max ?: 50, 100)
-			Map model
-			if (params.lookup == "user") {
-				model = [userInstanceList: JsshUser.list(params), userInstanceTotal: JsshUser.count()]
-			}else if (params.lookup == "sshuser") {
-				model = [userInstanceList: SshUser.list(params), userInstanceTotal: SshUser.count()]
-			}else if (params.lookup == "server") {
-				model = [userInstanceList: SshServers.list(params), userInstanceTotal: SshServers.count()]
+			def userInstanceList, userInstanceTotal
+			
+			if (lookup == "user") {
+				if (params.id) {
+					userInstanceList = JsshUser?.get( params.id)
+					userInstanceTotal = 1
+				}else{
+				 	userInstanceList = JsshUser.list(params)
+					 userInstanceTotal = JsshUser.count()
+				}
+			}else if (lookup == "sshuser") {
+				if (params.id) {
+					userInstanceList = SshUser?.get( params.id)
+					userInstanceTotal = 1
+				}else{
+					 userInstanceList = SshUser.list(params)
+					 userInstanceTotal = SshUser.count()
+				}
+				
+			}else if (lookup == "server") {
+				if (params.id) {
+					userInstanceList = SshServers?.get( params.id)
+					userInstanceTotal = 1
+				}else{
+					 userInstanceList = SshServers.list(params)
+					 userInstanceTotal = SshServers.count()
+				}
 			}
-			String template = "/jsshadmin/${params.lookup}"
-			model += [loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]
+			
+			String template = "/jsshadmin/${lookup}"
+			Map model = [userInstanceList: userInstanceList, userInstanceTotal:userInstanceTotal,  
+				loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]
+			
 			render template: template, model: model
 		}
+		render "Acess denied"
 	}
 	
+	def edit(Long id, String table) {
+		String template
+		def uiterator
+		if (table == "jsshUser") {
+			uiterator = JsshUser.get(id)
+			template = "/jsshUser/edit"
+		}
+		verifyBooleans(params)
+		if (template && uiterator) {
+		render template: template, model: [uiterator:uiterator, loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]
+		}
+		render "Invalid selection"
+	}
+	
+	private verifyBooleans(params){
+		this.loadBootStrap = (params.loadBootStrap as Boolean) ?: true
+		this.loadJQuery = (params.loadJQuery as Boolean) ?: true
+		this.loadStyle = (params.loadStyle as Boolean) ?: true
+	}
 
 }

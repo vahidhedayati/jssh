@@ -7,6 +7,13 @@
 </g:else>
 </g:if>
 
+<div id="returnAnswer"></div>
+<div id="adminsTemplateContainer" style="display: none;">
+	<g:render template="/jsshadmin/admin" />
+</div>
+
+
+
 <div id="adminConfirmation"></div>
 <nav id="Navbar" class="navbar navbar-inverse" role="navigation">
 	<ul class="nav navbar-nav">
@@ -29,7 +36,18 @@
 				</g:link>
 			</li>
 			
+			<g:render template="/connectSsh/adminModal" />
 			
 			
 	</ul>
 </nav>
+
+
+<g:javascript>
+	var baseapp="${meta(name:'app.name')}";
+ 	
+	function getApp() {
+		return baseapp;
+	}
+	var backuser="${backuser}";
+</g:javascript>

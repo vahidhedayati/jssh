@@ -25,7 +25,7 @@
 					</div>
 				<g:each in="${userInstanceList}" status="i" var="userInstance">
 					<div class="row ${(i % 2) == 0 ? 'even' : 'odd'}">
-						<div class="col-md-2"><g:link action="show" id="${userInstance.id}">${fieldValue(bean: userInstance, field: "username")}</g:link></div>
+						<div class="col-md-2"><g:link controller="connectSsh" action="edit" id="${userInstance.id}" params="${[table: 'jsshUser'] }">${fieldValue(bean: userInstance, field: "username")}</g:link></div>
 						<div class="col-md-1">${fieldValue(bean: userInstance, field: "permissions")}</div>
 						<div class="col-md-1">${fieldValue(bean: userInstance, field: "conlog")}</div>
 						

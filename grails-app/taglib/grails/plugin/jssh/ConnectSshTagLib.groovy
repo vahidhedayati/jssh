@@ -21,9 +21,11 @@ class ConnectSshTagLib extends JsshConfService {
 
 	private String 	jUser, conLogId, conloggerId, comloggerId
 
-	private Boolean loadBootStrap, loadJQuery
+	private Boolean loadBootStrap, loadJQuery, loadStyle
 	
-	
+	/*
+	 * Various hasMany listings within admin interface
+	 */
 	def sshList = { attrs ->
 		def ilist = attrs.remove('ilist')
 		String rtype = attrs.remove('rtype').toString() 
@@ -35,11 +37,11 @@ class ConnectSshTagLib extends JsshConfService {
 		}
 		if (rtype == "sshuser") {
 			finalList.each { SshUser user ->
-				out << """<g:link controller="connectSsh" action="		${user.username} """	
+				out << """<a href="${g.createLink(controller: 'connectSsh', action: 'siteAdmin', id:user.id,  params:[lookup:'sshuser',loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle])}">${user.username}</a> |"""
 			}
 		}else if (rtype == "servers") {
 			finalList.each { SshServers server ->
-				out << """		${server.hostName} """	
+				out << """<a href="${g.createLink(controller: 'connectSsh', action: 'siteAdmin', id:server.id, params:[lookup:'server',loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle])}">${server.hostName}</a> |"""
 			}
 		}else if (rtype == "groups") {
 			finalList.each { SshServerGroups groups ->
@@ -235,6 +237,7 @@ class ConnectSshTagLib extends JsshConfService {
 		this.port = attrs.remove('port')?.toString() ?: '22'
 		this.loadBootStrap = attrs.remove('loadBootStrap')?.toBoolean() ?: true
 		this.loadJQuery = attrs.remove('loadJQuery')?.toBoolean() ?: true
+		this.loadStyle = attrs.remove('loadStyle')?.toBoolean() ?: true
 	}
 
 
