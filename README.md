@@ -40,6 +40,41 @@ Video of jssh 0.9, whilst waiting on creations of stuff there was some discussio
 
 ## Interaction Methods:
 
+## 0> Admin interface - currently working on it
+
+```gsp
+<jssh:loadAdmin jsshUser="your_userId" />
+```
+Remember to add the following to your config.groovy - so that when a user logs in. Their profile is created as an admin account.
+ 
+```groovy
+jssh.defaultperm="admin"
+```
+
+In order to create or use the above admin tag lib you must first make a connection so I have a startpage
+
+```gsp
+
+<jssh:conn 
+jsshUser="your_userId"
+realUser="your_userId"
+jobName="vahidsJob"
+username="your_userId"
+password=""
+hostname="HOSTNAME" 
+userCommand="tail -f /var/log/tomcat/catalina.out"
+divId="abaa"
+enablePing="true"
+pingRate="60000"
+/>
+```
+
+Once you have hit the initial start page and created that jssh account to match the same jsshUser as the admin account and have defined admin permission for the user, the admin interface will then come alive.
+
+At the moment you can edit stuff. I want to add cloning features and deletions.
+
+
+
 ## 1> [Socket Client/Server](https://github.com/vahidhedayati/jssh/blob/master/grails-app/views/connectSsh/scsocketconnect.gsp)
 
 ##### [mutli-connection broadcasting to multiple SSH connections](https://github.com/vahidhedayati/jssh/wiki/mutli-connection---broadcasting-to-multi-nodes)
