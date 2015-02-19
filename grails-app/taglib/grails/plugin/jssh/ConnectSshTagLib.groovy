@@ -37,27 +37,28 @@ class ConnectSshTagLib extends JsshConfService {
 		}
 		if (rtype == "sshuser") {
 			finalList.each { SshUser user ->
-				out << """<a href="${g.createLink(controller: 'connectSsh', action: 'siteAdmin', id:user.id,  params:[lookup:'sshuser',loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle])}">${user.username}</a> |"""
+				out << """<a href="${g.createLink(controller: 'connectSsh', action: 'siteAdmin', id:user.id,  params:[lookup:'sshuser',loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle])}">${user.username}</a> | """
 			}
 		}else if (rtype == "servers") {
 			finalList.each { SshServers server ->
-				out << """<a href="${g.createLink(controller: 'connectSsh', action: 'siteAdmin', id:server.id, params:[lookup:'server',loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle])}">${server.hostName}</a> |"""
+				out << """<a href="${g.createLink(controller: 'connectSsh', action: 'siteAdmin', id:server.id, params:[lookup:'server',loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle])}">${server.hostName}</a> | """
 			}
 		}else if (rtype == "groups") {
 			finalList.each { SshServerGroups groups ->
-				out << """		${groups.name} """				
+				out << """<a href="${g.createLink(controller: 'connectSsh', action: 'siteAdmin', id:groups.id, params:[lookup:'group',loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle])}">${groups.name}</a> | """				
 			}
 		}else if (rtype == "rewrite") {
 			finalList.each { SshCommandRewrite rewrite ->
-				out << """		${rewrite.command} """				
+				out << """<a href="${g.createLink(controller: 'connectSsh', action: 'siteAdmin', id:rewrite.id, params:[lookup:'rewrite',loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle])}">${rewrite.command}</a>  | """				
 			}
 		}else if (rtype == "blacklist") {
 			finalList.each { SshCommandBlackList blacklist ->
-				out << """		${blacklist.command} """				
+				out << """<a href="${g.createLink(controller: 'connectSsh', action: 'siteAdmin', id:blacklist.id, params:[lookup:'blacklist',loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle])}">${blacklist.command}</a>  | """				
 			}
 		}
 			
 	}
+	
 	/*
 	 * loadAdmin requires a userId
 	 * once confirmed as admin - admin view shown on calling gsp

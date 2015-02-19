@@ -16,6 +16,9 @@
 
 <div id="adminConfirmation"></div>
 <nav id="Navbar" class="navbar navbar-inverse" role="navigation">
+
+<g:render template="/connectSsh/homeButton" />
+			
 	<ul class="nav navbar-nav">
 			<li>
 				<g:link controller="connectSsh" action="siteAdmin" params="${[lookup:'user',loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]}">
@@ -50,4 +53,8 @@
 		return baseapp;
 	}
 	var backuser="${backuser}";
+	
+	function getUser() {
+		return backuser;
+	}
 </g:javascript>

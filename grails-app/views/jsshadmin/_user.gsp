@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<meta name="layout" content="main">
-		<g:set var="entityName" value="${message(code: 'jsshuser.label', default: 'Jssh user List')}" />
+		<g:set var="entityName" value="${message(code: 'jsshuser.label', default: 'Jssh User')}" />
 		<title><g:message code="default.list.label" args="[entityName]" /></title>
 		<g:render template="/connectSsh/jsshAdmin" model="${[loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle] }"/>
 	</head>
@@ -16,12 +16,12 @@
 			<div class="message" role="status">${flash.message}</div>
 			</g:if>
 			<div class="row">
-					 <div class="col-md-2">	<g:sortableColumn property="username" title="${message(code: 'jsshuser.username.label', default: 'Jssh UserName')}" /></div>
-						 <div class="col-md-1"><g:sortableColumn property="permissions" title="${message(code: 'jsshuser.permissions.label', default: 'permissions')}" /></div>
-						 <div class="col-md-1"><g:sortableColumn property="conlog" title="${message(code: 'jsshuser.conlog.label', default: 'conlog')}" /></div>
-						 <div class="col-md-2"><g:sortableColumn property="sshuser" title="${message(code: 'jsshuser.sshuser.label', default: 'sshuser')}" /></div>
-						 <div class="col-md-3"><g:sortableColumn property="servers" title="${message(code: 'jsshuser.servers.label', default: 'servers')}" /></div>
-						 <div class="col-md-2"><g:sortableColumn property="groups" title="${message(code: 'jsshuser.owner.label', default: 'groups')}" /></div>
+					 <div class="col-md-2">	<g:sortableColumn property="username" title="${message(code: 'jsshuser.username.label', default: 'Jssh UserName')}"   params="[id:id, lookup:lookup, loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]"/></div>
+						 <div class="col-md-1"><g:sortableColumn property="permissions" title="${message(code: 'jsshuser.permissions.label', default: 'permissions')}" params="[id:id, lookup:lookup, loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]"/></div>
+						 <div class="col-md-1"><g:sortableColumn property="conlog" title="${message(code: 'jsshuser.conlog.label', default: 'conlog')}" params="[id:id, lookup:lookup, loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]"/></div>
+						 <div class="col-md-2"><g:message code="jsshuser.sshuser.label" default="sshuser"/></div>
+						 <div class="col-md-3"><g:message code="jsshuser.servers.label" default="servers"/></div>
+						 <div class="col-md-2"><g:message code="jsshuser.groups.label" default="groups"/></div>
 					</div>
 				<g:each in="${userInstanceList}" status="i" var="userInstance">
 					<div class="row ${(i % 2) == 0 ? 'even' : 'odd'}">
@@ -44,7 +44,7 @@
 				</g:each>
 				
 			<div class="pagination">
-				<g:paginate total="${userInstanceTotal}" />
+				<g:paginate total="${userInstanceTotal}"  params="${[id:id, lookup:lookup, loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]}"  />
 			</div>
 		</div>
 	</body>

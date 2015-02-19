@@ -278,10 +278,18 @@ class ConnectSshController extends JsshConfService {
 					 userInstanceList = SshServers.list(params)
 					 userInstanceTotal = SshServers.count()
 				}
+			}else if (lookup == "group") {
+				if (params.id) {
+					userInstanceList = SshServerGroups?.get( params.id)
+					userInstanceTotal = 1
+				}else{
+					 userInstanceList = SshServerGroups.list(params)
+					 userInstanceTotal = SshServerGroups.count()
+				}
 			}
 			
 			String template = "/jsshadmin/${lookup}"
-			Map model = [userInstanceList: userInstanceList, userInstanceTotal:userInstanceTotal,  
+			Map model = [userInstanceList: userInstanceList, userInstanceTotal:userInstanceTotal,  lookup:lookup, 
 				loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]
 			
 			render template: template, model: model
@@ -298,7 +306,7 @@ class ConnectSshController extends JsshConfService {
 		}
 		verifyBooleans(params)
 		if (template && uiterator) {
-		render template: template, model: [uiterator:uiterator, loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]
+		render template: template, model: [table:table, uiterator:uiterator, loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]
 		}
 		render "Invalid selection"
 	}

@@ -1,4 +1,5 @@
 
+
 <div class="fieldcontain ${hasErrors(bean: uiterator, field: 'username', 'error')} required">
 	<label for="name">
 		<g:message code="jssh.username.label" default="username" />
@@ -7,16 +8,13 @@
 	<g:textField name="username" required="" value="${uiterator?.username}"/>
 </div>
 
-
-
 <div class="fieldcontain ${hasErrors(bean: uiterator, field: 'permissions', 'error')} required">
 	<label for="name">
 		<g:message code="jssh.permissions.label" default="permissions" />
 		<span class="required-indicator">*</span>
 	</label>
-	
 	<g:select  name="permissions" from="${grails.plugin.jssh.JsshPermissions.list()}"
-	value="${uiterator?.permissions*.id}" required="required" class="many-to-one" />
+	value="${uiterator?.permissions*.id}" required="required" class="many-to-one"   optionKey="id" optionValue="name"/>
 </div>
 
 <div class="fieldcontain ${hasErrors(bean: uiterator, field: 'sshuser', 'error')} required">
@@ -34,7 +32,7 @@
 		<g:message code="jssh.servers.label" default="servers" />
 		<span class="required-indicator">*</span>
 	</label>
-	
+
 	<g:select  name="servers" from="${grails.plugin.jssh.SshServers.list()}" optionKey="id" optionValue="hostName"
 	value="${uiterator?.servers*.id}" required="required" class="many-to-one" />
 </div>

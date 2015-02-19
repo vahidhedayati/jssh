@@ -4,8 +4,8 @@
 	<g:render template="/jsshadmin/admin" />
 </div>
 
-
-<ul class="nav">
+<g:render template="/connectSsh/homeButton" />
+<ul  class="nav navbar-nav">
 	<g:render template="/connectSsh/adminModal" />
 </ul>
 
@@ -18,4 +18,8 @@
 		return baseapp;
 	}
 	var backuser="${backuser}";
+	
+	function getUser() {
+		return backuser;
+	}
 </g:javascript>

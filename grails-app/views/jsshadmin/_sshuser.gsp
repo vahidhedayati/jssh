@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<meta name="layout" content="main">
-		<g:set var="entityName" value="${message(code: 'jsshuser.label', default: 'Jssh SSHUser List')}" />
+		<g:set var="entityName" value="${message(code: 'jsshuser.label', default: 'Jssh SSHUser')}" />
 		<title><g:message code="default.list.label" args="[entityName]" /></title>
 		<g:render template="/connectSsh/jsshAdmin" model="${[loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle] }"/>
 	</head>
@@ -16,16 +16,16 @@
 			<div class="message" role="status">${flash.message}</div>
 			</g:if>
 			<div class="row">
-					 <div class="col-md-2">	<g:sortableColumn property="username" title="${message(code: 'jsshuser.username.label', default: 'username')}" /></div>
-						 <div class="col-md-1"><g:sortableColumn property="sshKey" title="${message(code: 'jsshuser.sshKey.label', default: 'sshKey')}" /></div>
-						 <div class="col-md-1"><g:sortableColumn property="sshKeyPass" title="${message(code: 'jsshuser.sshKeyPass.label', default: 'sshKeyPass')}" /></div>
-						 <div class="col-md-3"><g:sortableColumn property="servers" title="${message(code: 'jsshuser.servers.label', default: 'servers')}" /></div>
-						 <div class="col-md-2"><g:sortableColumn property="blacklist" title="${message(code: 'jsshuser.blacklist.label', default: 'blacklist')}" /></div>
-						 <div class="col-md-2"><g:sortableColumn property="rewrite" title="${message(code: 'jsshuser.rewrite.label', default: 'rewrite')}" /></div>
+					 <div class="col-md-2">	<g:sortableColumn property="username" title="${message(code: 'jsshuser.username.label', default: 'username')}"  params="[id:id, lookup:lookup, loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]"/></div>
+						 <div class="col-md-1"><g:sortableColumn property="sshKey" title="${message(code: 'jsshuser.sshKey.label', default: 'sshKey')}"  params="[id:id, lookup:lookup, loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]"/></div>
+						 <div class="col-md-1"><g:sortableColumn property="sshKeyPass" title="${message(code: 'jsshuser.sshKeyPass.label', default: 'sshKeyPass')}"  params="[id:id, lookup:lookup, loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]" /></div>
+						 <div class="col-md-3"><g:message code="jsshuser.servers.label" default="servers"/></div>
+						 <div class="col-md-2"><g:message code="jsshuser.blacklist.label" default="blacklist"/></div>
+						 <div class="col-md-2"><g:message code="jsshuser.rewrite.label" default="rewrite"/></div>
 					</div>
 				<g:each in="${userInstanceList}" status="i" var="userInstance">
 					<div class="row ${(i % 2) == 0 ? 'even' : 'odd'}">
-						<div class="col-md-2"><g:link action="show" id="${userInstance.id}">${fieldValue(bean: userInstance, field: "username")}</g:link>: ${userInstance.friendlyName }</div>
+						<div class="col-md-2"><g:link controller="connectSsh" action="edit" id="${userInstance.id}" params="${[table: 'sshUser'] }">${fieldValue(bean: userInstance, field: "username")}</g:link>: ${userInstance.friendlyName }</div>
 						<div class="col-md-1">${fieldValue(bean: userInstance, field: "sshKey")}</div>
 						<div class="col-md-1">${fieldValue(bean: userInstance, field: "sshKeyPass")}</div>
 												
@@ -43,7 +43,7 @@
 				</g:each>
 				
 			<div class="pagination">
-				<g:paginate total="${userInstanceTotal}" />
+				<g:paginate total="${userInstanceTotal}" params="${[id:id, lookup:lookup, loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]}" />
 			</div>
 		</div>
 	</body>
