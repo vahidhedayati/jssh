@@ -22,6 +22,13 @@
 				${flash.message}
 			</div>
 		</g:if>
+		
+
+		<a data-toggle="modal" href="#masterAdminContainer" class="btn btn-primary"	onclick="javascript:addJsshUser();"> 
+				<g:message	code="jssh.add.servers.default" default="Add jsshUser" />
+		</a>
+		
+	
 		<div class="row">
 			<div class="col-md-2">
 				<g:sortableColumn property="username"

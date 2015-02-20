@@ -111,14 +111,16 @@ class JsshDbStorageService extends JsshConfService {
 		return logInstance.id as String
 	}
 
-	public Map<String,String> addJsshUser(String username, SshServers server, String groupId=null) {
+	public Map<String,String> addJsshUser(String username, SshServers server, String permissions=null, String groupId=null) {
 		JsshUser user
 		JsshPermissions perm
-		String defaultPermission = config.defaultperm  ?: 'user'
+		if (!permissions) {
+		 permissions = config.defaultperm  ?: 'user'
+		}
 		JsshPermissions.withTransaction {
-			perm = JsshPermissions.findByName(defaultPermission)
+			perm = JsshPermissions.findByName(permissions)
 			if (!perm) {
-				perm = JsshPermissions.findOrSaveWhere(name: defaultPermission).save(flush:true)
+				perm = JsshPermissions.findOrSaveWhere(name: permissions).save(flush:true)
 			}
 		}
 		JsshUser.withTransaction {
@@ -129,6 +131,7 @@ class JsshDbStorageService extends JsshConfService {
 				if (groupId) {
 					ssg = SshServerGroups.get(groupId)
 				}
+				
 				user = new JsshUser(username:username, permissions: perm, conlog: addlog, servers: server, groups: ssg)
 				if (!user.save(flush:true)) {
 					if (debug) {

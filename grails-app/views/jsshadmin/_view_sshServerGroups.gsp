@@ -22,6 +22,11 @@
 				${flash.message}
 			</div>
 		</g:if>
+
+			<a data-toggle="modal" href="#masterAdminContainer" class="btn btn-success"
+				onclick="javascript:addServer();"> <g:message
+						code="jssh.add.servers.default" default="Add Servers To Group" />
+			</a>
 		<div class="row">
 			<div class="col-md-2">
 				<g:sortableColumn property="name"

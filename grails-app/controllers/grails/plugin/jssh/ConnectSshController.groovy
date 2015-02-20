@@ -208,6 +208,12 @@ class ConnectSshController extends JsshConfService {
 		render template: '/jsshadmin/addHost', model: map
 	}
 
+	def addjsshUser(String username, String permission) {
+		println "--- adding jsshUser $username"
+		SshServers sg
+		jsshDbStorageService.addJsshUser(username, sg, permission)
+	}
+	
 	def adduserDetails(String friendlyName, String username, String sshUsername, String sshKey, String sshKeyPass) {
 		//def serverId = SshServers.getAll(params.list('serverId'))
 		ArrayList serverId=params.list('serverId')
@@ -322,6 +328,9 @@ class ConnectSshController extends JsshConfService {
 		return
 	}
 
+	def create() {
+		
+	}
 	def edit(Long id, String table) {
 		def uiterator
 		if (table == "jsshUser") {

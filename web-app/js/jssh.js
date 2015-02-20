@@ -79,7 +79,15 @@ function addSshUser() {
 		$('#adminContainer').hide().html(data).fadeIn('slow');
 	});
 	$('#adminsTemplateContainer').show();
-}	
+}
+function addJsshUser() {
+	 $.get("/"+getApp()+"/connectSsh/loadGroup?username="+getUser()+"&template=addJsshUser",function(data){
+			$('#adminContainer').hide().html(data).fadeIn('slow');
+		});
+		$('#adminsTemplateContainer').show();
+	
+}
+
 
 function addSshUserBlackList() {
 	 $.get("/"+getApp()+"/connectSsh/loadGroup?username="+getUser()+"&template=addBlackList",function(data){

@@ -1,5 +1,6 @@
 	<g:render template="/connectSsh/jsshAdmin" />
 	
+	<g:link controller="connectSsh" action="create" params="${[table:table]}" class="btn btn-success">	<g:message code="jssh.addentry.label" default="ADD" /></g:link>
 		<div id="edit-applications" class="content scaffold-edit" role="main">
 		<g:set var="entityName" value="${message(code: 'jssh.sshUser', default: table)}" />
 			<h1><g:message code="default.edit.label" args="[entityName]" /></h1>

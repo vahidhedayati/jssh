@@ -22,6 +22,12 @@
 				${flash.message}
 			</div>
 		</g:if>
+		
+	
+		<a data-toggle="modal" href="#masterAdminContainer"
+				onclick="javascript:addGroup();"  class="btn btn-success"> <g:message
+						code="jssh.add.group.default" default="Add SSH Group" />
+			</a>
 		<div class="row">
 			<div class="col-md-2">
 				<g:sortableColumn property="username"
