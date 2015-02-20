@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<g:render template="/connectSsh/head" />
+<g:render template="/connectSsh/head"  model="${[loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]}"/>
 <body>
 
 	<div class="container">
@@ -9,7 +9,7 @@
 				default="Websocket Socket Connect" />
 		</div>
 		<div class="container">
-			<g:render template="/connectSsh/navbar" />
+			<g:render template="/connectSsh/navbar"/>
 
 			<div class="btn btn-block">
 				<h5>Default WebSocket SSH Configuration/command</h5>

@@ -2,6 +2,8 @@ package grails.plugin.jssh
 
 import grails.converters.JSON
 
+import org.springframework.dao.DataIntegrityViolationException
+
 class ConnectSshController extends JsshConfService {
 
 	def connectSsh
@@ -21,7 +23,8 @@ class ConnectSshController extends JsshConfService {
 			render "index disabled"
 		}
 		def hideAuthBlock = config.hideAuthBlock
-		[hideAuthBlock:hideAuthBlock, process:process, menuMap:menuMap]
+		verifyBooleans(params)
+		[hideAuthBlock:hideAuthBlock, process:process, menuMap:menuMap, loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]
 	}
 
 	// Original websocket using remoteForm
@@ -30,7 +33,8 @@ class ConnectSshController extends JsshConfService {
 		if (process.toString().toLowerCase().equals('yes')) {
 			render "socketremote disabled"
 		}
-		[process:process, menuMap:menuMap]
+		verifyBooleans(params)
+		[process:process, menuMap:menuMap, loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]
 	}
 
 	// Socket Client/Server action
@@ -39,7 +43,8 @@ class ConnectSshController extends JsshConfService {
 		if (process.toString().toLowerCase().equals('yes')) {
 			render "ajaxpoll disabled"
 		}
-		[process:process, menuMap:menuMap]
+		verifyBooleans(params)
+		[process:process, menuMap:menuMap, loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]
 	}
 
 	// Shared process feature - that determines what view to load according to form posted
@@ -52,9 +57,9 @@ class ConnectSshController extends JsshConfService {
 		if (!sshTitle) {
 			sshTitle = "Grails Jssh plugin: ${view}"
 		}
-
+		verifyBooleans(params)
 		Map map =  [jsshUser: jsshUser, hostname: hostname, username: username, userCommand:userCommand,
-			password: password, divId: divId, sshTitle: sshTitle, menuMap:menuMap]
+			password: password, divId: divId, sshTitle: sshTitle, menuMap:menuMap, loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]
 		render view:view, model: map
 	}
 
@@ -85,7 +90,8 @@ class ConnectSshController extends JsshConfService {
 		if (process.toString().toLowerCase().equals('yes')) {
 			render "ajaxpoll disabled"
 		}
-		[process:process, menuMap:menuMap]
+		verifyBooleans(params)
+		[process:process, menuMap:menuMap, loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]
 	}
 	// End of Ajax polling related actions
 
@@ -253,7 +259,7 @@ class ConnectSshController extends JsshConfService {
 			params.max = Math.min(max ?: 50, 100)
 			def userInstanceList, userInstanceTotal
 
-			if (lookup == "user") {
+			if (lookup == "jsshUser") {
 				if (params.id) {
 					userInstanceList = JsshUser?.get( params.id)
 					userInstanceTotal = 1
@@ -261,7 +267,7 @@ class ConnectSshController extends JsshConfService {
 					userInstanceList = JsshUser.list(params)
 					userInstanceTotal = JsshUser.count()
 				}
-			}else if (lookup == "sshuser") {
+			} else if (lookup == "sshUser") {
 				if (params.id) {
 					userInstanceList = SshUser?.get( params.id)
 					userInstanceTotal = 1
@@ -269,8 +275,8 @@ class ConnectSshController extends JsshConfService {
 					userInstanceList = SshUser.list(params)
 					userInstanceTotal = SshUser.count()
 				}
-
-			}else if (lookup == "server") {
+ 
+			} else if (lookup == "sshServers") {
 				if (params.id) {
 					userInstanceList = SshServers?.get( params.id)
 					userInstanceTotal = 1
@@ -278,7 +284,7 @@ class ConnectSshController extends JsshConfService {
 					userInstanceList = SshServers.list(params)
 					userInstanceTotal = SshServers.count()
 				}
-			}else if (lookup == "group") {
+			} else if (lookup == "sshServerGroups") {
 				if (params.id) {
 					userInstanceList = SshServerGroups?.get( params.id)
 					userInstanceTotal = 1
@@ -286,9 +292,26 @@ class ConnectSshController extends JsshConfService {
 					userInstanceList = SshServerGroups.list(params)
 					userInstanceTotal = SshServerGroups.count()
 				}
+			} else if (lookup == "sshCommandBlackList") {
+				if (params.id) {
+					userInstanceList = SshCommandBlackList?.get( params.id)
+					userInstanceTotal = 1
+				}else{
+					userInstanceList = SshCommandBlackList.list(params)
+					userInstanceTotal = SshCommandBlackList.count()
+				}
+			} else if (lookup == "sshCommandRewrite") {
+				if (params.id) {
+					userInstanceList = SshCommandRewrite?.get( params.id)
+					userInstanceTotal = 1
+				}else{
+					userInstanceList = SshCommandRewrite.list(params)
+					userInstanceTotal = SshCommandRewrite.count()
+				}
 			}
+			
 
-			String template = "/jsshadmin/${lookup}"
+			String template = "/jsshadmin/view_${lookup}"
 			Map model = [userInstanceList: userInstanceList, userInstanceTotal:userInstanceTotal,  lookup:lookup,
 				loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]
 
@@ -309,7 +332,12 @@ class ConnectSshController extends JsshConfService {
 			uiterator = SshServers.get(id)
 		}else if (table == "sshServerGroups") {
 			uiterator = SshServerGroups.get(id)
+		}else if (table == "sshCommandBlackList") {
+			uiterator = SshCommandBlackList.get(id)
+		}else if (table == "sshCommandRewrite") {
+			uiterator = SshCommandRewrite.get(id)
 		}
+		
 		verifyBooleans(params)
 		if (uiterator) {
 			Map model = [table:table, uiterator:uiterator, loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]
@@ -332,6 +360,10 @@ class ConnectSshController extends JsshConfService {
 			uiterator = SshServers.get(id)
 		}else if (table == "sshServerGroups") {
 			uiterator = SshServerGroups.get(id)
+		}else if (table == "sshCommandBlackList") {
+			uiterator = SshCommandBlackList.get(id)
+		}else if (table == "sshCommandRewrite") {
+			uiterator = SshCommandRewrite.get(id)
 		}
 		 Map model = [table:table, uiterator:uiterator, loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]
 
@@ -361,6 +393,45 @@ class ConnectSshController extends JsshConfService {
 		flash.message = message(code: 'default.updated.message', args: [message(code: table+'.label', default: table), uiterator.id])
 		//redirect(action: "show", id: applicationsInstance.id)
 		render(template: "/jsshadmin/edit",  model: model)
+	}
+	
+	
+	def delete(Long id, String table) { 
+		
+		def uiterator
+		if (table == "jsshUser") {
+			uiterator = JsshUser.get(id)
+		}else if (table == "sshUser") {
+			uiterator = SshUser.get(id)
+		}else if (table == "sshServers") {
+			uiterator = SshServers.get(id)
+		}else if (table == "sshServerGroups") {
+			uiterator = SshServerGroups.get(id)
+		}else if (table == "sshCommandBlackList") {
+			uiterator = SshCommandBlackList.get(id)
+		}else if (table == "sshCommandRewrite") {
+			uiterator = SshCommandRewrite.get(id)
+		}
+		
+		Map model = [table:table, lookup:table, uiterator:uiterator, loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]
+		if (!uiterator) {
+			flash.message = message(code: 'default.not.found.message', args: [message(code: table+'.label', default: table), id])
+			redirect(controller: "connectSsh", action: "siteAdmin", params: model)
+			return
+		}
+
+		try {
+			uiterator.delete(flush: true)
+			flash.message = message(code: 'default.deleted.message', args: [message(code: table+'.label', default: table), id])
+			//render(template: "/jsshadmin/siteAdmin",  model: model)
+			redirect(controller: "connectSsh", action: "siteAdmin", params: model)
+		}catch (DataIntegrityViolationException e) {
+			flash.message = message(code: 'default.not.deleted.message', args: [message(code: table+'.label', default: table), id])
+			//render(template: "/jsshadmin/siteAdmin",  model: model)
+			redirect(controller: "connectSsh", action: "siteAdmin", params: model)
+			
+		}
+		
 	}
 	
 	private verifyBooleans(params){

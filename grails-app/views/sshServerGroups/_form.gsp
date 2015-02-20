@@ -14,7 +14,7 @@
 		<g:message code="jssh.jsshuser.label" default="jsshuser" />
 	</label>
 	
-	<g:select  name="sshuser" from="${grails.plugin.jssh.JsshUser.list()}" optionKey="id" optionValue="username"
+	<g:select  name="user" from="${grails.plugin.jssh.JsshUser.list()}" optionKey="id" optionValue="username"
 	value="${uiterator?.user*.id}"  class="many-to-one" />
 </div>
 

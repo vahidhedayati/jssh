@@ -8,13 +8,11 @@ Websocket ssh interaction can be incorporated to an existing grails app running 
 
 Dependency :
 
-	compile ":jssh:1.3-SNAPSHOT" 
+	compile ":jssh:1.4" 
 
 This plugin is a web based basic putty i.e. sshkey or username/password. It provides a variety of taglib calls that you can call from within your application to then interact with SSH connection(s) to Unix/Linux/OSx machines. 
 
 Once you have successfully configured connected. Your browser will provide something similar to a shell console and with the latter Websocket calls you can literally interact live with your SSH connection(s).
-
-
 
 
 ## Config.groovy additions required: 
@@ -39,41 +37,6 @@ Video of jssh 0.9, whilst waiting on creations of stuff there was some discussio
 
 
 ## Interaction Methods:
-
-## 0> Admin interface - currently working on it
-
-```gsp
-<jssh:loadAdmin jsshUser="your_userId" />
-```
-Remember to add the following to your config.groovy - so that when a user logs in. Their profile is created as an admin account.
- 
-```groovy
-jssh.defaultperm="admin"
-```
-
-In order to create or use the above admin tag lib you must first make a connection so I have a startpage
-
-```gsp
-
-<jssh:conn 
-jsshUser="your_userId"
-realUser="your_userId"
-jobName="vahidsJob"
-username="your_userId"
-password=""
-hostname="HOSTNAME" 
-userCommand="tail -f /var/log/tomcat/catalina.out"
-divId="abaa"
-enablePing="true"
-pingRate="60000"
-/>
-```
-
-Once you have hit the initial start page and created that jssh account to match the same jsshUser as the admin account and have defined admin permission for the user, the admin interface will then come alive.
-
-At the moment you can edit stuff. I want to add cloning features and deletions.
-
-
 
 ## 1> [Socket Client/Server](https://github.com/vahidhedayati/jssh/blob/master/grails-app/views/connectSsh/scsocketconnect.gsp)
 
@@ -158,6 +121,52 @@ I have used this method and called it many times on 1 page by reusing the <jssh:
 	userCommand="${userCommand.encodeAsJavaScript()}"
 	jsshUser="${jsshUser}"  />
 ```
+
+
+
+## 4> Admin interface (part of 1.4 release)
+
+A new configuration item has been added to jsshUser DB table, called permissions.
+
+If you want to use this plugin and define admin outside of the scope of usual app interaction, then you could try adding default admin accounts through your :
+
+[BootStrap.groovy](https://github.com/vahidhedayati/jssh/wiki/BootStrap.groovy---adding-admin-accounts)
+
+
+Otherwise you could add the following to your Config.groovy and any accounts generated from there on via the tool would have access to admin interface.
+You could do this to start with then change the defaultperm="user" 
+ 
+```groovy
+jssh.defaultperm="admin"
+```
+
+
+In order to access admin interface you need to call this taglib :
+
+```gsp
+<jssh:loadAdmin jsshUser="your_userId" />
+```
+
+If you have added the admin account via Config.groovy then the account is not generated as yet so you need to make an initial connection to create the user:
+
+```gsp
+
+<jssh:conn 
+jsshUser="your_userId"
+realUser="your_userId"
+jobName="vahidsJob"
+username="your_userId"
+password=""
+hostname="HOSTNAME" 
+userCommand="tail -f /var/log/tomcat/catalina.out"
+divId="abaa"
+enablePing="true"
+pingRate="60000"
+/>
+```
+
+Once you have hit the initial start page and created that jssh account to match the same jsshUser as the admin account and have defined admin permission for the user, the admin interface will then come alive.
+
 
 
 ##### Misc Calling methods: 

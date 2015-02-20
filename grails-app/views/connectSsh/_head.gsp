@@ -9,10 +9,10 @@
 </g:if>
 <g:else>
 	<g:if test="${enduser?.verifyAppVersion().equals('assets')}">
-		<g:render template="/assets" />
+		<g:render template="/assets"   model="${[loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]}"/>
 	</g:if>
 	<g:else>
-		<g:render template="/resources" />
+		<g:render template="/resources"  model="${[loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]}" />
 	</g:else>
 </g:else>
 <title>Grails Jssh plugin</title>

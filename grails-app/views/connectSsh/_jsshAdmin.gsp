@@ -21,20 +21,20 @@
 			
 	<ul class="nav navbar-nav">
 			<li>
-				<g:link controller="connectSsh" action="siteAdmin" params="${[lookup:'user',loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]}">
+				<g:link controller="connectSsh" action="siteAdmin" params="${[lookup:'jsshUser', loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]}">
 					Jssh Users
 				</g:link>
 			</li>
 			
 			<li>
-				<g:link  controller="connectSsh" action="siteAdmin" params="${[lookup:'sshuser',loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]}">
+				<g:link  controller="connectSsh" action="siteAdmin" params="${[lookup:'sshUser',loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]}">
 					SSH Users
 				</g:link>
 			</li>
 			
 	
 			<li>
-				<g:link  controller="connectSsh" action="siteAdmin" params="${[lookup:'server', loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]}">
+				<g:link  controller="connectSsh" action="siteAdmin" params="${[lookup:'sshServers', loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]}">
 					SSH Servers
 				</g:link>
 			</li>
@@ -52,9 +52,9 @@
 	function getApp() {
 		return baseapp;
 	}
-	var backuser="${backuser}";
+	var jsshUser="${session?.jsshuser}";
 	
 	function getUser() {
-		return backuser;
+		return jsshUser;
 	}
 </g:javascript>
