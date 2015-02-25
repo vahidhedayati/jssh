@@ -10,6 +10,11 @@
 </head>
 <body>
 
+				 
+			<a data-toggle="modal" href="#masterAdminContainer" class="btn btn-success"
+				onclick="javascript:addServer();"> <g:message
+						code="jssh.add.servers.default" default="Add Servers To Group" />
+			</a>
 	<a href="#list-jsshuser" class="skip" tabindex="-1"><g:message
 			code="default.link.skip.label" default="" /></a>
 
@@ -23,10 +28,6 @@
 			</div>
 		</g:if>
 
-			<a data-toggle="modal" href="#masterAdminContainer" class="btn btn-success"
-				onclick="javascript:addServer();"> <g:message
-						code="jssh.add.servers.default" default="Add Servers To Group" />
-			</a>
 		<div class="row">
 			<div class="col-md-2">
 				<g:sortableColumn property="name"

@@ -3,7 +3,7 @@ package grails.plugin.jssh
 import javax.websocket.Session
 
 class ConnectSshTagLib extends JsshConfService {
-	
+
 	static namespace = "jssh"
 
 	def connectSsh
@@ -13,22 +13,53 @@ class ConnectSshTagLib extends JsshConfService {
 	def jsshClientListenerService
 	def jsshDbStorageService
 	def jsshUserService
-	
+
 	private String 	hostname, username, userCommand, password, template, port, adminTemplate, sshKey, sshKeyPass, uri, wsprotocol
 
-	private String 	wshostname, hideConsoleMenu, hideSendBlock, hideSessionCtrl,hideWhatsRunning, hideDiscoButton, hidePauseControl, 
-					hideNewShellButton, jobName, jsshUser, realUser, divId, enablePong, pingRate, addAppName
+	private String 	wshostname, hideConsoleMenu, hideSendBlock, hideSessionCtrl,hideWhatsRunning, hideDiscoButton, hidePauseControl,
+	hideNewShellButton, hideBroadCastBlock, jobName, jsshUser, realUser, divId, enablePong, pingRate, addAppName
 
 	private String 	jUser, conLogId, conloggerId, comloggerId
 
 	private Boolean loadBootStrap, loadJQuery, loadStyle
-	
+
+
+	/*
+	 * provide end user with their configured groups/connections
+	 */
+	def connectUser = { attrs ->
+		String jsshUser = attrs.remove('jsshUser')?.toString()
+		String userCommand = attrs.remove('userCommand')?.toString()
+		
+		if (jsshUser) {
+			genericOpts(attrs)
+			socketOpts(attrs)
+			JsshUser ju = JsshUser.findByUsername(jsshUser)
+			def serverList
+			def sshUserList
+			if (ju) {
+				serverList = SshServerGroups.findAllByUser(ju)
+				sshUserList = ju.sshuser
+			}
+			//session.jsshuser = username
+
+			String ctemplate='/jsshadmin/connectUser'
+
+			def model = [template:ctemplate, serverList:serverList, username: jsshUser, sshUserList: sshUserList,
+				loadBootStrap:loadBootStrap, loadJQuery:loadJQuery , loadStyle:loadStyle, userCommand:userCommand,
+				hideWhatsRunning: hideWhatsRunning,	hideDiscoButton: hideDiscoButton, hidePauseControl: hidePauseControl, 
+				hideSessionCtrl: hideSessionCtrl, hideConsoleMenu: hideConsoleMenu, hideSendBlock: hideSendBlock, hideBroadCastBlock:hideBroadCastBlock]
+
+			loadTemplate(template, ctemplate, model)
+		}
+	}
+
 	/*
 	 * Various hasMany listings within admin interface
 	 */
 	def sshList = { attrs ->
 		def ilist = attrs.remove('ilist')
-		String rtype = attrs.remove('rtype').toString() 
+		String rtype = attrs.remove('rtype').toString()
 		ArrayList finalList = []
 		if (ilist instanceof String) {
 			finalList = [ilist]
@@ -45,20 +76,19 @@ class ConnectSshTagLib extends JsshConfService {
 			}
 		}else if (rtype == "groups") {
 			finalList.each { SshServerGroups groups ->
-				out << """<a href="${g.createLink(controller: 'connectSsh', action: 'siteAdmin', id:groups.id, params:[lookup:'sshServerGroups',loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle])}">${groups.name}</a> | """				
+				out << """<a href="${g.createLink(controller: 'connectSsh', action: 'siteAdmin', id:groups.id, params:[lookup:'sshServerGroups',loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle])}">${groups.name}</a> | """
 			}
 		}else if (rtype == "rewrite") {
 			finalList.each { SshCommandRewrite rewrite ->
-				out << """<a href="${g.createLink(controller: 'connectSsh', action: 'siteAdmin', id:rewrite.id, params:[lookup:'sshCommandRewrite',loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle])}">(${rewrite.command} -> ${rewrite.replacement})</a>  | """				
+				out << """<a href="${g.createLink(controller: 'connectSsh', action: 'siteAdmin', id:rewrite.id, params:[lookup:'sshCommandRewrite',loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle])}">(${rewrite.command} -> ${rewrite.replacement})</a>  | """
 			}
 		}else if (rtype == "blacklist") {
 			finalList.each { SshCommandBlackList blacklist ->
-				out << """<a href="${g.createLink(controller: 'connectSsh', action: 'siteAdmin', id:blacklist.id, params:[lookup:'sshCommandBlackList',loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle])}">${blacklist.command}</a>  | """				
+				out << """<a href="${g.createLink(controller: 'connectSsh', action: 'siteAdmin', id:blacklist.id, params:[lookup:'sshCommandBlackList',loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle])}">${blacklist.command}</a>  | """
 			}
 		}
-			
 	}
-	
+
 	/*
 	 * loadAdmin requires a userId
 	 * once confirmed as admin - admin view shown on calling gsp
@@ -75,7 +105,7 @@ class ConnectSshTagLib extends JsshConfService {
 			loadTemplate(template, '/connectSsh/jsshAdmin', model)
 		}
 	}
-	
+
 	/* jssh:broadcast only required on top of jssh:conn if used multiple times on 1 page
 	 * will send a broadcast message to all the connections
 	 * All JobNames on jssh:conn must match the same jobName as broadcast for this
@@ -119,9 +149,10 @@ class ConnectSshTagLib extends JsshConfService {
 		}
 
 		def connMap = [frontend: frontend,  frontuser: frontuser,  backuser: cuser, user: username, username:username, password: password,
-			port: port, enablePong: enablePong, pingRate: pingRate, usercommand: userCommand, divId:divId, jsshApp: APP, uri:uri, job: cjob,
-			hideWhatsRunning: hideWhatsRunning,	hideDiscoButton: hideDiscoButton, hidePauseControl: hidePauseControl, hideSessionCtrl: hideSessionCtrl,
-			hideNewShellButton: hideNewShellButton, hideConsoleMenu: hideConsoleMenu, hideSendBlock: hideSendBlock,	wshostname: wshostname]
+			port: port, enablePong: enablePong, pingRate: pingRate, usercommand: userCommand, divId:divId, jsshApp: APP, uri:uri, job: cjob, 
+			hideBroadCastBlock:hideBroadCastBlock, hideWhatsRunning: hideWhatsRunning,	hideDiscoButton: hideDiscoButton, hidePauseControl: hidePauseControl, 
+			hideSessionCtrl: hideSessionCtrl, hideNewShellButton: hideNewShellButton, hideConsoleMenu: hideConsoleMenu, hideSendBlock: hideSendBlock,	
+			wshostname: wshostname]
 
 		Map adminMap = [frontuser: frontuser, backuser: cuser, job:cjob]
 		loadTemplate(adminTemplate,"/connectSsh/scsockmodal",adminMap)
@@ -152,7 +183,7 @@ class ConnectSshTagLib extends JsshConfService {
 			hideSessionCtrl:hideSessionCtrl, hideNewShellButton:hideNewShellButton, hideConsoleMenu:hideConsoleMenu,
 			hideSendBlock:hideSendBlock, wshostname:wshostname, hostname:hostname, port:port, addAppName:addAppName,
 			username:username, password:password, userCommand:userCommand, divId:divId, uri:uri,
-			enablePong:enablePong, pingRate:pingRate, jobName:jobName, jsshUser:jsshUser, frontend:frontend, 
+			enablePong:enablePong, pingRate:pingRate, jobName:jobName, jsshUser:jsshUser, frontend:frontend,
 			loadBootStrap:loadBootStrap, loadJQuery: loadJQuery]
 
 		loadTemplate(template, "/connectSsh/socketprocess", model)
@@ -276,12 +307,18 @@ class ConnectSshTagLib extends JsshConfService {
 			this.hideConsoleMenu = attrs.hideConsoleMenu
 		}
 
-
 		if (!attrs.hideSendBlock) {
 			this.hideSendBlock = config.hideSendBlock ?: 'YES'
 		}else{
 			this.hideSendBlock = attrs.hideSendBlock
 		}
+		
+		if (!attrs.hideBroadCastBlock) {
+			this.hideBroadCastBlock = config.hideBroadCastBlock ?: 'YES'
+		}else{
+			this.hideBroadCastBlock = attrs.hideBroadCastBlock
+		}
+		
 
 		if (!attrs.hideSessionCtrl)	 {
 			this.hideSessionCtrl = config.hideSessionCtrl ?: 'YES'
@@ -333,7 +370,7 @@ class ConnectSshTagLib extends JsshConfService {
 	 * Update DB with configuration from socket connections
 	 */
 	private void genDb(String sshUser, String hostname, String realuser, String userCommand, String port,
-		String sshKey=null, String sshKeyPass=null) {
+			String sshKey=null, String sshKeyPass=null) {
 		addUserHost(hostname, port, realuser, sshUser, sshKey, sshKeyPass)
 		this.conloggerId = jsshDbStorageService.storeConnection(hostname, port, realuser, sshUser, '')
 		this.comloggerId = jsshDbStorageService.storeCommand(userCommand, realuser, conLogId, sshUser)
@@ -345,7 +382,7 @@ class ConnectSshTagLib extends JsshConfService {
 	private void addUserHost(String hostname, String port, String realuser, String sshUser, String sshKey=null, String sshKeyPass=null) {
 		SshServers server = jsshDbStorageService.addServer(realuser, hostname, port ?: '22', '' )
 		def SshUser =  jsshDbStorageService.addSShUser(realuser, realuser, sshUser, sshKey ?: '', sshKeyPass ?: '', [server.id] as ArrayList )
-		
+
 		Map<String,String> jU = jsshDbStorageService.addJsshUser(realuser, server)
 		this.jUser = jU.user
 		this.conLogId = jU.conId

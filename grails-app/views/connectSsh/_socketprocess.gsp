@@ -21,9 +21,7 @@
 	
 	function processOpen${divId}(message) {
 		$('#messagesTextarea${divId}').append('Server Connect....\n');
-		webSocket${
-	divId
-}.send(JSON.stringify({'frontend':"${frontend}",'jsshUser':"${jsshUser}",'user':"${username}",'password':"${password}", 'hostname':"${hostname}", 'port': "${port }" ,'enablePong':"${enablePong }",'pingRate':"${pingRate }", 'usercommand': "${userCommand}"}))
+		webSocket${divId}.send(JSON.stringify({'frontend':"${frontend}",'jsshUser':"${jsshUser}",'user':"${username}",'password':"${password}", 'hostname':"${hostname}", 'port': "${port }" ,'enablePong':"${enablePong }",'pingRate':"${pingRate }", 'usercommand': "${userCommand}"}))
 	}
 	
 	function processMessage${divId}(message) {
@@ -71,7 +69,6 @@
     }
     
 	function closeConnection${divId}() {
-		//webSocket${divId}.send("DISCO:-");
 		webSocket${divId}.send(JSON.stringify({ 'frontend':"false",'DISCO':"true"}));
 		webSocket${divId}.onclose = function() { }
         webSocket${divId}.close();
@@ -87,7 +84,6 @@
 
 	function sendMessage${divId}() {
 		if (textMessage.value!="close") {
-		
 			if ((textMessage${divId}.value.indexOf('\n')>-1) || (textMessage${divId}.value.indexOf('\r')>-1) ) {
 				actOnEachLine(textMessage${divId}, function(line) {
    					webSocket${divId}.send(line);

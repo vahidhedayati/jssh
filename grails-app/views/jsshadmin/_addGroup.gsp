@@ -4,7 +4,7 @@
 		aria-hidden='true'>×</button>
 	<div id='myModalLabel'>
 		<h3>
-			${message(code: 'jssh.'+template+'.label', default: ''+template+'')}
+			${message(code: 'jssh.'+template+'.label', default: ''+template+'')} for ${username }
 		</h3>
 	</div>
 </div>

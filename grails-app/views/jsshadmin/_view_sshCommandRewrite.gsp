@@ -10,6 +10,9 @@
 </head>
 <body>
 
+<a data-toggle="modal" href="#masterAdminContainer" class="btn btn-success"	onclick="javascript:addSshUserRewrite();"> 
+				<g:message	code="jssh.add.servers.default" default="Add BlackList Command" />
+		</a>
 	<a href="#list-jsshuser" class="skip" tabindex="-1"><g:message
 			code="default.link.skip.label" default="" /></a>
 

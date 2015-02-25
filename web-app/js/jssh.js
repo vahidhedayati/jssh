@@ -1,15 +1,15 @@
 function toggleBlock(caller,called,calltext) {
 	$(caller).click(function() {
 		if($(called).is(":hidden")) {
- 			$(caller).html('HIDE '+calltext).fadeIn('slow');
-    	}else{
-        	$(caller).html('SHOW '+calltext).fadeIn('slow');	
-        	
-    	}
- 		$(called).slideToggle("fast");
- 	
-  	});
-  }	
+			$(caller).html('HIDE '+calltext).fadeIn('slow');
+		}else{
+			$(caller).html('SHOW '+calltext).fadeIn('slow');	
+
+		}
+		$(called).slideToggle("fast");
+
+	});
+}	
 
 function wrapIt(value) {
 	return "'"+value+"'"
@@ -25,7 +25,7 @@ function addHost(user,newhost,groupId) {
 }
 
 function loadGroup(value) {
- 	$.get("/"+getApp()+"/connectSsh/loadServers?username="+getUser()+"&gId="+value,function(data){
+	$.get("/"+getApp()+"/connectSsh/loadServers?username="+getUser()+"&gId="+value,function(data){
 		$('#selectedValues').hide().html(data).fadeIn('slow');
 	});
 }
@@ -45,9 +45,9 @@ function autoRewriteList(user,cmd,sshId) {
 	});
 	$('#invitecontainer').show();
 }
-	
+
 function loadList(value, ltype) {
- 	$.get("/"+getApp()+"/connectSsh/loadList?username="+getUser()+"&listType="+ltype+"&sshId="+value,function(data){
+	$.get("/"+getApp()+"/connectSsh/loadList?username="+getUser()+"&listType="+ltype+"&sshId="+value,function(data){
 		$('#selectedValues').hide().html(data).fadeIn('slow');
 	});
 }
@@ -60,37 +60,80 @@ function connectGroup() {
 	$('#adminsTemplateContainer').show();
 }
 
-function addGroup() {
+/*
+function addGroup2() {
 	$.get("/"+getApp()+"/connectSsh/loadGroup?username="+getUser()+"&template=addGroup",function(data){
 		$('#adminContainer').hide().html(data).fadeIn('slow');
 	});
 	$('#adminsTemplateContainer').show();
 }
+ */
+function addGroup() {
+	var cuser = $('#myUserSelection').val()
+	if (cuser == undefined) {
+		cuser = getUser()
+	}
+	$.get("/"+getApp()+"/connectSsh/loadGroup?username="+cuser+"&template=addGroup",function(data){
+		$('#adminContainer').hide().html(data).fadeIn('slow');
+	});
+	$('#adminsTemplateContainer').show();
+}
 
-function addServer() {
+/*
+function addServer2() {
 	$.get("/"+getApp()+"/connectSsh/loadGroup?username="+getUser()+"&template=addServers",function(data){
 		$('#adminContainer').hide().html(data).fadeIn('slow');
 	});
 	$('#adminsTemplateContainer').show();
 }
+ */
 
-function addSshUser() {
+function addServer()  {
+	var cuser = $('#myUserSelection').val()
+	if (cuser == undefined) {
+		cuser = getUser()
+	}
+	$.get("/"+getApp()+"/connectSsh/loadGroup?username="+cuser+"&template=addServers",function(data){
+		$('#adminContainer').hide().html(data).fadeIn('slow');
+	});
+	$('#adminsTemplateContainer').show();
+}
+
+/*
+function addSshUser2() {
 	 $.get("/"+getApp()+"/connectSsh/loadGroup?username="+getUser()+"&template=addSshUser",function(data){
 		$('#adminContainer').hide().html(data).fadeIn('slow');
 	});
 	$('#adminsTemplateContainer').show();
 }
+ */
+function addSshUser() {
+	var cuser = $('#myUserSelection').val()
+	if (cuser == undefined) {
+		cuser = getUser()
+	}
+	$.get("/"+getApp()+"/connectSsh/loadGroup?username="+cuser+"&template=addSshUser",function(data){
+		$('#adminContainer').hide().html(data).fadeIn('slow');
+	});
+	$('#adminsTemplateContainer').show();
+}
+
+
 function addJsshUser() {
-	 $.get("/"+getApp()+"/connectSsh/loadGroup?username="+getUser()+"&template=addJsshUser",function(data){
-			$('#adminContainer').hide().html(data).fadeIn('slow');
-		});
-		$('#adminsTemplateContainer').show();
-	
+	$.get("/"+getApp()+"/connectSsh/loadGroup?username="+getUser()+"&template=addJsshUser",function(data){
+		$('#adminContainer').hide().html(data).fadeIn('slow');
+	});
+	$('#adminsTemplateContainer').show();
+
 }
 
 
 function addSshUserBlackList() {
-	 $.get("/"+getApp()+"/connectSsh/loadGroup?username="+getUser()+"&template=addBlackList",function(data){
+	var cuser = $('#myUserSelection').val()
+	if (cuser == undefined) {
+		cuser = getUser()
+	}
+	$.get("/"+getApp()+"/connectSsh/loadGroup?username="+cuser+"&template=addBlackList",function(data){
 		$('#adminContainer').hide().html(data).fadeIn('slow');
 		//verifyCommandValue(data)
 	});
@@ -98,7 +141,11 @@ function addSshUserBlackList() {
 }	
 
 function addSshUserRewrite() {
-	 $.get("/"+getApp()+"/connectSsh/loadGroup?username="+getUser()+"&template=addRewrite",function(data){
+	var cuser = $('#myUserSelection').val()
+	if (cuser == undefined) {
+		cuser = getUser()
+	}
+	$.get("/"+getApp()+"/connectSsh/loadGroup?username="+cuser+"&template=addRewrite",function(data){
 		$('#adminContainer').hide().html(data).fadeIn('slow');
 	});
 	$('#adminsTemplateContainer').show();

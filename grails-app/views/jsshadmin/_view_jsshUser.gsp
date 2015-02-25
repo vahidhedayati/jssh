@@ -9,7 +9,10 @@
 	model="${[loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle] }" />
 </head>
 <body>
-
+		<a data-toggle="modal" href="#masterAdminContainer" class="btn btn-success"	onclick="javascript:addJsshUser();"> 
+				<g:message	code="jssh.add.servers.default" default="Add jsshUser" />
+		</a>
+		
 	<a href="#list-jsshuser" class="skip" tabindex="-1"><g:message
 			code="default.link.skip.label" default="" /></a>
 
@@ -24,10 +27,7 @@
 		</g:if>
 		
 
-		<a data-toggle="modal" href="#masterAdminContainer" class="btn btn-primary"	onclick="javascript:addJsshUser();"> 
-				<g:message	code="jssh.add.servers.default" default="Add jsshUser" />
-		</a>
-		
+
 	
 		<div class="row">
 			<div class="col-md-2">

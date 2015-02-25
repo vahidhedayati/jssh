@@ -9,7 +9,7 @@
 
 <div id="returnAnswer"></div>
 <div id="adminsTemplateContainer" style="display: none;">
-	<g:render template="/jsshadmin/admin" />
+	<g:render template="/jsshadmin/modal" />
 </div>
 
 
@@ -39,7 +39,7 @@
 				</g:link>
 			</li>
 			
-			<g:render template="/connectSsh/adminModal" />
+			<g:render template="/jsshadmin/adminModalMenu" />
 			
 			
 	</ul>

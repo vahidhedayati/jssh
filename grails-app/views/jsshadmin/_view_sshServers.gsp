@@ -10,6 +10,16 @@
 </head>
 <body>
 
+	<g:select name="cUser" id="myUserSelection" from="${grails.plugin.jssh.JsshUser.list()}" 
+		optionKey="username" optionValue="username" 
+	 	class="one-to-one" noSelection="['':'Choose User']" value="${session.jsshuser }" 
+	 />
+	
+				 
+	<a data-toggle="modal" href="#masterAdminContainer" onclick="javascript:addServer();" class="btn btn-success"> 
+	<g:message code="jssh.add.ssh.user.default" default="Add SSH Server"/></a>
+			
+			
 	<a href="#list-jsshuser" class="skip" tabindex="-1"><g:message
 			code="default.link.skip.label" default="" /></a>
 

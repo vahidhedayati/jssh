@@ -4,7 +4,7 @@
 		aria-hidden='true'>×</button>
 	<div id='myModalLabel'>
 		<h3>
-			${message(code: 'jssh.'+template+'.label', default: ''+template+'')}<br/>
+			${message(code: 'jssh.'+template+'.label', default: ''+template+'')} for ${username}<br/>
 			Choose a group OR<br> 
 			if a groups servers have different SSH credentials then define by server and leave group empty
 		</h3>

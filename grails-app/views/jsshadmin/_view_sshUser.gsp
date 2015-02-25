@@ -10,6 +10,34 @@
 </head>
 <body>
 
+	<g:select name="cUser" id="myUserSelection" from="${grails.plugin.jssh.JsshUser.list()}" 
+		optionKey="username" optionValue="username" 
+	 	class="one-to-one" noSelection="['':'Choose User']" value="${session.jsshuser }" 
+	 />
+	
+	
+	<a data-toggle="modal" href="#masterAdminContainer"
+		onclick="javascript:addGroup();"  class="btn btn-primary"> <g:message
+		code="jssh.add.group.default" default="Add SSH Group" />
+	</a>
+			
+	<a data-toggle="modal" href="#masterAdminContainer" onclick="javascript:addServer();" class="btn btn-warning"> 
+	<g:message code="jssh.add.ssh.user.default" default="Add SSH Server"/></a>
+	
+	
+	<a data-toggle="modal" href="#masterAdminContainer"
+		onclick="javascript:addSshUser();"  class="btn btn-success"> <g:message
+		code="jssh.add.ssh.user.default" default="Add SSH User" />
+	</a>
+	
+	<a data-toggle="modal" href="#masterAdminContainer" class="btn btn-warning"	onclick="javascript:addSshUserBlackList();"> 
+				<g:message	code="jssh.add.servers.default" default="Add BlackList Command" />
+		</a>
+		
+	<a data-toggle="modal" href="#masterAdminContainer" class="btn btn-success"	onclick="javascript:addSshUserRewrite();"> 
+				<g:message	code="jssh.add.servers.default" default="Add BlackList Command" />
+		</a>	
+			
 	<a href="#list-jsshuser" class="skip" tabindex="-1"><g:message
 			code="default.link.skip.label" default="" /></a>
 
@@ -24,10 +52,7 @@
 		</g:if>
 		
 	
-		<a data-toggle="modal" href="#masterAdminContainer"
-				onclick="javascript:addGroup();"  class="btn btn-success"> <g:message
-						code="jssh.add.group.default" default="Add SSH Group" />
-			</a>
+
 		<div class="row">
 			<div class="col-md-2">
 				<g:sortableColumn property="username"

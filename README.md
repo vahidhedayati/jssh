@@ -8,7 +8,7 @@ Websocket ssh interaction can be incorporated to an existing grails app running 
 
 Dependency :
 
-	compile ":jssh:1.4" 
+	compile ":jssh:1.5" 
 
 This plugin is a web based basic putty i.e. sshkey or username/password. It provides a variety of taglib calls that you can call from within your application to then interact with SSH connection(s) to Unix/Linux/OSx machines. 
 
@@ -169,6 +169,28 @@ Once you have hit the initial start page and created that jssh account to match 
 
 
 
+## 5> Specific user connection select boxes.
+Most basic call with full access to all its features: 
+```
+<jssh:connectUser 
+jsshUser="${session.username}"  
+/>
+
+```
+
+A more defined specific call with global broadcast and send blocks pers sever blocked, this also defines primary command to be run upon group selection: 
+```
+<jssh:connectUser 
+jsshUser="${session.username}"  
+userCommand="something"
+hideSendBlock="YES" 
+hideBroadCastBlock="YES"
+/>
+```
+
+
+
+ 
 ##### Misc Calling methods: 
 
 [Taglib example on resources based grails app](https://github.com/vahidhedayati/jssh-test/blob/master/grails-app/views/testjssh/using-resources.gsp)

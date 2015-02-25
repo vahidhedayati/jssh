@@ -119,7 +119,9 @@ class ConnectSshController extends JsshConfService {
 		def divId =  jsshRandService.shortRand('divId')
 
 		Map model = [jsshUsername:jsshUsername , servers:servers, jobName:jobName,
-			userCommand:userCommand, divId:divId]
+			userCommand:userCommand, divId:divId, hideWhatsRunning: params.hideWhatsRunning,	hideDiscoButton: params.hideDiscoButton, 
+			hidePauseControl:  params.hidePauseControl,	hideSessionCtrl:  params.hideSessionCtrl, hideConsoleMenu:  params.hideConsoleMenu, 
+			hideSendBlock:  params.hideSendBlock, hideBroadCastBlock: params.hideBroadCastBlock]
 
 		render template: '/jsshadmin/groupConnect', model: model
 	}
@@ -209,7 +211,6 @@ class ConnectSshController extends JsshConfService {
 	}
 
 	def addjsshUser(String username, String permission) {
-		println "--- adding jsshUser $username"
 		SshServers sg
 		jsshDbStorageService.addJsshUser(username, sg, permission)
 	}

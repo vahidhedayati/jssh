@@ -1,5 +1,11 @@
 
-<g:render template="/connectSsh/sshConnectLayout" model="${[loadBootStrap:loadBootStrap, loadJQuery:loadJQuery]}"/>
+<g:render template="/connectSsh/sshConnectLayout" model="${[
+	frontend: frontend,  frontuser: frontuser,  backuser: cuser, user: username, username:username, password: password,
+	port: port, enablePong: enablePong, pingRate: pingRate, usercommand: userCommand, divId:divId, jsshApp: APP, uri:uri, job: cjob,
+	hideBroadCastBlock:hideBroadCastBlock, hideWhatsRunning: hideWhatsRunning,	hideDiscoButton: hideDiscoButton, hidePauseControl: hidePauseControl,
+	hideSessionCtrl: hideSessionCtrl, hideNewShellButton: hideNewShellButton, hideConsoleMenu: hideConsoleMenu, hideSendBlock: hideSendBlock,
+	
+	loadBootStrap:loadBootStrap, loadJQuery:loadJQuery]}"/>
 
 <g:javascript>
 
