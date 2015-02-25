@@ -170,6 +170,8 @@ Once you have hit the initial start page and created that jssh account to match 
 
 
 ## 5> Specific user connection select boxes.
+This is the component within admin menu that allows the end user to connect to a group of servers. It has been recreated as a taglib call so now you as the end user can define when/where your website users can choose to connect to a group of servers. 
+
 Most basic call with full access to all its features: 
 ```
 <jssh:connectUser 
