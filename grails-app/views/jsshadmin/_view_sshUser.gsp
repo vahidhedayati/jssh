@@ -31,11 +31,11 @@
 	</a>
 	
 	<a data-toggle="modal" href="#masterAdminContainer" class="btn btn-warning"	onclick="javascript:addSshUserBlackList();"> 
-				<g:message	code="jssh.add.servers.default" default="Add BlackList Command" />
+				<g:message	code="jssh.add.blacklist.default" default="Add BlackList Command" />
 		</a>
 		
 	<a data-toggle="modal" href="#masterAdminContainer" class="btn btn-success"	onclick="javascript:addSshUserRewrite();"> 
-				<g:message	code="jssh.add.servers.default" default="Add BlackList Command" />
+				<g:message	code="jssh.add.rewrite.default" default="Add Rewrite Command" />
 		</a>	
 			
 	<a href="#list-jsshuser" class="skip" tabindex="-1"><g:message

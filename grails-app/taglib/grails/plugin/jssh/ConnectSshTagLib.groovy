@@ -308,13 +308,13 @@ class ConnectSshTagLib extends JsshConfService {
 		}
 
 		if (!attrs.hideSendBlock) {
-			this.hideSendBlock = config.hideSendBlock ?: 'YES'
+			this.hideSendBlock = config.hideSendBlock ?: 'NO'
 		}else{
 			this.hideSendBlock = attrs.hideSendBlock
 		}
 		
 		if (!attrs.hideBroadCastBlock) {
-			this.hideBroadCastBlock = config.hideBroadCastBlock ?: 'YES'
+			this.hideBroadCastBlock = config.hideBroadCastBlock ?: 'NO'
 		}else{
 			this.hideBroadCastBlock = attrs.hideBroadCastBlock
 		}
