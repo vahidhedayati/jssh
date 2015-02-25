@@ -60,14 +60,7 @@ function connectGroup() {
 	$('#adminsTemplateContainer').show();
 }
 
-/*
-function addGroup2() {
-	$.get("/"+getApp()+"/connectSsh/loadGroup?username="+getUser()+"&template=addGroup",function(data){
-		$('#adminContainer').hide().html(data).fadeIn('slow');
-	});
-	$('#adminsTemplateContainer').show();
-}
- */
+
 function addGroup() {
 	var cuser = $('#myUserSelection').val()
 	if (cuser == undefined) {
@@ -78,15 +71,6 @@ function addGroup() {
 	});
 	$('#adminsTemplateContainer').show();
 }
-
-/*
-function addServer2() {
-	$.get("/"+getApp()+"/connectSsh/loadGroup?username="+getUser()+"&template=addServers",function(data){
-		$('#adminContainer').hide().html(data).fadeIn('slow');
-	});
-	$('#adminsTemplateContainer').show();
-}
- */
 
 function addServer()  {
 	var cuser = $('#myUserSelection').val()
@@ -99,14 +83,7 @@ function addServer()  {
 	$('#adminsTemplateContainer').show();
 }
 
-/*
-function addSshUser2() {
-	 $.get("/"+getApp()+"/connectSsh/loadGroup?username="+getUser()+"&template=addSshUser",function(data){
-		$('#adminContainer').hide().html(data).fadeIn('slow');
-	});
-	$('#adminsTemplateContainer').show();
-}
- */
+
 function addSshUser() {
 	var cuser = $('#myUserSelection').val()
 	if (cuser == undefined) {
@@ -127,6 +104,12 @@ function addJsshUser() {
 
 }
 
+function cloneJsshUser(jsshUsername) {
+	$.get("/"+getApp()+"/connectSsh/cloneUser?jsshUsername="+jsshUsername+"",function(data){
+		$('#adminContainer').hide().html(data).fadeIn('slow');
+	});
+	$('#adminsTemplateContainer').show();
+}
 
 function addSshUserBlackList() {
 	var cuser = $('#myUserSelection').val()

@@ -51,9 +51,15 @@
 			<div class="col-md-3">
 				<g:message code="jsshuser.servers.label" default="servers" />
 			</div>
+			
 			<div class="col-md-2">
 				<g:message code="jsshuser.groups.label" default="groups" />
 			</div>
+
+			<div class="col-md-1">
+				<g:message code="jsshuser.action.label" default="action" />
+			</div>
+			
 		</div>
 		<g:each in="${userInstanceList}" status="i" var="userInstance">
 			<div class="row ${(i % 2) == 0 ? 'even' : 'odd'}">
@@ -81,6 +87,14 @@
 				<div class="col-md-2">
 					<jssh:sshList rtype="groups" ilist="${userInstance.groups}" />
 				</div>
+				
+				<div class="col-md-1">
+					<a data-toggle="modal" href="#masterAdminContainer" class="btn btn-xs btn-warning"	onclick="javascript:cloneJsshUser('${userInstance.username}');"> 
+						<g:message	code="jssh.add.servers.default" default="Clone" />
+					</a>
+				</div>
+				
+				
 			</div>
 		</g:each>
 

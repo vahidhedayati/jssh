@@ -211,7 +211,6 @@ class JsshDbStorageService extends JsshConfService {
 			addGroupLink(groupId, server)
 		}
 	}
-
 	
 	public SshServerGroups addGroup(String name, String serverId) {
 		SshServerGroups sg
@@ -282,9 +281,53 @@ class JsshDbStorageService extends JsshConfService {
 			}
 		}
 	}
-
-
-
+	
+	// This will attempt to clone jsshUser and all its bindings
+	// bindings being:
+	// permissions
+	// ssh user(s)  its keys + server bindings + command blacklist + command rewrites
+	// server(s)  + all server
+	// groups (s)
+	public String cloneUser(username, masteruser) {
+		StringBuilder msg = new StringBuilder()
+		def record=JsshUser.findByUsername(masteruser)
+		def found=JsshUser.findByUsername(username)
+		if (!found) {
+			def newRecord = new JsshUser()
+			copyProperties(record, newRecord)
+			
+			newRecord.username=username
+			
+			if (! newRecord.save(flush: true)) {
+				//flush: true)) {
+				newRecord.errors.allErrors.each{println it}
+				flash.message="Could not save record"
+			}
+			
+			
+		}else{
+			msg.append("${username} already exists!")
+		}
+		return msg.toString()
+	}
+	
+	
+	def copyProperties(source, target) {
+		def (sProps, tProps) = [source, target]*.properties*.keySet()
+		def commonProps = sProps.intersect(tProps) - ['class', 'metaClass']
+		//def hMany = JsshUser."hasMany"
+		commonProps.each {
+			if (!it.endsWith('Id')) {
+			//if ( it in hMany) {
+			//	target[it].each {  source.addTo[it] it }
+			//}else{
+				target[it] = source[it]
+			//}
+			}
+		}
+	}
+	
+	
 	private void addGroupLink(String groupId, SshServers server) {
 		SshServerGroups.withTransaction {
 			def d1 = SshServerGroups.get(groupId)
@@ -299,6 +342,7 @@ class JsshDbStorageService extends JsshConfService {
 		}
 	}
 
+	
 	private CommandLogger addComLog() {
 		CommandLogger.withTransaction {
 			//ConnectionLogs con = ConnectionLogs.get(conId)

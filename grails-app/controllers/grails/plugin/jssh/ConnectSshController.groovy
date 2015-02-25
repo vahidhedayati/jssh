@@ -111,6 +111,17 @@ class ConnectSshController extends JsshConfService {
 		render template: '/jsshadmin/'+template, model: [template:template, serverList:serverList, username: username, sshUserList: sshUserList]
 	}
 
+	
+	def cloneUser(String jsshUsername) {
+		render template: '/jsshadmin/cloneUser', model: [username: jsshUsername]
+	}
+	
+
+	def cloneAccount(String username, String masteruser) {
+		render jsshDbStorageService.cloneUser(username, masteruser) as String
+	}
+	
+	
 	def groupConnection(String jsshUsername, String groupId, String userCommand) {
 		def grps = SshServerGroups.get(groupId)
 		def  servers = grps.servers
@@ -329,9 +340,7 @@ class ConnectSshController extends JsshConfService {
 		return
 	}
 
-	def create() {
-		
-	}
+
 	def edit(Long id, String table) {
 		def uiterator
 		if (table == "jsshUser") {
