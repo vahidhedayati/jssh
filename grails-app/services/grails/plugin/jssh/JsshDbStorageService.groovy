@@ -34,19 +34,19 @@ class JsshDbStorageService extends JsshConfService {
 		}
 		return returnResult
 	}
-	
+
 
 	public Map findSshCommand(String type, String command) {
 		def returnResult=[:]
 		def found
 		if (type=="blacklist") {
-			 found = SshCommandBlackList.findByCommand(command)
-		}	 
-		
+			found = SshCommandBlackList.findByCommand(command)
+		}
+
 		if (type=="rewrite") {
 			found = SshCommandRewrite.findByCommand(command)
 		}
-		
+
 		if (found) {
 			returnResult=[status: 'found', id: found.id as String]
 		}else{
@@ -54,7 +54,7 @@ class JsshDbStorageService extends JsshConfService {
 		}
 		return returnResult
 	}
-	
+
 	public Map autoBlackList(String username, String cmd, String sshId) {
 		def suser = SshUser.get(sshId)
 		SshCommandBlackList found = SshCommandBlackList.findBySshuserAndCommand(suser, cmd)
@@ -66,10 +66,10 @@ class JsshDbStorageService extends JsshConfService {
 				}
 			}
 			return [record_added: found.id]
-		} 
+		}
 	}
-	 
-	public String storeGroup(String name, String username) {
+
+	public SshServerGroups storeGroup(String name, String username) {
 		username = parseFrontEnd(username)
 		JsshUser user = JsshUser.findByUsername(username)
 		SshServerGroups sg
@@ -88,7 +88,8 @@ class JsshDbStorageService extends JsshConfService {
 					user.errors.allErrors.each{log.error it}
 				}
 			}
-			return "\n\nGroup ${sg.name } should now be added for ${user.username}"
+			//return "\n\nGroup ${sg.name } should now be added for ${user.username}"
+			return sg
 		}
 	}
 
@@ -115,7 +116,7 @@ class JsshDbStorageService extends JsshConfService {
 		JsshUser user
 		JsshPermissions perm
 		if (!permissions) {
-		 permissions = config.defaultperm  ?: 'user'
+			permissions = config.defaultperm  ?: 'user'
 		}
 		JsshPermissions.withTransaction {
 			perm = JsshPermissions.findByName(permissions)
@@ -131,7 +132,7 @@ class JsshDbStorageService extends JsshConfService {
 				if (groupId) {
 					ssg = SshServerGroups.get(groupId)
 				}
-				
+
 				user = new JsshUser(username:username, permissions: perm, conlog: addlog, servers: server, groups: ssg)
 				if (!user.save(flush:true)) {
 					if (debug) {
@@ -145,24 +146,24 @@ class JsshDbStorageService extends JsshConfService {
 
 	public String addRewriteEntry(String username, String sshUserId, String command, String replacement) {
 		//SshCommandRewrite.withTransaction {
-			SshUser suser = SshUser.get(sshUserId)
-			if (suser) {
-				SshCommandRewrite found = SshCommandRewrite.findBySshuserAndCommand(suser, command)
-				if (!found) {
-					found = new SshCommandRewrite(sshuser: suser, command: command, replacement: replacement )
-					if (!found.save(flush:true)) {
-						if (debug) {
-							found.errors.allErrors.each{log.error it}
-						}
+		SshUser suser = SshUser.get(sshUserId)
+		if (suser) {
+			SshCommandRewrite found = SshCommandRewrite.findBySshuserAndCommand(suser, command)
+			if (!found) {
+				found = new SshCommandRewrite(sshuser: suser, command: command, replacement: replacement )
+				if (!found.save(flush:true)) {
+					if (debug) {
+						found.errors.allErrors.each{log.error it}
 					}
-					return "Record Added: $found.id"
 				}
-				return "Already exists: $found.id"
+				return "Record Added: $found.id"
 			}
+			return "Already exists: $found.id"
+		}
 		//}
-			return "${sshUserId} not found "
+		return "${sshUserId} not found "
 	}
-	
+
 	public SshServers  addServer(String username, String hostName,  String port, String ip, String groupId) {
 		SshServers server = addServer(hostName,   port,  ip)
 		addGroupLink(groupId)
@@ -211,7 +212,7 @@ class JsshDbStorageService extends JsshConfService {
 			addGroupLink(groupId, server)
 		}
 	}
-	
+
 	public SshServerGroups addGroup(String name, String serverId) {
 		SshServerGroups sg
 		SshServerGroups.withTransaction {
@@ -281,7 +282,7 @@ class JsshDbStorageService extends JsshConfService {
 			}
 		}
 	}
-	
+
 	// This will attempt to clone jsshUser and all its bindings
 	// bindings being:
 	// permissions
@@ -295,39 +296,74 @@ class JsshDbStorageService extends JsshConfService {
 		if (!found) {
 			def newRecord = new JsshUser()
 			copyProperties(record, newRecord)
-			
+
 			newRecord.username=username
-			
+
 			if (! newRecord.save(flush: true)) {
-				//flush: true)) {
 				newRecord.errors.allErrors.each{println it}
-				flash.message="Could not save record"
+				return
 			}
-			
-			
+			deeperCopy(record,newRecord, username)
+
 		}else{
 			msg.append("${username} already exists!")
 		}
 		return msg.toString()
 	}
-	
-	
-	def copyProperties(source, target) {
+
+	def deeperCopy(source, target, String username) {
 		def (sProps, tProps) = [source, target]*.properties*.keySet()
 		def commonProps = sProps.intersect(tProps) - ['class', 'metaClass']
-		//def hMany = JsshUser."hasMany"
-		commonProps.each {
-			if (!it.endsWith('Id')) {
-			//if ( it in hMany) {
-			//	target[it].each {  source.addTo[it] it }
-			//}else{
-				target[it] = source[it]
-			//}
+		def hMany = JsshUser."hasMany"
+		commonProps.each { cp ->
+			if (!cp.endsWith('Id')) {
+				if (cp in hMany) {
+					if (cp=="servers") {
+						source[cp].each { SshServers cr->
+							addServer(username, cr.hostName,  cr.sshPort, cr.ipAddress)
+						}
+					}else if (cp=="groups") {
+						source[cp].each { SshServerGroups cr->
+							SshServerGroups sg = storeGroup("${cr.name}", username)
+							cr.servers.each {  SshServers ss->
+								addGroupLink(sg.id as String, ss)
+							}
+						}
+					} else if (cp=="sshuser") {
+						source[cp].each { SshUser cr->
+							addSShUser(cr.friendlyName, username, cr.username, cr.sshKey, cr.sshKeyPass)
+							cr.rewrite.each { SshCommandRewrite rw ->
+								addRewriteEntry(username, cr.id as String, rw.command, rw.replacement)
+							}
+							cr.blacklist.each { SshCommandBlackList bl ->
+								autoBlackList(username, bl.command, cr.id as String)
+							}
+							//cr.servers.each {}
+						}
+					}
+				}
 			}
 		}
 	}
-	
-	
+
+	def copyProperties(source, target) {
+		def (sProps, tProps) = [source, target]*.properties*.keySet()
+		def commonProps = sProps.intersect(tProps) - ['class', 'metaClass']
+		def hMany = JsshUser."hasMany"
+		commonProps.each { cp ->
+			if (!cp.endsWith('Id')) {
+				if (cp in hMany) {
+				}else{
+					target[cp] = source[cp]
+				}
+			}
+		}
+	}
+
+	private String currentController(String s) {
+		s.substring(0,1).toUpperCase() + s.substring(1)
+	}
+
 	private void addGroupLink(String groupId, SshServers server) {
 		SshServerGroups.withTransaction {
 			def d1 = SshServerGroups.get(groupId)
@@ -342,7 +378,7 @@ class JsshDbStorageService extends JsshConfService {
 		}
 	}
 
-	
+
 	private CommandLogger addComLog() {
 		CommandLogger.withTransaction {
 			//ConnectionLogs con = ConnectionLogs.get(conId)

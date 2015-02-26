@@ -8,13 +8,14 @@ class SshServers {
 	SshUser sshuser
 	
     static constraints = {
-		hostName blank: false , unique: true
+		hostName blank: false 
+		//, unique: true
 		ipAddress nullable:true
 		sshPort nullable:true
 		sshuser nullable:true
     }
 	
-	String toString() { 
-		"${hostName}"
-	}
+	//String toString() { 
+	//	"${hostName}"
+	//}
 }

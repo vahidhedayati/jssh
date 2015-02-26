@@ -60,6 +60,6 @@
 		<g:message code="jssh.rewrite.label" default="rewrite" />
 	</label>
 	
-	<g:select  name="rewrite" from="${grails.plugin.jssh.SshCommandBlackList.list()}" optionKey="id" optionValue="command"
+	<g:select  name="rewrite" from="${grails.plugin.jssh.SshCommandRewrite.list()}" optionKey="id" optionValue="command"
 	value="${uiterator?.rewrite*.id}"  class="many-to-one" />
 </div>
