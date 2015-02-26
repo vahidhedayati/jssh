@@ -1,5 +1,5 @@
 	<g:render template="/connectSsh/jsshAdmin" />
-	
+	<div class="container">
 	
 		<div id="edit-applications" class="content scaffold-edit" role="main">
 		<g:set var="entityName" value="${message(code: 'jssh.sshUser', default: table)}" />
@@ -26,4 +26,5 @@
 					<g:actionSubmit class="btn btn-danger" action="delete" value="${message(code: 'default.button.delete.label', default: 'Delete')}" formnovalidate="" onclick="return confirm('${message(code: 'default.button.delete.confirm.message', default: 'Are you sure?')}');" />
 				</fieldset>
 			</g:form>
+		</div>
 		</div>

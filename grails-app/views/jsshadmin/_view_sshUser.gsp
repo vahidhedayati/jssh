@@ -9,7 +9,7 @@
 	model="${[loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle] }" />
 </head>
 <body>
-
+<div class="container">
 	<g:select name="cUser" id="myUserSelection" from="${grails.plugin.jssh.JsshUser.list()}" 
 		optionKey="username" optionValue="username" 
 	 	class="one-to-one" noSelection="['':'Choose User']" value="${session.jsshuser }" 
@@ -113,6 +113,7 @@
 			<g:paginate total="${userInstanceTotal}"
 				params="${[id:id, lookup:lookup, loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]}" />
 		</div>
+	</div>
 	</div>
 </body>
 </html>

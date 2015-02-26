@@ -7,7 +7,7 @@ class CommandLogs {
 	
 	String user
 	String sshUser
-	
+	String hostName
 	String contents
 	Date dateCreated
   

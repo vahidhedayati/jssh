@@ -30,7 +30,7 @@ class ConnectSshTagLib extends JsshConfService {
 	def connectUser = { attrs ->
 		String jsshUser = attrs.remove('jsshUser')?.toString()
 		String userCommand = attrs.remove('userCommand')?.toString()
-		
+
 		if (jsshUser) {
 			genericOpts(attrs)
 			socketOpts(attrs)
@@ -47,7 +47,7 @@ class ConnectSshTagLib extends JsshConfService {
 
 			def model = [template:ctemplate, serverList:serverList, username: jsshUser, sshUserList: sshUserList,
 				loadBootStrap:loadBootStrap, loadJQuery:loadJQuery , loadStyle:loadStyle, userCommand:userCommand,
-				hideWhatsRunning: hideWhatsRunning,	hideDiscoButton: hideDiscoButton, hidePauseControl: hidePauseControl, 
+				hideWhatsRunning: hideWhatsRunning,	hideDiscoButton: hideDiscoButton, hidePauseControl: hidePauseControl,
 				hideSessionCtrl: hideSessionCtrl, hideConsoleMenu: hideConsoleMenu, hideSendBlock: hideSendBlock, hideBroadCastBlock:hideBroadCastBlock]
 
 			loadTemplate(template, ctemplate, model)
@@ -149,9 +149,9 @@ class ConnectSshTagLib extends JsshConfService {
 		}
 
 		def connMap = [frontend: frontend,  frontuser: frontuser,  backuser: cuser, user: username, username:username, password: password,
-			port: port, enablePong: enablePong, pingRate: pingRate, usercommand: userCommand, divId:divId, jsshApp: APP, uri:uri, job: cjob, 
-			hideBroadCastBlock:hideBroadCastBlock, hideWhatsRunning: hideWhatsRunning,	hideDiscoButton: hideDiscoButton, hidePauseControl: hidePauseControl, 
-			hideSessionCtrl: hideSessionCtrl, hideNewShellButton: hideNewShellButton, hideConsoleMenu: hideConsoleMenu, hideSendBlock: hideSendBlock,	
+			port: port, enablePong: enablePong, pingRate: pingRate, usercommand: userCommand, divId:divId, jsshApp: APP, uri:uri, job: cjob,
+			hideBroadCastBlock:hideBroadCastBlock, hideWhatsRunning: hideWhatsRunning,	hideDiscoButton: hideDiscoButton, hidePauseControl: hidePauseControl,
+			hideSessionCtrl: hideSessionCtrl, hideNewShellButton: hideNewShellButton, hideConsoleMenu: hideConsoleMenu, hideSendBlock: hideSendBlock,
 			wshostname: wshostname]
 
 		Map adminMap = [frontuser: frontuser, backuser: cuser, job:cjob]
@@ -312,13 +312,13 @@ class ConnectSshTagLib extends JsshConfService {
 		}else{
 			this.hideSendBlock = attrs.hideSendBlock
 		}
-		
+
 		if (!attrs.hideBroadCastBlock) {
 			this.hideBroadCastBlock = config.hideBroadCastBlock ?: 'NO'
 		}else{
 			this.hideBroadCastBlock = attrs.hideBroadCastBlock
 		}
-		
+
 
 		if (!attrs.hideSessionCtrl)	 {
 			this.hideSessionCtrl = config.hideSessionCtrl ?: 'YES'
@@ -371,9 +371,18 @@ class ConnectSshTagLib extends JsshConfService {
 	 */
 	private void genDb(String sshUser, String hostname, String realuser, String userCommand, String port,
 			String sshKey=null, String sshKeyPass=null) {
-		addUserHost(hostname, port, realuser, sshUser, sshKey, sshKeyPass)
-		this.conloggerId = jsshDbStorageService.storeConnection(hostname, port, realuser, sshUser, '')
-		this.comloggerId = jsshDbStorageService.storeCommand(userCommand, realuser, conLogId, sshUser)
+
+		try {
+
+			addUserHost(hostname, port, realuser, sshUser, sshKey, sshKeyPass)
+			JsshUser juser = JsshUser.findByUsername(realuser)
+			if (juser) {
+				this.conloggerId = jsshDbStorageService.storeConnection(hostname, port, realuser, sshUser, juser.conlog as String)
+				this.comloggerId = jsshDbStorageService.storeCommand(userCommand,hostname, realuser, juser.conlog as String, sshUser)
+			}
+		} catch (Exception e) {
+			e.printStackTrace()
+		}
 	}
 
 	/*

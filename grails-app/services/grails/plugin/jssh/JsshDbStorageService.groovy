@@ -97,12 +97,16 @@ class JsshDbStorageService extends JsshConfService {
 		ConnectionLogs logInstance
 		ConnectionLogs.withTransaction {
 			ConnectionLogger conlog
+			
 			if (conId) {
+			 
 				conlog = ConnectionLogger.get(conId)
 			}else{
+			
 				conlog = addLog()
 			}
-			logInstance = new ConnectionLogs(jsshUser: user, sshUser: sshUser, hostName: hostName, port: port, conlog: conlog)
+			
+			logInstance = new ConnectionLogs(jsshUser: user, sshUser: sshUser, hostName: hostName, port: port ?: '22', conlog: conlog)
 			if (!logInstance.save(flush:true)) {
 				if (debug) {
 					logInstance.errors.allErrors.each{log.error it}
@@ -298,9 +302,12 @@ class JsshDbStorageService extends JsshConfService {
 			copyProperties(record, newRecord)
 
 			newRecord.username=username
-
+			
+			ConnectionLogger addlog = addLog()
+			newRecord.conlog = addLog()
+			
 			if (! newRecord.save(flush: true)) {
-				newRecord.errors.allErrors.each{println it}
+				newRecord.errors.allErrors.each{log.error it}
 				return
 			}
 			deeperCopy(record,newRecord, username)
@@ -404,22 +411,27 @@ class JsshDbStorageService extends JsshConfService {
 		}
 	}
 
-	private String storeCommand(String message, String user, String conId, String sshUser, String comId = null) {
+	private String storeCommand(String message, String hostName, String user, String conId, String sshUser, String comId = null) {
 		CommandLogs logInstance
 		CommandLogs.withTransaction {
 			CommandLogger comlog
-			ConnectionLogger con = ConnectionLogger.get(conId)
+			if (conId) {
+			ConnectionLogger con = ConnectionLogger.get(conId as Long)
+			JsshUser ju = JsshUser.findByUsername(user)
 			if (comId) {
-				comlog = CommandLogger.get(comId)
+				comlog = CommandLogger.get(comId as Long)
+				if (!comlog) {
+					comlog = addComLog()
+				}
 			}else{
 				comlog = addComLog()
 			}
-
-			logInstance = new CommandLogs(user: user, sshUser: sshUser, contents: message, comlog: comlog, conlog: con)
+			logInstance = new CommandLogs(user: user, sshUser: sshUser, hostName: hostName, contents: message, comlog: comlog, conlog: con ?: ju.conlog)
 			if (!logInstance.save(flush:true)) {
 				if (debug) {
 					logInstance.errors.allErrors.each{log.error it}
 				}
+			}
 			}
 		}
 		return logInstance.id as String

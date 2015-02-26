@@ -9,6 +9,7 @@
 	model="${[loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle] }" />
 </head>
 <body>
+<div class="container">
 		<a data-toggle="modal" href="#masterAdminContainer" class="btn btn-success"	onclick="javascript:addJsshUser();"> 
 				<g:message	code="jssh.add.servers.default" default="Add jsshUser" />
 		</a>
@@ -48,15 +49,15 @@
 			<div class="col-md-2">
 				<g:message code="jsshuser.sshuser.label" default="sshuser" />
 			</div>
-			<div class="col-md-3">
+			<div class="col-md-2">
 				<g:message code="jsshuser.servers.label" default="servers" />
 			</div>
 			
-			<div class="col-md-2">
+			<div class="col-md-1">
 				<g:message code="jsshuser.groups.label" default="groups" />
 			</div>
 
-			<div class="col-md-1">
+			<div class="col-md-2">
 				<g:message code="jsshuser.action.label" default="action" />
 			</div>
 			
@@ -80,18 +81,29 @@
 					<jssh:sshList rtype="sshuser" ilist="${userInstance.sshuser}" />
 				</div>
 
-				<div class="col-md-3">
+				<div class="col-md-2">
 					<jssh:sshList rtype="servers" ilist="${userInstance.servers}" />
 				</div>
 
-				<div class="col-md-2">
+				<div class="col-md-1">
 					<jssh:sshList rtype="groups" ilist="${userInstance.groups}" />
 				</div>
 				
-				<div class="col-md-1">
+				<div class="col-md-2">
+				<div class="btn">
 					<a data-toggle="modal" href="#masterAdminContainer" class="btn btn-xs btn-warning"	onclick="javascript:cloneJsshUser('${userInstance.username}');"> 
 						<g:message	code="jssh.add.servers.default" default="Clone" />
 					</a>
+					<g:link controller="connectSsh" action="viewLogs" class="btn btn-xs btn-success"
+						id="${userInstance.id}" params="${[table: 'connections'] }">
+						<g:message	code="jssh.view.connection.logs.default" default="ConnLogs" />
+					</g:link>
+					
+					<g:link controller="connectSsh" action="viewLogs" class="btn btn-xs btn-primary"
+						id="${userInstance.id}" params="${[table: 'commands'] }">
+						<g:message	code="jssh.view.connection.logs.default" default="CommandLogs" />
+					</g:link>
+					</div>
 				</div>
 				
 				
@@ -102,6 +114,7 @@
 			<g:paginate total="${userInstanceTotal}"
 				params="${[id:id, lookup:lookup, loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]}" />
 		</div>
+	</div>
 	</div>
 </body>
 </html>

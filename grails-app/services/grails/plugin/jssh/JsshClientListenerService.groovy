@@ -9,7 +9,8 @@ import javax.websocket.Session
 public class JsshClientListenerService extends JsshConfService {
 
 	def jsshMessagingService
-
+	def jsshDbStorageService
+	
 	Session p_connect(String _uri, String username,  Map map){
 		URI oUri
 		if(_uri){
@@ -43,7 +44,19 @@ public class JsshClientListenerService extends JsshConfService {
 		if (map.hosts) {
 			oSession.userProperties.put("hosts", map.hosts)
 		}
-
+		/*
+		println "--- $map.hostname is our PRIMARY host"
+		SshServers ss = SshServers.findByHostName(map.hostname)
+		JsshUser ju = JsshUser.findByUsername(map.jUser)
+		jsshDbStorageService.storeConnection(map.hostname, ss.sshPort, map.realUser ?: map.jUser, ss.sshuser, ju.conlog)
+		map.hosts.each { host-> 
+			println "--- $host is our LOOP host"
+			 ss = SshServers.findByHostName(host)
+			
+			
+			jsshDbStorageService.storeConnection(host, ss.sshPort, map.realUser ?: map.jUser, ss.sshuser, ju.conlog)
+		}
+		*/
 		return  oSession
 	}
 

@@ -9,7 +9,7 @@
 	model="${[loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle] }" />
 </head>
 <body>
-
+<div class="container">
 <a data-toggle="modal" href="#masterAdminContainer" class="btn btn-success"	onclick="javascript:addSshUserRewrite();"> 
 				<g:message	code="jssh.add.servers.default" default="Add BlackList Command" />
 		</a>
@@ -70,6 +70,7 @@
 			<g:paginate total="${userInstanceTotal}"
 				params="${[id:id, lookup:lookup, loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]}" />
 		</div>
+	</div>
 	</div>
 </body>
 </html>

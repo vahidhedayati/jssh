@@ -12,6 +12,7 @@ class ConnectionLogs {
   
 	static constraints = {
 	  jsshUser nullable: true
+	  port nullable: true
 	}
   
 	String toString() {

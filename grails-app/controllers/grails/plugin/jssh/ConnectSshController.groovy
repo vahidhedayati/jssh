@@ -1,6 +1,9 @@
 package grails.plugin.jssh
 
 import grails.converters.JSON
+import grails.plugin.jssh.logging.CommandLogger
+import grails.plugin.jssh.logging.CommandLogs
+import grails.plugin.jssh.logging.ConnectionLogs
 
 import org.springframework.dao.DataIntegrityViolationException
 
@@ -129,6 +132,8 @@ class ConnectSshController extends JsshConfService {
 		def jobName = jsshRandService.shortRand('job')
 		def divId =  jsshRandService.shortRand('divId')
 
+
+		
 		Map model = [jsshUsername:jsshUsername , servers:servers, jobName:jobName,
 			userCommand:userCommand, divId:divId, hideWhatsRunning: params.hideWhatsRunning,	hideDiscoButton: params.hideDiscoButton, 
 			hidePauseControl:  params.hidePauseControl,	hideSessionCtrl:  params.hideSessionCtrl, hideConsoleMenu:  params.hideConsoleMenu, 
@@ -270,6 +275,7 @@ class ConnectSshController extends JsshConfService {
 		render ""
 	}
 
+	
 	//Admin options
 	def siteAdmin(Integer max, String lookup) {
 		if (session.isAdmin && session.isAdmin.toBoolean()) {
@@ -410,7 +416,6 @@ class ConnectSshController extends JsshConfService {
 		}
 
 		flash.message = message(code: 'default.updated.message', args: [message(code: table+'.label', default: table), uiterator.id])
-		//redirect(action: "show", id: applicationsInstance.id)
 		render(template: "/jsshadmin/edit",  model: model)
 	}
 	
@@ -442,15 +447,43 @@ class ConnectSshController extends JsshConfService {
 		try {
 			uiterator.delete(flush: true)
 			flash.message = message(code: 'default.deleted.message', args: [message(code: table+'.label', default: table), id])
-			//render(template: "/jsshadmin/siteAdmin",  model: model)
 			redirect(controller: "connectSsh", action: "siteAdmin", params: model)
 		}catch (DataIntegrityViolationException e) {
 			flash.message = message(code: 'default.not.deleted.message', args: [message(code: table+'.label', default: table), id])
-			//render(template: "/jsshadmin/siteAdmin",  model: model)
 			redirect(controller: "connectSsh", action: "siteAdmin", params: model)
 			
+		}	
+	}
+	
+	def viewLogs(String id, String table) {
+		JsshUser juser = JsshUser.get(id)
+		String icom = params.comlog
+		def resultSet
+		def resultCount
+		params.max = Math.min(params.int('max') ?: 50, 100)
+		int total = 0
+		String order = params.order ?: "desc"
+		String sortby = params.sortby ?: "dateCreated"
+		int offset = (params.offset ?: '0') as int
+		def paginationParams = [sort: sortby, order: order, offset: offset, max: params.max]
+		if (juser && table == "commands") {
+			if (icom) {
+				def clog = CommandLogger.get(icom)
+				resultSet = CommandLogs.findAllByConlogAndComlog(juser.conlog,clog, paginationParams)
+				resultCount = CommandLogs.countByConlogAndComlog(juser.conlog, clog)
+			}else{
+				resultSet = CommandLogs.findAllByConlog(juser.conlog, paginationParams)
+				resultCount = CommandLogs.countByConlog(juser.conlog)
+			}
+		}else if (juser && table == "connections") {
+			resultSet = ConnectionLogs.findAllByConlog(juser.conlog, paginationParams)
+			resultCount =  ConnectionLogs.countByConlog(juser.conlog)
 		}
+		verifyBooleans(params)
+		Map model = [ loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle, 
+			resultSet:resultSet, resultCount:resultCount, table:table, id:id]
 		
+		render template: '/jsshadmin/view_'+table, model : model
 	}
 	
 	private verifyBooleans(params){

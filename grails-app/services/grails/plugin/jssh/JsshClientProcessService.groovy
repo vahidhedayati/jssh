@@ -97,10 +97,13 @@ public class JsshClientProcessService extends JsshConfService  {
 			String comloggerId = userSession.userProperties.get("comloggerId") as String
 			String conloggerId = userSession.userProperties.get("conloggerId") as String
 			String realUser = userSession.userProperties.get("realUser") as String ?: username
-
-
-			if (comloggerId && conloggerId) {
-				jsshDbStorageService.storeCommand(msg, realUser, conloggerId, user, comloggerId)
+			String host = userSession.userProperties.get("host") as String
+			  
+			//String hosts = userSession.userProperties.get("hosts") as Map
+			// 	TODO - null being returned for host in broadcast
+			 
+			if (conloggerId) {
+				jsshDbStorageService.storeCommand(msg, chost ?: host, realUser, conloggerId, user, comloggerId)
 			}
 
 			try {

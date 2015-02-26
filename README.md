@@ -25,6 +25,8 @@ Once you have successfully configured connected. Your browser will provide somet
 
 ## Videos
 
+[jssh 1.5 admin interface / cloning of accounts + viewing historical logs/commands](https://www.youtube.com/watch?v=rGIWeLMeC5o)
+
 [jssh 1.3 sshuser configuration per webuser + command restrictions(blacklist) / command rewrites](https://www.youtube.com/watch?v=tkGavxbrnh8) 
 
 [jssh 1.0 broadcast ssh commands to multiple remote hosts 8 Mins](https://www.youtube.com/watch?v=HcJauTC6b8I)
