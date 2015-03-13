@@ -1,9 +1,10 @@
 import grails.plugin.jssh.ConnectSsh
+import grails.plugin.jssh.J2sshEndpoint
 import grails.plugin.jssh.JsshConfig
 import grails.plugin.jssh.JsshEndpoint
 
 class JsshGrailsPlugin {
-    def version = "1.6"
+    def version = "1.7"
 	def grailsVersion = "2.0 > *"
 	def title = "j2ssh SSH Plugin"
 	def author = "Vahid Hedayati"
@@ -28,6 +29,9 @@ class JsshGrailsPlugin {
 		listenerNode[listenerNode.size() - 1] + {
 			'listener' {
 				'listener-class'(JsshEndpoint.name)
+			}
+			'listener' {
+				'listener-class'(J2sshEndpoint.name)
 			}
 		}
 	}

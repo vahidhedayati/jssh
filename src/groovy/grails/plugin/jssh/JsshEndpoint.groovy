@@ -8,76 +8,77 @@ import javax.servlet.ServletContext
 import javax.servlet.ServletContextEvent
 import javax.servlet.ServletContextListener
 import javax.servlet.annotation.WebListener
-import javax.websocket.EndpointConfig
 import javax.websocket.OnClose
 import javax.websocket.OnError
 import javax.websocket.OnMessage
 import javax.websocket.OnOpen
 import javax.websocket.Session
-import javax.websocket.server.PathParam
 import javax.websocket.server.ServerContainer
 import javax.websocket.server.ServerEndpoint
 
 import org.codehaus.groovy.grails.web.context.ServletContextHolder as SCH
-import org.codehaus.groovy.grails.web.json.JSONObject
 import org.codehaus.groovy.grails.web.servlet.GrailsApplicationAttributes as GA
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import com.sshtools.j2ssh.SshClient
+import com.sshtools.j2ssh.authentication.AuthenticationProtocolState
+import com.sshtools.j2ssh.authentication.PasswordAuthenticationClient
+import com.sshtools.j2ssh.authentication.PublicKeyAuthenticationClient
 import com.sshtools.j2ssh.configuration.SshConnectionProperties
+import com.sshtools.j2ssh.connection.ChannelOutputStream
+import com.sshtools.j2ssh.connection.ChannelState
+import com.sshtools.j2ssh.io.IOStreamConnector
 import com.sshtools.j2ssh.session.SessionChannelClient
+import com.sshtools.j2ssh.session.SessionOutputReader
+import com.sshtools.j2ssh.transport.IgnoreHostKeyVerification
+import com.sshtools.j2ssh.transport.publickey.SshPrivateKey
+import com.sshtools.j2ssh.transport.publickey.SshPrivateKeyFile
 
-/*
- * Vahid Hedayati
- * Jan 2015 - Major changes to Jssh WebSocket End Point
- * It now handles two types of websocket connections
- * The primary being older method which is a direct websocket connection to Jssh libraries.
- * 
- * It is probably confusing to try follow the logic but in short if there is a frontend
- * it is assumed the Endpoint call is being done via the new socket jssh:conn method and messages
- * are forwarded or redirected to jsshClientEndPoint.
- * There are exceptions such as /actions which some only new conn method calls and thus
- * calls are directed back to jsshClientEndpoint or its associate client classes.
- * 
- */
 @WebListener
-@ServerEndpoint("/j2ssh/{job}")
-class JsshEndpoint extends JsshConfService implements ServletContextListener {
-
-
+@ServerEndpoint("/jssh")
+class JsshEndpoint implements ServletContextListener {
+	
 	private final Logger log = LoggerFactory.getLogger(getClass().name)
+	//private GrailsApplication grailsApplication
+	private Map config
+	String host = ""
+	String user = ""
+	Integer port=22
+	String userpass=""
+	String usercommand = ""
+	StringBuilder output=new StringBuilder()
 
-	private ConfigObject config
-
-	private JsshAuthService jsshAuthService
-	private JsshService jsshService
-	private J2sshService j2sshService
-	private JsshMessagingService jsshMessagingService
-	private JsshClientProcessService jsshClientProcessService
 
 	private SshClient ssh = new SshClient()
 	private SessionChannelClient session
 	private SshConnectionProperties properties = null
+	private boolean isAuthenticated=false
+	private boolean pauseLog=false
+	private boolean resumed=false
+	private boolean newSession=false
+	private boolean sameSession=false
+	//private InputStream input
 
-	private String host, user, userpass, usercommand
-	private int port = 22
-	private boolean enablePong
-	private int pingRate
 
 	@Override
 	public void contextInitialized(ServletContextEvent event) {
 		ServletContext servletContext = event.servletContext
 		final ServerContainer serverContainer = servletContext.getAttribute("javax.websocket.server.ServerContainer")
 		try {
+			
+			// Adding this conflicts with listener added via plugin descriptor
+			// Whilst it works as run-app - in production this causes issues
 			if (Environment.current == Environment.DEVELOPMENT) {
 				serverContainer.addEndpoint(JsshEndpoint)
 			}
-
+			
 			def ctx = servletContext.getAttribute(GA.APPLICATION_CONTEXT)
+			
 			def grailsApplication = ctx.grailsApplication
+			
 			config = grailsApplication.config.jssh
-
+			
 			int defaultMaxSessionIdleTimeout = config.timeout ?: 0
 			serverContainer.defaultMaxSessionIdleTimeout = defaultMaxSessionIdleTimeout
 		}
@@ -90,149 +91,273 @@ class JsshEndpoint extends JsshConfService implements ServletContextListener {
 	public void contextDestroyed(ServletContextEvent servletContextEvent) {
 	}
 
+
 	@OnOpen
-	public void handleOpen(Session userSession,EndpointConfig c,@PathParam("job") String job) {
-		sshUsers.add(userSession)
+	public String handleOpen(Session usersession) {
+		usersession.basicRemote.sendText('Attempting SSH Connection')
 		def ctx= SCH.servletContext.getAttribute(GA.APPLICATION_CONTEXT)
 		def grailsApplication = ctx.grailsApplication
 		config = grailsApplication.config.jssh
-		jsshAuthService = ctx.jsshAuthService
-		jsshService = ctx.jsshService
-		j2sshService = ctx.j2sshService
-		jsshMessagingService = ctx.jsshMessagingService
-		jsshClientProcessService = ctx.jsshClientProcessService
-		userSession.userProperties.put("job", job)
 	}
+
 
 	@OnMessage
-	public void handleMessage(String message, Session userSession) {
+	public void handleMessage(String message, Session usersession) {
+		def data=JSON.parse(message)
+		// authentication stuff - system calls
+		if (data) {
+			host=data.hostname
+			user=data.user
+			userpass=data.password
+			usercommand=data.usercommand
+			if (data.port) {
+				port=(data.port as Integer)
+			}
+			// Initial call lets connect
+			def asyncProcess = new Thread({	sshConnect(user,userpass,host,usercommand,port as int,usersession)  } as Runnable )
+			asyncProcess.start()
 
-		String username = userSession.userProperties.get("username") as String
-		String job  =  userSession.userProperties.get("job") as String
-		if (config.debug == "on") {
-			log.info "@onMessage: $username: $job > $message\n\n"
-		}
-		
-		// Standard Private Messages
-		if (message.startsWith('/pm')) {
-			def values = parseInput("/pm ",message)
-			String user = values.user as String
-			String msg = values.msg as String
-			if (user != username) {
-				jsshMessagingService.privateMessage(userSession, user,msg,'/pm')
-			}else{
-				log.error "Messaging yourself?"
+		} else{
+			if  (message.equals('DISCO:-')) {
+				session.close()
+				ssh.disconnect()
+			} else if  (message.equals('PAUSE:-')) {
+				pauseLog=true
+			} else if  (message.equals('RESUME:-')) {
+				pauseLog=false
+				resumed=true
+			} else if  (message.equals('NEW_SESSION:-')) {
+				newSession=true
+				sameSession=false
+			} else if  (message.equals('NEW_SHELL:-')) {
+				newShell(usersession)
+				sameSession=true
+			}else if (message.equals('CLOSE_SHELL:-')) {
+				closeShell(usersession)
+				sameSession=true
+			} else if  (message.equals('SAME_SESSION:-')) {
+				sameSession=true
+				newSession=false
+			} else {
+				
+				//def hideSendBlock=config.hideSendBlock
+				// Will return here conflicts with custom calls
+				// Ensure user can actually send stuff according to backend config
+				//if ((!hideSendBlock)||(!hideSendBlock.equals('YES'))) {
+					def asyncProcess = new Thread({sshControl(message,usersession)  } as Runnable )
+					asyncProcess.start()
+				//}
 			}
 
-			// NEW Sent only from FrontEnd when user triggers a command to be sent
-		}else if  (message.startsWith('/fm')) {
-
-			def values = parseInput("/fm ",message)
-			String users = values.user as String
-			String user
-			if (users.indexOf('@')>-1) {
-				user = users.substring(0,users.indexOf('@'))
-			}else{
-				user = users
-			}
-			String msg = values.msg as String
-			if (msg.startsWith('{')) {
-				jsshMessagingService.forwardMessage(user,msg)
-			}else{
-				jsshMessagingService.forwardMessage(user,"/bm $users,$msg")
-			}
-		}else if (message.startsWith('/bcast')) {
-			def values = parseInput("/bcast ",message)
-			String cjob = values.user as String
-			String msg = values.msg as String
-			jsshMessagingService.sendJobPM(userSession, cjob, msg)
-			
-
-			// All other actions
-		}else{
-			def data = JSON.parse(message)
-			boolean bfrontend =  false
-			if (data.frontend) {
-				bfrontend =  data.frontend.toBoolean() ?: false
-				if (!username) {
-					String jsshUser = data.jsshUser
-
-					if (jsshUser) {
-						userSession.userProperties.put("username", jsshUser)
-					}
-				}
-			}
-			if (data) {
-				if (bfrontend) {
-					if (!data.client) {
-						if  (data.DISCO == "true") {
-							userSession.userProperties.put("status", "disconnect")
-							jsshClientProcessService.handleClose(userSession)
-						}else if (data.COMMAND == "true") {
-							jsshMessagingService.sendBackPM(username, message,"system")
-						}else{
-							userSession.basicRemote.sendText("${message}")
-						}
-					}
-				}else{
-					if  (data.DISCO == "true") {
-						userSession.close()
-					}else{
-						jsshAuthService.authenticate(ssh, session, properties, userSession, data)
-					}
-				}
-			} else{
-				/* New websocket Client/Server Method
-				 * Master (backend) does connection and processes commands sent via front-end
-				 */
-				if (bfrontend) {
-					userSession.basicRemote.sendText("${message}")
-				}
-				// OLDER Websocket Method which does all processing via 1 connection
-				else{
-					jsshService.processRequest(ssh, session, properties, userSession,message)
-				}
-			}
-		}
-	}
-
-	private void verifyGeneric(JSONObject data) {
-		this.host = data.hostname ?: ''
-
-		if (data.port) {
-			this.port = data.port.toInteger()
-		}
-		this.user = data.user ?: ''
-		this.userpass = data.password ?: ''
-		this.usercommand = data.usercommand ?: ''
-
-		if (data.enablePong) {
-			this.enablePong = data.enablePong?.toBoolean()
 		}
 
-		if (data.pingRate) {
-			this.pingRate = data.pingRate?.toInteger() ?: '60000'
-		}
 	}
 
 	@OnClose
 	public void handeClose() {
-		if (session && session.isOpen()) {
-			session.close()
-		}
-		if (ssh && ssh.isConnected()) {
-			ssh.disconnect()
-		}
+		//log.debug "Client is now disconnected."
+		session.close()
+		ssh.disconnect()
 	}
 
 	@OnError
 	public void handleError(Throwable t) {
 		t.printStackTrace()
-		if (session && session.isOpen()) {
+		session.close()
+		ssh.disconnect()
+	}
+	
+	private void closeShell(Session usersession) {
+		def myMsg=[:]
+		int timeout = 1000;
+		def cc=ssh.getActiveChannelCount() ?: 1
+		if (cc>1) {
 			session.close()
+			session.getState().waitForState(ChannelState.CHANNEL_CLOSED,timeout);
+			usersession.basicRemote.sendText('Shell closed')
+		}else{
+			usersession.basicRemote.sendText('Only 1 shell - could not close master window - try closing session : '+cc)
+		} 
+		def ncc=ssh.getActiveChannelCount() ?: 1
+		myMsg.put("connCount", ncc.toString())
+		def myMsgj=myMsg as JSON
+		usersession.basicRemote.sendText(myMsgj as String)
+	}
+	
+	private void newShell(Session usersession) {
+		session = ssh.openSessionChannel()
+	
+		SessionOutputReader sor = new SessionOutputReader(session)
+		if (session.requestPseudoTerminal("gogrid",80,24, 0 , 0, "")) {
+			if (session.startShell()) {
+				ChannelOutputStream out = session.getOutputStream()
+				
+			}
 		}
-		if (ssh && ssh.isConnected()) {
-			ssh.disconnect()
+		
+		def cc=ssh.getActiveChannelCount() ?: 1
+		def myMsg=[:]
+		myMsg.put("connCount", cc.toString())
+		def myMsgj=myMsg as JSON
+		usersession.basicRemote.sendText(myMsgj as String)
+		usersession.basicRemote.sendText('New shell created, console window : '+cc)
+	}
+	
+	private void sshControl(String usercommand,Session usersession) {
+		StringBuilder catchup=new StringBuilder()
+		Boolean newChann=false
+
+		String newchannel=config.NEWCONNPERTRANS ?: ''
+		String hideSessionCtrl=config.hideSessionCtrl ?: ''
+
+		if ((newchannel.equals('YES'))||((newSession)&&(sameSession==false))) { 
+			newChann=true
+		}else if (newSession) {
+			newChann=true
+		}else if (sameSession) {
+			newChann=false
+		}
+		/*
+		// Ensure user is not attempting to gain unauthorised access - check backend config ensure session control is enabled.
+		if ((newchannel.equals('YES'))||(hideSessionCtrl.equals('NO')&&(newSession)&&(sameSession==false))) { 
+			newChann=true
+		}else if ((newSession)&&(hideSessionCtrl.equals('NO'))) {
+			newChann=true
+		}else if ((sameSession)&&(hideSessionCtrl.equals('NO'))) {
+			newChann=false
+		}
+		*/
+
+		def cc=ssh.getActiveChannelCount() ?: 1
+		def myMsg=[:]
+		myMsg.put("connCount", cc.toString())
+		def myMsgj=myMsg as JSON
+		usersession.basicRemote.sendText(myMsgj as String)
+		if ((cc>1)&&(newChann==false)) {
+			session.getOutputStream().write("${usercommand} \n".getBytes())
+			InputStream input=session.getInputStream()
+			byte[] buffer=new byte[255]
+			int read;
+			int i=0
+			//def pattern = ~/^\s+$/
+			while((read = input.read(buffer)) > 0)  {
+				String out1 = new String(buffer, 0, read)
+				//def m=pattern.matcher(out1).matches()
+				//if (m==false) {
+				if (pauseLog) {
+					catchup.append(out1)
+				}else{
+					if (resumed) {
+						resumed=false
+						usersession.basicRemote.sendText(catchup as String)
+						catchup=new StringBuilder()
+					}
+					usersession.basicRemote.sendText(out1)
+				}
+				//}
+			}
+
+		}else{
+			session = ssh.openSessionChannel()
+			SessionOutputReader sor = new SessionOutputReader(session)
+			if (session.requestPseudoTerminal("gogrid",80,24, 0 , 0, "")) {
+				if (session.startShell()) {
+					ChannelOutputStream out = session.getOutputStream()
+					session.getOutputStream().write("${usercommand} \n".getBytes())
+					InputStream input=session.getInputStream()
+					byte[] buffer=new byte[255]
+					int read;
+					int i=0
+					//def pattern = ~/^\s+$/
+					while((read = input.read(buffer)) > 0)  {
+						String out1 = new String(buffer, 0, read)
+						//def m=pattern.matcher(out1).matches()
+						//if (m==false) {
+						if (pauseLog) {
+							catchup.append(out1)
+						}else{
+							if (resumed) {
+								resumed=false
+								usersession.basicRemote.sendText(catchup as String)
+								catchup=new StringBuilder()
+							}
+							usersession.basicRemote.sendText(out1)
+						}
+						//}
+					}
+				}
+			}
+		}
+		//session.close()
+	}
+
+	private void execCmd(String cmd,Session usersession) {
+		try {
+			session = ssh.openSessionChannel();
+			if ( session.executeCommand(cmd) )	{
+				IOStreamConnector output = new IOStreamConnector();
+				java.io.ByteArrayOutputStream bos =  new
+						java.io.ByteArrayOutputStream();
+				output.connect(session.getInputStream(), bos );
+				session.getState().waitForState(ChannelState.CHANNEL_CLOSED);
+				usersession.basicRemote.sendText(bos.toString())
+			}
+		}	  catch(Exception e)  {
+			log.debug "Exception : " + e.getMessage()
+		}
+	}
+
+	private void sshConnect(String user,String userpass,String host,String usercommand, int port,Session usersession)  {
+		
+		String sshuser=config.USER ?: ''
+		String sshpass=config.PASS ?: ''
+		String sshkey=config.KEY ?: ''
+		String sshkeypass=config.KEYPASS ?: ''
+		String sshport=config.PORT ?: ''
+
+		
+		String username = user ?: sshuser
+		String password = userpass ?: sshpass
+		int sshPort=port ?: sshport as Integer
+		String keyfilePass=''
+		int result=0
+
+		properties = new SshConnectionProperties();
+		properties.setHost(host)
+		properties.setPort(sshPort)
+		ssh.connect(properties, new IgnoreHostKeyVerification())
+		if (!password) {
+			PublicKeyAuthenticationClient pk = new PublicKeyAuthenticationClient()
+			pk.setUsername(username)
+
+			SshPrivateKeyFile file = SshPrivateKeyFile.parse(new File(sshkey.toString()))
+			if (file.isPassphraseProtected()) {
+				keyfilePass = sshkeypass.toString()
+			}
+			SshPrivateKey key = file.toPrivateKey(keyfilePass);
+			pk.setKey(key)
+			// Try the authentication
+			result = ssh.authenticate(pk)
+			if (result == AuthenticationProtocolState.COMPLETE) {
+				isAuthenticated=true
+			}
+		}else{
+			PasswordAuthenticationClient pwd = new PasswordAuthenticationClient()
+			pwd.setUsername(username)
+			pwd.setPassword(password)
+			result = ssh.authenticate(pwd)
+			if(result == 4)  {
+				isAuthenticated=true
+			}
+		}
+
+		// Evaluate the result
+		if (isAuthenticated) {
+			sshControl(usercommand,usersession)
+		}else{
+			def authType="using key file  "
+			if (password) { authType="using password" }
+			usersession.basicRemote.sendText("SSH: Failed authentication user: ${username} on ${host} ${authType}")
 		}
 	}
 }

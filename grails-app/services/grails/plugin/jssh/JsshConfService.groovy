@@ -15,6 +15,7 @@ class JsshConfService {
 	public String CONNECTOR = "CONN:-"
 	public String DISCONNECTOR = "DISCO:-"
 	public String APP = "j2ssh"
+	public String WSAPP = "jssh"
 	public String VIEW = "connectSsh"
 
 	public boolean isConfigEnabled(String input) {
