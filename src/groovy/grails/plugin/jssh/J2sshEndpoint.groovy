@@ -163,7 +163,6 @@ class J2sshEndpoint extends JsshConfService implements ServletContextListener {
 			}
 			if (data) {
 				if (bfrontend) {
-					println "--- message new bfrontend 0"
 					if (!data.client) {
 						if  (data.DISCO == "true") {
 							userSession.userProperties.put("status", "disconnect")
@@ -186,7 +185,6 @@ class J2sshEndpoint extends JsshConfService implements ServletContextListener {
 				 * Master (backend) does connection and processes commands sent via front-end
 				 */
 				if (bfrontend) {
-					println "--- message new bfrontend 1"
 					userSession.basicRemote.sendText("${message}")
 				}
 				

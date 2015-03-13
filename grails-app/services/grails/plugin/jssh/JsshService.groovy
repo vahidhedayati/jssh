@@ -261,7 +261,6 @@ class JsshService extends JsshConfService {
 
 	private void verifySession(Session userSession, String command) {
 		String urecord = userSession.userProperties.get("username") as String
-		println "--- messaging ${urecord} with $command"
 		if (userSession && userSession.isOpen()) {
 			userSession.basicRemote.sendText(command)
 		}
