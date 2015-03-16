@@ -97,13 +97,13 @@ public class JsshClientProcessService extends JsshConfService  {
 			String comloggerId = userSession.userProperties.get("comloggerId") as String
 			String conloggerId = userSession.userProperties.get("conloggerId") as String
 			String realUser = userSession.userProperties.get("realUser") as String ?: username
-			String host = userSession.userProperties.get("host") as String 
-			  
+			String host = userSession.userProperties.get("host") as String
+
 			//String hosts = userSession.userProperties.get("hosts") as Map
 			// 	TODO - null being returned for host in broadcast
 			// Not a lot can be done - this is due to multiple broadcasting.
 			// should then be traceable via connection history and time of command execution
-			
+
 			if (conloggerId) {
 				jsshDbStorageService.storeCommand(msg, chost ?: host, realUser, conloggerId, user, comloggerId)
 			}

@@ -20,9 +20,12 @@ import com.sshtools.j2ssh.transport.publickey.SshPrivateKeyFile
 
 /*
  *  Vahid Hedayati Jan 2015
- *  JsshService which deals with Websocket connections
+ *  Revist March 2015 - due to bugs left in Jan
+ *  JsshService which deals with Websocket connections <jssh:socketconnect taglib
+ *  
  *  This is the traditional / older method which has no client / server modelling
  *  Data is instead passed through a load of async calls.
+ *  
  */
 class JsshService extends JsshConfService {
 
@@ -32,8 +35,10 @@ class JsshService extends JsshConfService {
 	private boolean newSession = false
 	private boolean sameSession = false
 
-	public processRequest(SshClient ssh, SessionChannelClient session,
-			SshConnectionProperties properties,Session userSession, String message) {
+	public processRequest(Session userSession, String message) {
+		SshClient ssh  =  userSession.userProperties.get("sshClient") as SshClient
+		SessionChannelClient session = userSession.userProperties.get("sshSession") as SessionChannelClient
+		//
 
 		if  (message.equals('DISCO:-')) {
 			if (session && session.isOpen()) {
@@ -76,10 +81,11 @@ class JsshService extends JsshConfService {
 		}
 	}
 
-	public void sshControl(SshClient ssh, SessionChannelClient session, String usercommand, Session userSession) {
+	public void sshControl(SshClient ssh,  SessionChannelClient session, String usercommand, Session userSession) {
 		Boolean newChann = false
 		String newchannel = config.NEWCONNPERTRANS ?: ''
 		String hideSessionCtrl = config.hideSessionCtrl ?: ''
+
 
 		if (config.security == "enabled") {
 			if ((newchannel.equals('YES'))||(hideSessionCtrl.equals('NO')&&(newSession)&&(sameSession==false))) {
@@ -105,17 +111,21 @@ class JsshService extends JsshConfService {
 		myMsg.put("connCount", cc.toString())
 		def myMsgj = myMsg as JSON
 		userSession.basicRemote.sendText(myMsgj as String)
-		if ((cc>1)&&(newChann==false)) {
-			processConnection(userSession, session,  usercommand)
-		}else{
-			session = ssh.openSessionChannel()
-			SessionOutputReader sor = new SessionOutputReader(session)
-			if (session.requestPseudoTerminal("gogrid",80,24, 0 , 0, "")) {
-				if (session.startShell()) {
-					ChannelOutputStream out = session.getOutputStream()
-					processConnection(userSession, session, usercommand)
+		try {
+			if ((cc>1)&&(newChann==false)) {
+				processConnection(userSession, session,  usercommand)
+			}else{
+				session = ssh.openSessionChannel()
+				userSession.userProperties.put('sshSession', session)
+				SessionOutputReader sor = new SessionOutputReader(session)
+				if (session.requestPseudoTerminal("gogrid",80,24, 0 , 0, "")) {
+					if (session.startShell()) {
+						ChannelOutputStream out = session.getOutputStream()
+						processConnection(userSession, session, usercommand)
+					}
 				}
 			}
+		}catch (Exception e) {
 		}
 	}
 
@@ -153,6 +163,7 @@ class JsshService extends JsshConfService {
 	}
 
 	private void asyncProc(SshClient ssh,  SessionChannelClient session, Session userSession, String message) {
+		//ssh, session,
 		def asyncProcess = new Thread({sshControl(ssh, session, message, userSession)} as Runnable )
 		asyncProcess.start()
 	}
@@ -172,8 +183,7 @@ class JsshService extends JsshConfService {
 		verifySession(userSession, 'New shell created, console window : '+cc)
 	}
 
-	private void sshConnect(SshClient ssh, SessionChannelClient session=null, SshConnectionProperties properties=null,  String user, String userpass,
-			String host, String usercommand, int port, Session userSession)  {
+	private Boolean sshConnect(String user, String userpass, String host, String usercommand, int port, Session userSession)  {
 
 		String sshuser = config.USER ?: ''
 		String sshpass = config.PASS ?: ''
@@ -186,48 +196,62 @@ class JsshService extends JsshConfService {
 		int sshPort = port ?: sshport as Integer
 		String keyfilePass=''
 		int result=0
-
-		properties = new SshConnectionProperties();
-		properties.setHost(host)
-		properties.setPort(sshPort)
-		ssh.connect(properties, new IgnoreHostKeyVerification())
-		// User has a key authenticate using SSH Key
-		if (!password) {
-			PublicKeyAuthenticationClient pk = new PublicKeyAuthenticationClient()
-			pk.setUsername(username)
-
-			SshPrivateKeyFile file = SshPrivateKeyFile.parse(new File(sshkey.toString()))
-			if (file.isPassphraseProtected()) {
-				keyfilePass = sshkeypass.toString()
-			}
-			SshPrivateKey key = file.toPrivateKey(keyfilePass);
-			pk.setKey(key)
-			// Try the authentication
-			result = ssh.authenticate(pk)
-			if (result == AuthenticationProtocolState.COMPLETE) {
-				isAuthenticated = true
-			}
+		SshConnectionProperties properties = new SshConnectionProperties()
+		boolean go = true
+		SshClient ssh
+		try {
+			properties.setHost(host)
+			properties.setPort(sshPort)
+			ssh = new SshClient()
+			ssh.connect(properties, new IgnoreHostKeyVerification())
+		} catch (Exception e) {
+			go = false
 		}
-		// A password has been provided - attempt to ssh using password
-		else{
-			PasswordAuthenticationClient pwd = new PasswordAuthenticationClient()
-			pwd.setUsername(username)
-			pwd.setPassword(password)
-			result = ssh.authenticate(pwd)
-			if(result == 4)  {
-				isAuthenticated = true
-			}
-		}
+		if (go && ssh) {
 
-		// Evaluate the result
-		if (isAuthenticated) {
-			sshControl(ssh, session, usercommand, userSession)
-		}else{
-			def authType = "using key file  "
-			if (password) { authType = "using password" }
-			String failMessage = "SSH: Failed authentication user: ${username} on ${host} ${authType}"
-			verifySession(userSession, failMessage)
+			// User has a key authenticate using SSH Key
+			if (!password) {
+				PublicKeyAuthenticationClient pk = new PublicKeyAuthenticationClient()
+				pk.setUsername(username)
+
+				SshPrivateKeyFile file = SshPrivateKeyFile.parse(new File(sshkey.toString()))
+				if (file.isPassphraseProtected()) {
+					keyfilePass = sshkeypass.toString()
+				}
+				SshPrivateKey key = file.toPrivateKey(keyfilePass);
+				pk.setKey(key)
+				// Try the authentication
+				result = ssh.authenticate(pk)
+				if (result == AuthenticationProtocolState.COMPLETE) {
+					isAuthenticated = true
+				}
+			}
+			// A password has been provided - attempt to ssh using password
+			else{
+				PasswordAuthenticationClient pwd = new PasswordAuthenticationClient()
+				pwd.setUsername(username)
+				pwd.setPassword(password)
+				result = ssh.authenticate(pwd)
+				if(result == 4)  {
+					isAuthenticated = true
+				}
+			}
+
+			// Evaluate the result
+			if (isAuthenticated) {
+				userSession.userProperties.put('sshClient', ssh)
+				SessionChannelClient session = new SessionChannelClient()
+				//userSession.userProperties.put('sshSession', session)
+				sshControl(ssh, session, usercommand, userSession)
+			}else{
+				def authType = "using key file  "
+				if (password) { authType = "using password" }
+				String failMessage = "SSH: Failed authentication user: ${username} on ${host} ${authType}"
+				verifySession(userSession, failMessage)
+			}
+
 		}
+		return isAuthenticated
 	}
 
 	private void processConnection(Session userSession, SessionChannelClient session, String usercommand) {
@@ -260,27 +284,9 @@ class JsshService extends JsshConfService {
 	}
 
 	private void verifySession(Session userSession, String command) {
-		String urecord = userSession.userProperties.get("username") as String
 		if (userSession && userSession.isOpen()) {
 			userSession.basicRemote.sendText(command)
 		}
 	}
-	
-	/*
-	 private void execCmd(SshClient ssh, SessionChannelClient session, String cmd, Session userSession) {
-	 try {
-	 session = ssh.openSessionChannel();
-	 if ( session.executeCommand(cmd) )	{
-	 IOStreamConnector output = new IOStreamConnector();
-	 java.io.ByteArrayOutputStream bos =  new
-	 java.io.ByteArrayOutputStream();
-	 output.connect(session.getInputStream(), bos );
-	 session.getState().waitForState(ChannelState.CHANNEL_CLOSED);
-	 userSession.basicRemote.sendText(bos.toString())
-	 }
-	 }	  catch(Exception e)  {
-	 log.debug "Exception : " + e.getMessage()
-	 }
-	 }
-	 */
+
 }

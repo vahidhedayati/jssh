@@ -46,12 +46,13 @@ import com.sshtools.j2ssh.session.SessionChannelClient
 class J2sshEndpoint extends JsshConfService implements ServletContextListener {
 
 
+	def jsshRandService
+
 	private final Logger log = LoggerFactory.getLogger(getClass().name)
 
 	private ConfigObject config
 
-	private JsshAuthService jsshAuthService
-
+	private JsshService jsshService
 	private J2sshService j2sshService
 	private JsshMessagingService jsshMessagingService
 	private JsshClientProcessService jsshClientProcessService
@@ -96,7 +97,7 @@ class J2sshEndpoint extends JsshConfService implements ServletContextListener {
 		def ctx= SCH.servletContext.getAttribute(GA.APPLICATION_CONTEXT)
 		def grailsApplication = ctx.grailsApplication
 		config = grailsApplication.config.jssh
-		jsshAuthService = ctx.jsshAuthService
+		jsshService = ctx.jsshService
 		j2sshService = ctx.j2sshService
 		jsshMessagingService = ctx.jsshMessagingService
 		jsshClientProcessService = ctx.jsshClientProcessService
@@ -105,13 +106,12 @@ class J2sshEndpoint extends JsshConfService implements ServletContextListener {
 
 	@OnMessage
 	public void handleMessage(String message, Session userSession) {
-
 		String username = userSession.userProperties.get("username") as String
 		String job  =  userSession.userProperties.get("job") as String
 		if (config.debug == "on") {
 			log.info "@onMessage: $username: $job > $message\n\n"
 		}
-		
+
 		// Standard Private Messages
 		if (message.startsWith('/pm')) {
 			def values = parseInput("/pm ",message)
@@ -145,7 +145,7 @@ class J2sshEndpoint extends JsshConfService implements ServletContextListener {
 			String cjob = values.user as String
 			String msg = values.msg as String
 			jsshMessagingService.sendJobPM(userSession, cjob, msg)
-			
+
 
 			// All other actions
 		}else{
@@ -177,7 +177,18 @@ class J2sshEndpoint extends JsshConfService implements ServletContextListener {
 					if  (data.DISCO == "true") {
 						userSession.close()
 					}else{
-						jsshAuthService.authenticate(ssh, session, properties, userSession, data)
+						String jsshUser = data.jsshUser ?: jsshRandService.randomise('jsshUser')
+						userSession.userProperties.put("username", jsshUser)
+						verifyGeneric(data)
+						userSession.userProperties.put("pingRate", pingRate)
+						// Initial call lets connect
+						try  {
+							def asyncProcess = new Thread({ jsshService.sshConnect(user, userpass, host, usercommand,  port, userSession) } as Runnable )
+							asyncProcess.start()
+						}catch (Exception e) {
+						}
+
+
 					}
 				}
 			} else{
@@ -187,7 +198,10 @@ class J2sshEndpoint extends JsshConfService implements ServletContextListener {
 				if (bfrontend) {
 					userSession.basicRemote.sendText("${message}")
 				}
-				
+				// OLDER Websocket Method which does all processing via 1 connection
+				else{
+					jsshService.processRequest(userSession,message)
+				}
 			}
 		}
 	}

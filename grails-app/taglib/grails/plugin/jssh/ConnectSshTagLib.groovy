@@ -112,7 +112,7 @@ class ConnectSshTagLib extends JsshConfService {
 	 * Provide divId + jobName + template(optional)
 	 */
 	def broadcast = { attrs ->
-		attrs.connectType = 'conn'
+
 		socketOpts(attrs)
 
 		boolean frontend = true
@@ -130,7 +130,7 @@ class ConnectSshTagLib extends JsshConfService {
 	 */
 
 	def conn = { attrs ->
-		attrs.connectType = 'conn'
+
 		socketOpts(attrs)
 
 		// Only register commands and transactions from new conn method
@@ -174,7 +174,7 @@ class ConnectSshTagLib extends JsshConfService {
 	 * Direct socket connection between browser and ssh connection
 	 */
 	def socketconnect =  { attrs ->
-		attrs.connectType = 'socketconnect'
+
 		socketOpts(attrs)
 
 		boolean frontend = attrs.remove('frontend')?.toBoolean() ?: false
@@ -295,16 +295,10 @@ class ConnectSshTagLib extends JsshConfService {
 		if (!jobName) {
 			jobName=jsshRandService.shortRand('job')
 		}
-		if (attrs.connectType=='conn') {
-			this.uri="${wsprotocol}://${wshostname}/${appName}/${APP}/${jobName}"
-			if (addAppName=="no") {
-				this.uri="${wsprotocol}://${wshostname}/${APP}/${jobName}"
-			}
-		}else{
-			this.uri="${wsprotocol}://${wshostname}/${appName}/${WSAPP}"
-			if (addAppName=="no") {
-				this.uri="${wsprotocol}://${wshostname}/${WSAPP}"
-			}
+
+		this.uri="${wsprotocol}://${wshostname}/${appName}/${APP}/${jobName}"
+		if (addAppName=="no") {
+			this.uri="${wsprotocol}://${wshostname}/${APP}/${jobName}"
 		}
 
 		if (!attrs.hideConsoleMenu) {

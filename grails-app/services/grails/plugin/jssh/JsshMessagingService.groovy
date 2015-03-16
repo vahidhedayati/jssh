@@ -9,7 +9,6 @@ class JsshMessagingService extends JsshConfService  {
 
 
 	def sendFrontEndPM2(Session userSession, String user,String message) {
-		String urecord = userSession.userProperties.get("username") as String
 		if (userSession && userSession.isOpen()) {
 			user = addFrontEnd(user)
 			boolean found = loopUser (user)
@@ -19,15 +18,12 @@ class JsshMessagingService extends JsshConfService  {
 					crec.basicRemote.sendText("${message}")
 				}
 			}else{
-				log.error "COULD NOT FIND ${user} - Sending Disconnect"
-				// 1.7 release - fixed ongoing messages being sent when frontend has left
-				sendBackPM(urecord, "_DISCONNECT")
+				log.error "COULD NOT FIND ${user} : $message "
 			}
 		}
 	}
 
 	def sendFrontEndPM(Session userSession, String user,String message, String mtype=null) {
-		String urecord = userSession.userProperties.get("username") as String
 		if (userSession && userSession.isOpen()) {
 			user = addFrontEnd(user)
 			boolean found = loopUser (user)
@@ -37,9 +33,7 @@ class JsshMessagingService extends JsshConfService  {
 			if (found) {
 				userSession.basicRemote.sendText("${mtype} ${user},${message}")
 			}else{
-				log.error "COULD NOT FIND ${user} - Sending Disconnect"
-				// 1.7 release - fixed ongoing messages being sent when frontend has left
-				sendBackPM(urecord, "_DISCONNECT")
+				log.error "COULD NOT FIND ${user} : $message "
 			}
 		}
 	}

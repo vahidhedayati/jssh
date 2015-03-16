@@ -10,7 +10,7 @@ public class JsshClientListenerService extends JsshConfService {
 
 	def jsshMessagingService
 	def jsshDbStorageService
-	
+
 	Session p_connect(String _uri, String username,  Map map){
 		URI oUri
 		if(_uri){
@@ -44,7 +44,7 @@ public class JsshClientListenerService extends JsshConfService {
 		if (map.hosts) {
 			oSession.userProperties.put("hosts", map.hosts)
 		}
-		
+	
 		return  oSession
 	}
 
