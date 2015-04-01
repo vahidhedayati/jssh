@@ -8,7 +8,7 @@ Websocket ssh interaction can be incorporated to an existing grails app running 
 
 Dependency :
 
-	compile ":jssh:1.8" 
+	compile ":jssh:1.8-SNAPSHOT" 
 
 This plugin is a web based basic putty i.e. sshkey or username/password. It provides a variety of taglib calls that you can call from within your application to then interact with SSH connection(s) to Unix/Linux/OSx machines. 
 
