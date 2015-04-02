@@ -199,7 +199,6 @@ class J2sshService extends JsshConfService {
 	@Transactional 
 	private Boolean verifyBlackList(String connectedUser, String userCommand) {
 		boolean goahead = true
-		//SshCommandBlackList.withTransaction {
 			SshUser suser = SshUser.findByUsername(connectedUser)
 			if (suser) {
 				def blackList = SshCommandBlackList.findAllBySshuser(suser)
@@ -209,13 +208,11 @@ class J2sshService extends JsshConfService {
 					}
 				}
 			}
-		//}
 		return goahead
 	}
 	
 	@Transactional
 	private String verifyRewrite(String connectedUser, String userCommand) {
-		//SshCommandRewrite.withTransaction {
 			SshUser suser = SshUser.findByUsername(connectedUser)
 			if (suser) {
 				def rewrite = SshCommandRewrite.findAllBySshuser(suser)
@@ -226,7 +223,6 @@ class J2sshService extends JsshConfService {
 					
 				}
 			}
-		//}
 		return userCommand
 	}
 

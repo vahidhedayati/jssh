@@ -32,17 +32,7 @@ class JsshDbStorageService extends JsshConfService {
 			}
 		}else if (atype == 'delete') {
 			try {
-				//if (table == "jsshUser") {
-				//	uiterator = JsshUser.get(id)
-				//	uiterator.sshuser.clear()
-				//	uiterator.sshuser.each { suser ->
-				//		uiterator.removeFromSShUser(suser)
-				//		uiterator.delete()
-				////	}
-					
-				//}else{	
-					uiterator.delete(flush: true)
-				//}
+				uiterator.delete(flush: true)
 			}catch (DataIntegrityViolationException e) {
 				result = false
 			}
