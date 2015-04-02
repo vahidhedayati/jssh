@@ -19,7 +19,8 @@ import com.sshtools.j2ssh.configuration.SshConnectionProperties
  */
 public class JsshClientProcessService extends JsshConfService  {
 
-
+	static transactional  =  false
+	
 	def jsshClientListenerService
 	def jsshMessagingService
 	def j2sshService

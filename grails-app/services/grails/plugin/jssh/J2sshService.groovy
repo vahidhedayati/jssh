@@ -1,5 +1,7 @@
 package grails.plugin.jssh
 
+import grails.transaction.Transactional
+
 import javax.websocket.Session
 
 import com.sshtools.j2ssh.SshClient
@@ -193,10 +195,11 @@ class J2sshService extends JsshConfService {
 			jsshMessagingService.sendFrontEndPM2(userSession, user, "no connection, ${usercommand} not executed")
 		}
 	}
-
+	
+	@Transactional 
 	private Boolean verifyBlackList(String connectedUser, String userCommand) {
 		boolean goahead = true
-		SshCommandBlackList.withTransaction {
+		//SshCommandBlackList.withTransaction {
 			SshUser suser = SshUser.findByUsername(connectedUser)
 			if (suser) {
 				def blackList = SshCommandBlackList.findAllBySshuser(suser)
@@ -206,12 +209,13 @@ class J2sshService extends JsshConfService {
 					}
 				}
 			}
-		}
+		//}
 		return goahead
 	}
 	
+	@Transactional
 	private String verifyRewrite(String connectedUser, String userCommand) {
-		SshCommandRewrite.withTransaction {
+		//SshCommandRewrite.withTransaction {
 			SshUser suser = SshUser.findByUsername(connectedUser)
 			if (suser) {
 				def rewrite = SshCommandRewrite.findAllBySshuser(suser)
@@ -222,7 +226,7 @@ class J2sshService extends JsshConfService {
 					
 				}
 			}
-		}
+		//}
 		return userCommand
 	}
 

@@ -98,6 +98,8 @@ class ConnectSshController extends JsshConfService {
 	}
 	// End of Ajax polling related actions
 
+	
+	
 	// Admin DB related features
 	def addGroup() {
 		render template: '/jsshadmin/addGroup'
@@ -114,17 +116,14 @@ class ConnectSshController extends JsshConfService {
 		render template: '/jsshadmin/'+template, model: [template:template, serverList:serverList, username: username, sshUserList: sshUserList]
 	}
 
-	
 	def cloneUser(String jsshUsername) {
 		render template: '/jsshadmin/cloneUser', model: [username: jsshUsername]
 	}
-	
 
 	def cloneAccount(String username, String masteruser) {
 		render jsshDbStorageService.cloneUser(username, masteruser) as String
 	}
-	
-	
+
 	def groupConnection(String jsshUsername, String groupId, String userCommand) {
 		def grps = SshServerGroups.get(groupId)
 		def  servers = grps.servers
@@ -132,11 +131,9 @@ class ConnectSshController extends JsshConfService {
 		def jobName = jsshRandService.shortRand('job')
 		def divId =  jsshRandService.shortRand('divId')
 
-
-		
 		Map model = [jsshUsername:jsshUsername , servers:servers, jobName:jobName,
-			userCommand:userCommand, divId:divId, hideWhatsRunning: params.hideWhatsRunning,	hideDiscoButton: params.hideDiscoButton, 
-			hidePauseControl:  params.hidePauseControl,	hideSessionCtrl:  params.hideSessionCtrl, hideConsoleMenu:  params.hideConsoleMenu, 
+			userCommand:userCommand, divId:divId, hideWhatsRunning: params.hideWhatsRunning,	hideDiscoButton: params.hideDiscoButton,
+			hidePauseControl:  params.hidePauseControl,	hideSessionCtrl:  params.hideSessionCtrl, hideConsoleMenu:  params.hideConsoleMenu,
 			hideSendBlock:  params.hideSendBlock, hideBroadCastBlock: params.hideBroadCastBlock]
 
 		render template: '/jsshadmin/groupConnect', model: model
@@ -158,8 +155,6 @@ class ConnectSshController extends JsshConfService {
 			render ""
 		}
 	}
-
-
 
 	def loadList(String username, String sshId, String listType) {
 		SshUser su = SshUser.get(sshId)
@@ -191,7 +186,6 @@ class ConnectSshController extends JsshConfService {
 		render template: '/jsshadmin/addRewriteRule', model: map
 	}
 
-
 	def addRewriteList(String sshuserId) {
 		def rewriteList = params.rewrite
 		if (rewriteList) {
@@ -211,8 +205,6 @@ class ConnectSshController extends JsshConfService {
 		render jsshDbStorageService.addRewriteEntry(username, sshUserId, command, replacement) as String
 	}
 
-
-
 	def addHostDetails(String username, String hostName, String ip, String port) {
 		render jsshDbStorageService.addServer(username, hostName, port ?: '22', ip ?: '') as String
 	}
@@ -230,7 +222,7 @@ class ConnectSshController extends JsshConfService {
 		SshServers sg
 		jsshDbStorageService.addJsshUser(username, sg, permission)
 	}
-	
+
 	def adduserDetails(String friendlyName, String username, String sshUsername, String sshKey, String sshKeyPass) {
 		//def serverId = SshServers.getAll(params.list('serverId'))
 		ArrayList serverId=params.list('serverId')
@@ -275,65 +267,16 @@ class ConnectSshController extends JsshConfService {
 		render ""
 	}
 
-	
+
 	//Admin options
 	def siteAdmin(Integer max, String lookup) {
 		if (session.isAdmin && session.isAdmin.toBoolean()) {
 			verifyBooleans(params)
 			params.max = Math.min(max ?: 50, 100)
-			def userInstanceList, userInstanceTotal
 
-			if (lookup == "jsshUser") {
-				if (params.id) {
-					userInstanceList = JsshUser?.get( params.id)
-					userInstanceTotal = 1
-				}else{
-					userInstanceList = JsshUser.list(params)
-					userInstanceTotal = JsshUser.count()
-				}
-			} else if (lookup == "sshUser") {
-				if (params.id) {
-					userInstanceList = SshUser?.get( params.id)
-					userInstanceTotal = 1
-				}else{
-					userInstanceList = SshUser.list(params)
-					userInstanceTotal = SshUser.count()
-				}
- 
-			} else if (lookup == "sshServers") {
-				if (params.id) {
-					userInstanceList = SshServers?.get( params.id)
-					userInstanceTotal = 1
-				}else{
-					userInstanceList = SshServers.list(params)
-					userInstanceTotal = SshServers.count()
-				}
-			} else if (lookup == "sshServerGroups") {
-				if (params.id) {
-					userInstanceList = SshServerGroups?.get( params.id)
-					userInstanceTotal = 1
-				}else{
-					userInstanceList = SshServerGroups.list(params)
-					userInstanceTotal = SshServerGroups.count()
-				}
-			} else if (lookup == "sshCommandBlackList") {
-				if (params.id) {
-					userInstanceList = SshCommandBlackList?.get( params.id)
-					userInstanceTotal = 1
-				}else{
-					userInstanceList = SshCommandBlackList.list(params)
-					userInstanceTotal = SshCommandBlackList.count()
-				}
-			} else if (lookup == "sshCommandRewrite") {
-				if (params.id) {
-					userInstanceList = SshCommandRewrite?.get( params.id)
-					userInstanceTotal = 1
-				}else{
-					userInstanceList = SshCommandRewrite.list(params)
-					userInstanceTotal = SshCommandRewrite.count()
-				}
-			}
-			
+			def  aa = jsshDbStorageService.siteAdmin(lookup, params)
+			def userInstanceList = aa.userInstanceList
+			def userInstanceTotal = aa.userInstanceTotal
 
 			String template = "/jsshadmin/view_${lookup}"
 			Map model = [userInstanceList: userInstanceList, userInstanceTotal:userInstanceTotal,  lookup:lookup,
@@ -348,21 +291,8 @@ class ConnectSshController extends JsshConfService {
 
 
 	def edit(Long id, String table) {
-		def uiterator
-		if (table == "jsshUser") {
-			uiterator = JsshUser.get(id)
-		}else if (table == "sshUser") {
-			uiterator = SshUser.get(id)
-		}else if (table == "sshServers") {
-			uiterator = SshServers.get(id)
-		}else if (table == "sshServerGroups") {
-			uiterator = SshServerGroups.get(id)
-		}else if (table == "sshCommandBlackList") {
-			uiterator = SshCommandBlackList.get(id)
-		}else if (table == "sshCommandRewrite") {
-			uiterator = SshCommandRewrite.get(id)
-		}
-		
+		def uiterator = jsshDbStorageService.domClass(table, id)
+
 		verifyBooleans(params)
 		if (uiterator) {
 			Map model = [table:table, uiterator:uiterator, loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]
@@ -375,22 +305,11 @@ class ConnectSshController extends JsshConfService {
 
 
 	def update(Long id,  Long version, String table) {
+		def aa = jsshDbStorageService.domClass('update', table, id, params)
+		def uiterator = aa.uiterator
+		def result = aa.result
 
-		def uiterator
-		if (table == "jsshUser") {
-			uiterator = JsshUser.get(id)
-		}else if (table == "sshUser") {
-			uiterator = SshUser.get(id)
-		}else if (table == "sshServers") {
-			uiterator = SshServers.get(id)
-		}else if (table == "sshServerGroups") {
-			uiterator = SshServerGroups.get(id)
-		}else if (table == "sshCommandBlackList") {
-			uiterator = SshCommandBlackList.get(id)
-		}else if (table == "sshCommandRewrite") {
-			uiterator = SshCommandRewrite.get(id)
-		}
-		 Map model = [table:table, uiterator:uiterator, loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]
+		Map model = [table:table, uiterator:uiterator, loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]
 
 		if (!uiterator) {
 			flash.message = message(code: 'default.not.found.message', args: [message(code: table+'.label', default: table), id])
@@ -408,9 +327,7 @@ class ConnectSshController extends JsshConfService {
 			}
 		}
 
-		uiterator.properties = params
-
-		if (!uiterator.save(flush: true)) {
+		if (!result) {
 			render(template: "/jsshadmin/edit",  model: model)
 			return
 		}
@@ -418,48 +335,34 @@ class ConnectSshController extends JsshConfService {
 		flash.message = message(code: 'default.updated.message', args: [message(code: table+'.label', default: table), uiterator.id])
 		render(template: "/jsshadmin/edit",  model: model)
 	}
-	
-	
-	def delete(Long id, String table) { 
+
+
+	def delete(Long id, String table) {
 		
-		def uiterator
-		if (table == "jsshUser") {
-			uiterator = JsshUser.get(id)
-		}else if (table == "sshUser") {
-			uiterator = SshUser.get(id)
-		}else if (table == "sshServers") {
-			uiterator = SshServers.get(id)
-		}else if (table == "sshServerGroups") {
-			uiterator = SshServerGroups.get(id)
-		}else if (table == "sshCommandBlackList") {
-			uiterator = SshCommandBlackList.get(id)
-		}else if (table == "sshCommandRewrite") {
-			uiterator = SshCommandRewrite.get(id)
-		}
-		
+		def aa = jsshDbStorageService.domClass('delete', table, id, params)
+		def uiterator = aa.uiterator
+		def result = aa.result
+
 		Map model = [table:table, lookup:table, uiterator:uiterator, loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle]
 		if (!uiterator) {
 			flash.message = message(code: 'default.not.found.message', args: [message(code: table+'.label', default: table), id])
 			redirect(controller: "connectSsh", action: "siteAdmin", params: model)
 			return
 		}
-
-		try {
-			uiterator.delete(flush: true)
+		if (result) {
 			flash.message = message(code: 'default.deleted.message', args: [message(code: table+'.label', default: table), id])
 			redirect(controller: "connectSsh", action: "siteAdmin", params: model)
-		}catch (DataIntegrityViolationException e) {
+		}else{
 			flash.message = message(code: 'default.not.deleted.message', args: [message(code: table+'.label', default: table), id])
 			redirect(controller: "connectSsh", action: "siteAdmin", params: model)
-			
-		}	
+		}
 	}
-	
+
 	def viewLogs(String id, String table) {
+		
 		JsshUser juser = JsshUser.get(id)
 		String icom = params.comlog
-		def resultSet
-		def resultCount
+		def resultSet, resultCount
 		params.max = Math.min(params.int('max') ?: 50, 100)
 		int total = 0
 		String order = params.order ?: "desc"
@@ -480,12 +383,12 @@ class ConnectSshController extends JsshConfService {
 			resultCount =  ConnectionLogs.countByConlog(juser.conlog)
 		}
 		verifyBooleans(params)
-		Map model = [ loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle, 
+		Map model = [ loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle,
 			resultSet:resultSet, resultCount:resultCount, table:table, id:id]
-		
+
 		render template: '/jsshadmin/view_'+table, model : model
 	}
-	
+
 	private verifyBooleans(params){
 		this.loadBootStrap = (params.loadBootStrap as Boolean) ?: true
 		this.loadJQuery = (params.loadJQuery as Boolean) ?: true

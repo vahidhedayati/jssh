@@ -68,23 +68,28 @@ class ConnectSshTagLib extends JsshConfService {
 		}
 		if (rtype == "sshuser") {
 			finalList.each { SshUser user ->
-				out << """<a href="${g.createLink(controller: 'connectSsh', action: 'siteAdmin', id:user.id,  params:[lookup:'sshUser',loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle])}">${user.username}</a> | """
+				out << """ ( <a href="${g.createLink(controller: 'connectSsh', action: 'siteAdmin', id:user.id,  params:[lookup:'sshUser',loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle])}">${user.username}</a> | 
+						| <a href="${g.createLink(controller: 'connectSsh', action: 'edit', id:user.id,  params:[id:user.id, table:'sshUser',loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle])}">EDIT</a>) - """
 			}
 		}else if (rtype == "servers") {
 			finalList.each { SshServers server ->
-				out << """<a href="${g.createLink(controller: 'connectSsh', action: 'siteAdmin', id:server.id, params:[lookup:'sshServers',loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle])}">${server.hostName}</a> | """
+				out << """ (<a href="${g.createLink(controller: 'connectSsh', action: 'siteAdmin', id:server.id, params:[lookup:'sshServers',loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle])}">${server.hostName}</a> |
+						| <a href="${g.createLink(controller: 'connectSsh', action: 'edit', id:server.id,  params:[id:server.id, table:'sshServers',loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle])}">EDIT</a>) - """
 			}
 		}else if (rtype == "groups") {
 			finalList.each { SshServerGroups groups ->
-				out << """<a href="${g.createLink(controller: 'connectSsh', action: 'siteAdmin', id:groups.id, params:[lookup:'sshServerGroups',loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle])}">${groups.name}</a> | """
+				out << """ (<a href="${g.createLink(controller: 'connectSsh', action: 'siteAdmin', id:groups.id, params:[lookup:'sshServerGroups',loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle])}">${groups.name}</a> 
+						| <a href="${g.createLink(controller: 'connectSsh', action: 'edit', id:groups.id,  params:[id:groups.id, table:'sshServerGroups',loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle])}">EDIT</a>) - """
 			}
 		}else if (rtype == "rewrite") {
 			finalList.each { SshCommandRewrite rewrite ->
-				out << """<a href="${g.createLink(controller: 'connectSsh', action: 'siteAdmin', id:rewrite.id, params:[lookup:'sshCommandRewrite',loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle])}">(${rewrite.command} -> ${rewrite.replacement})</a>  | """
+				out << """ (<a href="${g.createLink(controller: 'connectSsh', action: 'siteAdmin', id:rewrite.id, params:[lookup:'sshCommandRewrite',loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle])}">(${rewrite.command} -> ${rewrite.replacement})</a>  
+						| <a href="${g.createLink(controller: 'connectSsh', action: 'edit', id:rewrite.id,  params:[id:rewrite.id, table:'sshCommandRewrite',loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle])}">EDIT</a>) -"""
 			}
 		}else if (rtype == "blacklist") {
 			finalList.each { SshCommandBlackList blacklist ->
-				out << """<a href="${g.createLink(controller: 'connectSsh', action: 'siteAdmin', id:blacklist.id, params:[lookup:'sshCommandBlackList',loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle])}">${blacklist.command}</a>  | """
+				out << """ (<a href="${g.createLink(controller: 'connectSsh', action: 'siteAdmin', id:blacklist.id, params:[lookup:'sshCommandBlackList',loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle])}">${blacklist.command}</a>
+						| <a href="${g.createLink(controller: 'connectSsh', action: 'edit', id:blacklist.id,  params:[id:blacklist.id, table:'sshCommandBlackList',loadBootStrap:loadBootStrap, loadJQuery:loadJQuery, loadStyle:loadStyle])}">EDIT</a>) -	"""
 			}
 		}
 	}

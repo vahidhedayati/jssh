@@ -8,6 +8,8 @@ import javax.websocket.Session
 
 public class JsshClientListenerService extends JsshConfService {
 
+	static transactional  =  false
+	
 	def jsshMessagingService
 	def jsshDbStorageService
 

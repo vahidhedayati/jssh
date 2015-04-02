@@ -11,8 +11,11 @@ class SshServerGroups {
 	
     static constraints = {
 		name blank: false
-		//, unique: true
     }
+	
+	static mapping = { 
+		servers cascade: 'lock'
+	}
 	
 	String toString() {
 		"${name}"

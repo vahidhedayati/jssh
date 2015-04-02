@@ -6,12 +6,129 @@ import grails.plugin.jssh.logging.ConnectionLogger
 import grails.plugin.jssh.logging.ConnectionLogs
 import grails.transaction.Transactional
 
+import org.springframework.dao.DataIntegrityViolationException
 
-@Transactional
+
+
 class JsshDbStorageService extends JsshConfService {
 
 	def jsshDnsService
 
+	public SshServers  addServer(String username, String hostName,  String port, String ip, String groupId) {
+		SshServers server = addServer(hostName,   port,  ip)
+		addGroupLink(groupId)
+		return server
+	}
+
+	@Transactional
+	public Map domClass(String atype, String table, Long id, params=null) {
+		boolean result = true
+		def uiterator = domClass(table, id)
+
+		if (atype == 'update') {
+			uiterator.properties = params
+			if (!uiterator.save(flush: true)) {
+				result = false
+			}
+		}else if (atype == 'delete') {
+			try {
+				//if (table == "jsshUser") {
+				//	uiterator = JsshUser.get(id)
+				//	uiterator.sshuser.clear()
+				//	uiterator.sshuser.each { suser ->
+				//		uiterator.removeFromSShUser(suser)
+				//		uiterator.delete()
+				////	}
+					
+				//}else{	
+					uiterator.delete(flush: true)
+				//}
+			}catch (DataIntegrityViolationException e) {
+				result = false
+			}
+		}
+		return [result:result, uiterator:uiterator]
+	}
+
+
+	@Transactional
+	def domClass(String table, Long id) {
+		def uiterator
+		if (table == "jsshUser") {
+			uiterator = JsshUser.get(id)
+		}else if (table == "sshUser") {
+			uiterator = SshUser.get(id)
+		}else if (table == "sshServers") {
+			uiterator = SshServers.get(id)
+		}else if (table == "sshServerGroups") {
+			uiterator = SshServerGroups.get(id)
+		}else if (table == "sshCommandBlackList") {
+			uiterator = SshCommandBlackList.get(id)
+		}else if (table == "sshCommandRewrite") {
+			uiterator = SshCommandRewrite.get(id)
+		}
+		return uiterator
+	}
+
+	@Transactional
+	public Map siteAdmin(String lookup, params) {
+
+		def userInstanceList, userInstanceTotal
+
+		if (lookup == "jsshUser") {
+			if (params.id) {
+				userInstanceList = JsshUser?.get( params.id)
+				userInstanceTotal = 1
+			}else{
+				userInstanceList = JsshUser.list(params)
+				userInstanceTotal = JsshUser.count()
+			}
+		} else if (lookup == "sshUser") {
+			if (params.id) {
+				userInstanceList = SshUser?.get( params.id)
+				userInstanceTotal = 1
+			}else{
+				userInstanceList = SshUser.list(params)
+				userInstanceTotal = SshUser.count()
+			}
+
+		} else if (lookup == "sshServers") {
+			if (params.id) {
+				userInstanceList = SshServers?.get( params.id)
+				userInstanceTotal = 1
+			}else{
+				userInstanceList = SshServers.list(params)
+				userInstanceTotal = SshServers.count()
+			}
+		} else if (lookup == "sshServerGroups") {
+			if (params.id) {
+				userInstanceList = SshServerGroups?.get( params.id)
+				userInstanceTotal = 1
+			}else{
+				userInstanceList = SshServerGroups.list(params)
+				userInstanceTotal = SshServerGroups.count()
+			}
+		} else if (lookup == "sshCommandBlackList") {
+			if (params.id) {
+				userInstanceList = SshCommandBlackList?.get( params.id)
+				userInstanceTotal = 1
+			}else{
+				userInstanceList = SshCommandBlackList.list(params)
+				userInstanceTotal = SshCommandBlackList.count()
+			}
+		} else if (lookup == "sshCommandRewrite") {
+			if (params.id) {
+				userInstanceList = SshCommandRewrite?.get( params.id)
+				userInstanceTotal = 1
+			}else{
+				userInstanceList = SshCommandRewrite.list(params)
+				userInstanceTotal = SshCommandRewrite.count()
+			}
+		}
+
+		return [userInstanceList:userInstanceList, userInstanceTotal:userInstanceTotal]
+	}
+	@Transactional
 	public Map findServer(String hostName) {
 		def returnResult=[:]
 		def found = SshServers.findByHostName(hostName)
@@ -23,7 +140,7 @@ class JsshDbStorageService extends JsshConfService {
 		return returnResult
 	}
 
-
+	@Transactional
 	public Map findSshUser(String username) {
 		def returnResult=[:]
 		def found = SshUser.findByUsername(username)
@@ -35,7 +152,7 @@ class JsshDbStorageService extends JsshConfService {
 		return returnResult
 	}
 
-
+	@Transactional
 	public Map findSshCommand(String type, String command) {
 		def returnResult=[:]
 		def found
@@ -55,6 +172,7 @@ class JsshDbStorageService extends JsshConfService {
 		return returnResult
 	}
 
+	@Transactional
 	public Map autoBlackList(String username, String cmd, String sshId) {
 		def suser = SshUser.get(sshId)
 		SshCommandBlackList found = SshCommandBlackList.findBySshuserAndCommand(suser, cmd)
@@ -69,6 +187,7 @@ class JsshDbStorageService extends JsshConfService {
 		}
 	}
 
+	@Transactional
 	public SshServerGroups storeGroup(String name, String username) {
 		username = parseFrontEnd(username)
 		JsshUser user = JsshUser.findByUsername(username)
@@ -93,61 +212,63 @@ class JsshDbStorageService extends JsshConfService {
 		}
 	}
 
+	@Transactional
 	public String storeConnection(String hostName, String port, String user,  String sshUser, String conId = null) {
 		ConnectionLogs logInstance
-		ConnectionLogs.withTransaction {
-			ConnectionLogger conlog
-			
-			if (conId) {
-			 
-				conlog = ConnectionLogger.get(conId)
-			}else{
-			
-				conlog = addLog()
-			}
-			
-			logInstance = new ConnectionLogs(jsshUser: user, sshUser: sshUser, hostName: hostName, port: port ?: '22', conlog: conlog)
-			if (!logInstance.save(flush:true)) {
-				if (debug) {
-					logInstance.errors.allErrors.each{log.error it}
-				}
+		//ConnectionLogs.withTransaction {
+		ConnectionLogger conlog
+
+		if (conId) {
+
+			conlog = ConnectionLogger.get(conId)
+		}else{
+
+			conlog = addLog()
+		}
+
+		logInstance = new ConnectionLogs(jsshUser: user, sshUser: sshUser, hostName: hostName, port: port ?: '22', conlog: conlog)
+		if (!logInstance.save(flush:true)) {
+			if (debug) {
+				logInstance.errors.allErrors.each{log.error it}
 			}
 		}
+		//}
 		return logInstance.id as String
 	}
-
+	@Transactional
 	public Map<String,String> addJsshUser(String username, SshServers server, String permissions=null, String groupId=null) {
 		JsshUser user
 		JsshPermissions perm
 		if (!permissions) {
 			permissions = config.defaultperm  ?: 'user'
 		}
-		JsshPermissions.withTransaction {
-			perm = JsshPermissions.findByName(permissions)
-			if (!perm) {
-				perm = JsshPermissions.findOrSaveWhere(name: permissions).save(flush:true)
-			}
+		//JsshPermissions.withTransaction {
+		perm = JsshPermissions.findByName(permissions)
+		if (!perm) {
+			perm = JsshPermissions.findOrSaveWhere(name: permissions).save(flush:true)
 		}
-		JsshUser.withTransaction {
-			user = JsshUser.findByUsername(username)
-			if (!user) {
-				ConnectionLogger addlog = addLog()
-				SshServerGroups ssg
-				if (groupId) {
-					ssg = SshServerGroups.get(groupId)
-				}
+		//}
+		//JsshUser.withTransaction {
+		user = JsshUser.findByUsername(username)
+		if (!user) {
+			ConnectionLogger addlog = addLog()
+			SshServerGroups ssg
+			if (groupId) {
+				ssg = SshServerGroups.get(groupId)
+			}
 
-				user = new JsshUser(username:username, permissions: perm, conlog: addlog, servers: server, groups: ssg)
-				if (!user.save(flush:true)) {
-					if (debug) {
-						user.errors.allErrors.each{log.error it}
-					}
+			user = new JsshUser(username:username, permissions: perm, conlog: addlog, servers: server, groups: ssg)
+			if (!user.save(flush:true)) {
+				if (debug) {
+					user.errors.allErrors.each{log.error it}
 				}
 			}
 		}
+		//}
 		return [ user: user.id as String, conId: user.conlog.id as String ]
 	}
 
+	@Transactional
 	public String addRewriteEntry(String username, String sshUserId, String command, String replacement) {
 		//SshCommandRewrite.withTransaction {
 		SshUser suser = SshUser.get(sshUserId)
@@ -168,37 +289,32 @@ class JsshDbStorageService extends JsshConfService {
 		return "${sshUserId} not found "
 	}
 
-	public SshServers  addServer(String username, String hostName,  String port, String ip, String groupId) {
-		SshServers server = addServer(hostName,   port,  ip)
-		addGroupLink(groupId)
-		return server
-	}
-
+	@Transactional
 	public SshServers addServer(String username, String hostName,  String port, String ip) {
 		SshServers server
 		JsshUser user
-		SshServers.withTransaction {
-			user = JsshUser.findByUsername(username)
-			server = SshServers.findByHostName(hostName)
-			if (!server) {
+		//SshServers.withTransaction {
+		user = JsshUser.findByUsername(username)
+		server = SshServers.findByHostName(hostName)
+		if (!server) {
 
-				if (!port) {
-					port = "22"
-				}
+			if (!port) {
+				port = "22"
+			}
 
-				if (!ip) {
-					Map i = jsshDnsService.hostLookup(hostName)
-					ip = i.ip ?: i.fqdn ?: i.name ?:  '127.0.0.1'
-				}
+			if (!ip) {
+				Map i = jsshDnsService.hostLookup(hostName)
+				ip = i.ip ?: i.fqdn ?: i.name ?:  '127.0.0.1'
+			}
 
-				server = new SshServers(hostName: hostName, ipAddress: ip, sshPort:port)
-				if (!server.save(flush:true)) {
-					if (debug) {
-						server.errors.allErrors.each{log.error it}
-					}
+			server = new SshServers(hostName: hostName, ipAddress: ip, sshPort:port)
+			if (!server.save(flush:true)) {
+				if (debug) {
+					server.errors.allErrors.each{log.error it}
 				}
 			}
 		}
+		//}
 		if (user) {
 			user.addToServers(server)
 			if (!user.save(flush:true)) {
@@ -210,6 +326,7 @@ class JsshDbStorageService extends JsshConfService {
 		return server
 	}
 
+	@Transactional
 	def addGroupServers(String groupId, ArrayList serverList) {
 		serverList.each { sn ->
 			SshServers server = SshServers.findByHostName(sn)
@@ -217,21 +334,22 @@ class JsshDbStorageService extends JsshConfService {
 		}
 	}
 
+	@Transactional
 	public SshServerGroups addGroup(String name, String serverId) {
 		SshServerGroups sg
-		SshServerGroups.withTransaction {
-			sg = SshServerGroups.findByName(name)
-			if (!sg) {
-				SshServers ss = SshServers.get(serverId)
-				sg = new SshServerGroups(name:name, servers: ss)
+		//SshServerGroups.withTransaction {
+		sg = SshServerGroups.findByName(name)
+		if (!sg) {
+			SshServers ss = SshServers.get(serverId)
+			sg = new SshServerGroups(name:name, servers: ss)
 
-				if (!sg.save(flush:true)) {
-					if (debug) {
-						sg.errors.allErrors.each{log.error it}
-					}
+			if (!sg.save(flush:true)) {
+				if (debug) {
+					sg.errors.allErrors.each{log.error it}
 				}
 			}
 		}
+		//}
 		return sg
 	}
 
@@ -251,26 +369,27 @@ class JsshDbStorageService extends JsshConfService {
 		}
 	}
 
+	@Transactional
 	private SshUser addSshUser(String friendlyName, String username, String sshUsername, String sshKey=null, String sshKeyPass=null) {
 		JsshUser user = JsshUser.findByUsername(username)
 		SshUser suser = SshUser.findByUsername(sshUsername)
 		if (!suser) {
-			SshUser.withTransaction {
-				suser = SshUser.findOrSaveWhere(friendlyName: friendlyName, username: sshUsername, sshKey: sshKey, sshKeyPass: sshKeyPass)
-				if (!suser.save(flush:true)) {
-					if (debug) {
-						suser.errors.allErrors.each{log.error it}
-					}
+			//SshUser.withTransaction {
+			suser = SshUser.findOrSaveWhere(friendlyName: friendlyName, username: sshUsername, sshKey: sshKey, sshKeyPass: sshKeyPass)
+			if (!suser.save(flush:true)) {
+				if (debug) {
+					suser.errors.allErrors.each{log.error it}
 				}
 			}
 		}
+		//}
 		if (user) {
 			user.addToSshuser(suser)
 		}
 		return suser
 	}
 
-
+	@Transactional
 	public addSShUser(String friendlyName, String username, String sshUsername, String sshKey=null, String sshKeyPass=null,  ArrayList serverId) {
 		SshUser suser=addSshUser(friendlyName, username, sshUsername, sshKey, sshKeyPass)
 		if (serverId) {
@@ -293,6 +412,7 @@ class JsshDbStorageService extends JsshConfService {
 	// ssh user(s)  its keys + server bindings + command blacklist + command rewrites
 	// server(s)  + all server
 	// groups (s)
+	@Transactional
 	public String cloneUser(username, masteruser) {
 		StringBuilder msg = new StringBuilder()
 		def record=JsshUser.findByUsername(masteruser)
@@ -302,10 +422,10 @@ class JsshDbStorageService extends JsshConfService {
 			copyProperties(record, newRecord)
 
 			newRecord.username=username
-			
+
 			ConnectionLogger addlog = addLog()
 			newRecord.conlog = addLog()
-			
+
 			if (! newRecord.save(flush: true)) {
 				newRecord.errors.allErrors.each{log.error it}
 				return
@@ -318,6 +438,7 @@ class JsshDbStorageService extends JsshConfService {
 		return msg.toString()
 	}
 
+	@Transactional
 	def deeperCopy(source, target, String username) {
 		def (sProps, tProps) = [source, target]*.properties*.keySet()
 		def commonProps = sProps.intersect(tProps) - ['class', 'metaClass']
@@ -371,51 +492,54 @@ class JsshDbStorageService extends JsshConfService {
 		s.substring(0,1).toUpperCase() + s.substring(1)
 	}
 
+	@Transactional
 	private void addGroupLink(String groupId, SshServers server) {
-		SshServerGroups.withTransaction {
-			def d1 = SshServerGroups.get(groupId)
-			if (d1) {
-				d1.addToServers(server)
-				if (!d1.save(flush:true)) {
-					if (debug) {
-						d1.errors.allErrors.each{log.error it}
-					}
+		//SshServerGroups.withTransaction {
+		def d1 = SshServerGroups.get(groupId)
+		if (d1) {
+			d1.addToServers(server)
+			if (!d1.save(flush:true)) {
+				if (debug) {
+					d1.errors.allErrors.each{log.error it}
 				}
 			}
 		}
+		//}
 	}
 
-
+	@Transactional
 	private CommandLogger addComLog() {
-		CommandLogger.withTransaction {
-			//ConnectionLogs con = ConnectionLogs.get(conId)
-			CommandLogger logInstance = new CommandLogger(commands: [])
-			if (!logInstance.save(flush:true)) {
-				if (debug) {
-					logInstance.errors.allErrors.each{log.error it}
-				}
+		//CommandLogger.withTransaction {
+		//ConnectionLogs con = ConnectionLogs.get(conId)
+		CommandLogger logInstance = new CommandLogger(commands: [])
+		if (!logInstance.save(flush:true)) {
+			if (debug) {
+				logInstance.errors.allErrors.each{log.error it}
 			}
-			return logInstance
 		}
+		return logInstance
+		//}
 	}
 
+	@Transactional
 	private ConnectionLogger addLog() {
-		ConnectionLogger.withTransaction {
-			ConnectionLogger logInstance = new ConnectionLogger(connections: [], commands: [])
-			if (!logInstance.save(flush:true)) {
-				if (debug) {
-					logInstance.errors.allErrors.each{log.error it}
-				}
+		//ConnectionLogger.withTransaction {
+		ConnectionLogger logInstance = new ConnectionLogger(connections: [], commands: [])
+		if (!logInstance.save(flush:true)) {
+			if (debug) {
+				logInstance.errors.allErrors.each{log.error it}
 			}
-			return logInstance
 		}
+		return logInstance
+		//}
 	}
 
+	@Transactional
 	private String storeCommand(String message, String hostName, String user, String conId, String sshUser, String comId = null) {
 		CommandLogs logInstance
-		CommandLogs.withTransaction {
-			CommandLogger comlog
-			if (conId) {
+		//CommandLogs.withTransaction {
+		CommandLogger comlog
+		if (conId) {
 			ConnectionLogger con = ConnectionLogger.get(conId as Long)
 			JsshUser ju = JsshUser.findByUsername(user)
 			if (comId) {
@@ -432,8 +556,8 @@ class JsshDbStorageService extends JsshConfService {
 					logInstance.errors.allErrors.each{log.error it}
 				}
 			}
-			}
 		}
+		//}
 		return logInstance.id as String
 	}
 

@@ -2,7 +2,8 @@ package grails.plugin.jssh
 
 class JsshDnsService {
 	
-
+	static transactional  =  false
+	
 	Map hostLookup(String host) {
 		String hname, hip,fqdn
 		try {

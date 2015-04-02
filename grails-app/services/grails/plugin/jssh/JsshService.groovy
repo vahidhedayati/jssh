@@ -28,7 +28,9 @@ import com.sshtools.j2ssh.transport.publickey.SshPrivateKeyFile
  *  
  */
 class JsshService extends JsshConfService {
-
+	
+	static transactional  =  false
+	
 	private boolean isAuthenticated = false
 	private boolean pauseLog = false
 	private boolean resumed = false

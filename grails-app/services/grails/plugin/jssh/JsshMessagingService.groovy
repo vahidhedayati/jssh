@@ -7,7 +7,8 @@ import javax.websocket.Session
 
 class JsshMessagingService extends JsshConfService  {
 
-
+	static transactional  =  false
+	
 	def sendFrontEndPM2(Session userSession, String user,String message) {
 		String urecord = userSession.userProperties.get("username") as String
 		if (userSession && userSession.isOpen()) {
