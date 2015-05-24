@@ -1,8 +1,10 @@
-import grails.plugin.jssh.ConnectSsh
-import grails.plugin.jssh.J2sshEndpoint
-import grails.plugin.jssh.JsshConfig
+package jssh
 
-class JsshGrailsPlugin {
+import grails.plugin.jssh.ConnectSsh
+import grails.plugin.jssh.JsshConfig
+import grails.plugins.Plugin
+
+class JsshGrailsPlugin extends Plugin {
     def version = "1.10"
 	def grailsVersion = "2.0 > *"
 	def title = "j2ssh SSH Plugin"
@@ -14,19 +16,12 @@ class JsshGrailsPlugin {
 	def issueManagement = [system: 'GITHUB', url: 'https://github.com/vahidhedayati/jssh/issues']
 	def scm = [url: 'https://github.com/vahidhedayati/jssh']
 
-	def doWithSpring = {
-		jsshConfig(JsshConfig) {
-			grailsApplication = ref('grailsApplication')
-		} 
-		connectSsh(ConnectSsh)
-	}
-	
-	def doWithWebDescriptor = { xml ->
-		def listenerNode = xml.'listener'
-		listenerNode[listenerNode.size() - 1] + {
-			'listener' {
-				'listener-class'(J2sshEndpoint.name)
-			}
+
+	Closure doWithSpring() {
+		{->
+			jsshConfig(JsshConfig)
+			jsshCfg DefaultJsshCfg
+			connectSsh(ConnectSsh)
 		}
 	}
 }

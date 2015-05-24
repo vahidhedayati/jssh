@@ -10,7 +10,6 @@ class ConnectSshTagLib extends JsshConfService {
 
 	def connectSsh
 	def jsshConfig
-	def pluginbuddyService
 	def jsshRandService
 	def jsshClientListenerService
 	def jsshDbStorageService
@@ -151,9 +150,6 @@ class ConnectSshTagLib extends JsshConfService {
 
 		boolean frontend = true
 
-		if (!appName) {
-			appName = grailsApplication.metadata['app.name']
-		}
 
 		def connMap = [frontend: frontend,  frontuser: frontuser,  backuser: cuser, user: username, username:username, password: password,
 			port: port, enablePong: enablePong, pingRate: pingRate, usercommand: userCommand, divId:divId, jsshApp: APP, uri:uri, job: cjob,
@@ -287,7 +283,7 @@ class ConnectSshTagLib extends JsshConfService {
 
 		genericOpts(attrs)
 
-		this.addAppName =  config.addAppName ?: 'YES'
+		this.addAppName =  config.addAppName ?: 'no'
 
 		this.wsprotocol = attrs.remove('wsprotocol')?.toString() ?: config.wsprotocol ?: 'ws'
 

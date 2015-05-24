@@ -1,22 +1,13 @@
 <!DOCTYPE html>
 <html>
 
-<g:if test="${enduser?.verifyAppVersion().equals('assets')}">
 	<g:if test="${!request.xhr }">
 		<meta name='layout' content="ajssh" />
 	</g:if>
 	<g:else>
 		<g:render template="/assets" />
 	</g:else>
-</g:if>
-<g:else>
-	<g:if test="${!request.xhr }">
-		<meta name='layout' content="jssh" />
-	</g:if>
-	<g:else>
-		<g:render template="/resources" />
-	</g:else>
-</g:else>
+
 
 <title>
 	${sshTitle}

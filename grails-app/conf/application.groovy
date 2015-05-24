@@ -1,0 +1,21 @@
+jssh.USER = "mx1"
+jssh.PASS=""
+jssh.KEY="/home/mx1/.ssh/id_rsa"
+jssh.KEYPASS=""
+jssh.PORT="22"
+jssh.wshostname="localhost:8080"
+jssh.disable.login="YES"
+jssh.NEWCONNPERTRANS='NO'
+jssh.hideSessionCtrl="YES"
+jssh.hideAuthBlock='YES'
+jssh.hideConsoleMenu="NO"
+jssh.hideSendBlock="NO"
+jssh.hidePauseControl="NO"
+jssh.hideWhatsRunning="NO"
+jssh.hideDiscoButton="NO"
+jssh.hideNewShellButton="YES"
+jssh.defaultperm="user" //user or admin
+jssh.enablePong="false"
+jssh.pingRate11="50000"
+jssh.frontenduser='_frontend'
+

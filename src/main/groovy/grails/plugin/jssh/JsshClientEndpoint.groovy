@@ -13,9 +13,8 @@ import javax.websocket.OnMessage
 import javax.websocket.OnOpen
 import javax.websocket.Session
 import javax.websocket.server.PathParam
+import grails.util.Holders
 
-import org.codehaus.groovy.grails.web.context.ServletContextHolder as SCH
-import org.codehaus.groovy.grails.web.servlet.GrailsApplicationAttributes as GA
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -31,8 +30,7 @@ public class JsshClientEndpoint  extends JsshConfService {
 	public void handleOpen(Session userSession,EndpointConfig c,@PathParam("job") String job) {
 		this.userSession = userSession
 		this.job = job
-		def ctx= SCH.servletContext.getAttribute(GA.APPLICATION_CONTEXT)
-
+		def ctx = Holders.applicationContext
 		jsshClientProcessService = ctx.jsshClientProcessService
 		//userSession.userProperties.put("job", job)
 

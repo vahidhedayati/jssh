@@ -1,10 +1,5 @@
-<g:if test="${loadStyle.toString().equals('true') }"> 
-<g:if test="${enduser?.verifyAppVersion().equals('assets')}">
+<g:if test="${loadStyle.toString().equals('true') }">
 	<g:render template="/assets" model="${[loadBootStrap:loadBootStrap, loadJQuery:loadJQuery]}" />
-</g:if>
-<g:else>
-	<g:render template="/resources" model="${[loadBootStrap:loadBootStrap, loadJQuery:loadJQuery]}"/>
-</g:else>
 </g:if>
 
 <div id="returnAnswer"></div>

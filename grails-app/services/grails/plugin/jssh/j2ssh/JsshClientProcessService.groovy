@@ -4,7 +4,7 @@ import grails.converters.JSON
 
 import javax.websocket.Session
 
-import org.codehaus.groovy.grails.web.json.JSONObject
+import org.grails.web.json.JSONObject
 
 import com.sshtools.j2ssh.SshClient
 import com.sshtools.j2ssh.configuration.SshConnectionProperties

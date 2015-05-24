@@ -1,11 +1,5 @@
 
-<g:if test="${enduser?.verifyAppVersion().equals('assets')}">
-	<g:render template="/assets" model="${[loadBootStrap:loadBootStrap, loadJQuery:loadJQuery]}"/>
-</g:if>
-<g:else>
-	<g:render template="/resources" model="${[loadBootStrap:loadBootStrap, loadJQuery:loadJQuery]}"/>
-</g:else>
-
+<g:render template="/assets" model="${[loadBootStrap:loadBootStrap, loadJQuery:loadJQuery]}"/>
 <g:if test="${((!hideSendBlock) || (!hideSendBlock.equals('YES')))}">
 
 	<div class="pull-right btn btn-default">

@@ -3,16 +3,17 @@ package grails.plugin.jssh.j2ssh
 import grails.plugin.jssh.interfaces.JsshBase
 
 import java.util.concurrent.ConcurrentMap
-
+import grails.core.GrailsApplication
 import javax.websocket.Session
+import grails.core.support.GrailsApplicationAware
 
 
-
-class JsshConfService implements JsshBase {
+class JsshConfService implements JsshBase, GrailsApplicationAware {
 
 	static transactional  =  false
 
-	def grailsApplication
+	def config
+	GrailsApplication grailsApplication
 
 	public ConcurrentMap<String, Session> getSshNames() {
 		return sshUsers
@@ -32,9 +33,9 @@ class JsshConfService implements JsshBase {
 	}
 
 	public boolean destroySshUser(String username) {
-		if (sshUserExists(username)) {
+		//if (sshUserExists(username)) {
 			return sshUsers.remove(username) != null
-		}
+		//}
 	}
 
 	public String CONNECTOR = "CONN:-"
@@ -59,7 +60,7 @@ class JsshConfService implements JsshBase {
 	}
 
 	public String getAppName(){
-		String addAppName = config.add.appName ?: 'yes'
+		String addAppName = config.add.appName ?: 'no'
 		if (addAppName=='yes') {
 			grailsApplication.metadata['app.name']
 		}else{
@@ -111,10 +112,9 @@ class JsshConfService implements JsshBase {
 		return input
 	}
 
-	public ConfigObject getConfig() {
-		return grailsApplication.config.jssh ?: ''
+	void setGrailsApplication(GrailsApplication ga) {
+		config = ga.config.jssh
 	}
-
 	public String addFrontEnd(String username) {
 		if (!username.endsWith(frontend)) {
 			username=username+frontend

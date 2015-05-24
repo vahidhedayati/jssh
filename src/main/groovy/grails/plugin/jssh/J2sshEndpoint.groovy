@@ -8,7 +8,8 @@ import grails.plugin.jssh.j2ssh.JsshConfService
 import grails.plugin.jssh.j2ssh.JsshMessagingService
 import grails.plugin.jssh.j2ssh.JsshService
 import grails.util.Environment
-
+import grails.util.Holders
+import org.grails.web.json.JSONObject
 import javax.servlet.ServletContext
 import javax.servlet.ServletContextEvent
 import javax.servlet.ServletContextListener
@@ -23,9 +24,7 @@ import javax.websocket.server.PathParam
 import javax.websocket.server.ServerContainer
 import javax.websocket.server.ServerEndpoint
 
-import org.codehaus.groovy.grails.web.context.ServletContextHolder as SCH
-import org.codehaus.groovy.grails.web.json.JSONObject
-import org.codehaus.groovy.grails.web.servlet.GrailsApplicationAttributes as GA
+
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -51,8 +50,6 @@ class J2sshEndpoint extends JsshConfService implements ServletContextListener {
 
 	private final Logger log = LoggerFactory.getLogger(getClass().name)
 
-	private ConfigObject config1
-
 	private JsshService jsshService
 	private J2sshService j2sshService
 	private JsshMessagingService jsshMessagingService
@@ -73,11 +70,7 @@ class J2sshEndpoint extends JsshConfService implements ServletContextListener {
 				serverContainer.addEndpoint(J2sshEndpoint)
 			}
 
-			def ctx = servletContext.getAttribute(GA.APPLICATION_CONTEXT)
-			def grailsApplication = ctx.grailsApplication
-			config1 = grailsApplication.config.jssh
-
-			int defaultMaxSessionIdleTimeout = config1.timeout ?: 0
+			int defaultMaxSessionIdleTimeout =  0
 			serverContainer.defaultMaxSessionIdleTimeout = defaultMaxSessionIdleTimeout
 		}
 		catch (IOException e) {
@@ -92,9 +85,7 @@ class J2sshEndpoint extends JsshConfService implements ServletContextListener {
 	@OnOpen
 	public void handleOpen(Session userSession,EndpointConfig c,@PathParam("job") String job) {
 
-		def ctx= SCH.servletContext.getAttribute(GA.APPLICATION_CONTEXT)
-		def grailsApplication = ctx.grailsApplication
-		config1 = grailsApplication.config.jssh
+		def ctx = Holders.applicationContext
 		jsshService = ctx.jsshService
 		j2sshService = ctx.j2sshService
 		jsshMessagingService = ctx.jsshMessagingService
@@ -236,7 +227,7 @@ class J2sshEndpoint extends JsshConfService implements ServletContextListener {
 	public void handeClose(Session userSession) {
 		String username = userSession.userProperties.get("username") as String
 		if (username) {
-			if (username.endsWith(frontend2)) {
+			if (username.endsWith(frontend)) {
 				userSession.userProperties.put("status", "disconnect")
 				jsshClientProcessService.handleClose(userSession)
 			}else{
@@ -259,7 +250,4 @@ class J2sshEndpoint extends JsshConfService implements ServletContextListener {
 		t.printStackTrace()
 	}
 
-	private String getFrontend2() {
-		return config1?.frontenduser ?: '_frontend'
-	}
 }
