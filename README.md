@@ -30,9 +30,15 @@ Once you have successfully configured connected. Your browser will provide somet
 
 [Config.groovy variables](https://github.com/vahidhedayati/jssh/wiki/Config.groovy-values)
 
+Test site:
+
+[grails 3 demo site](https://github.com/vahidhedayati/testjssh-grails3) refer to application.groovy for config values
+
+[grails 2 demo site](https://github.com/vahidhedayati/test-jssh)
+
 ## Change Release information
  
-[Change information](https://github.com/vahidhedayati/jssh/wiki/VersionInfo)
+[Change information](https://github.com/vahidhedayati/jssh/wiki/VersionInfo-grails3)
 
 ## Videos
 
