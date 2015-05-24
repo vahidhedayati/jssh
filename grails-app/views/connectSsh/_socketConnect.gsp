@@ -121,7 +121,10 @@
 	
 	window.onbeforeunload = function() {
 		//webSocket${divId}.onclose = function() { }
-		webSocket${divId}.send(JSON.stringify({ 'frontend':"true",'DISCO':"true", 'system': 'disconnect'}));
+		//webSocket${divId}.send(JSON.stringify({ 'frontend':"true",'DISCO':"true", 'system': 'disconnect'}));
 		//webSocket${divId}.close();
+		webSocket${divId}.send(JSON.stringify({ 'frontend':"true",'DISCO':"true", 'system': 'disconnect'}));
+		//webSocket${divId}.onclose = function() { }
+       // webSocket${divId}.close();
 	}
 </g:javascript>

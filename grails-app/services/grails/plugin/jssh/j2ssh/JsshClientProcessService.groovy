@@ -1,4 +1,4 @@
-package grails.plugin.jssh
+package grails.plugin.jssh.j2ssh
 
 import grails.converters.JSON
 
@@ -20,7 +20,7 @@ import com.sshtools.j2ssh.configuration.SshConnectionProperties
 public class JsshClientProcessService extends JsshConfService  {
 
 	static transactional  =  false
-	
+
 	def jsshClientListenerService
 	def jsshMessagingService
 	def j2sshService
@@ -39,33 +39,30 @@ public class JsshClientProcessService extends JsshConfService  {
 	public void handleClose(Session userSession) {
 		String uusername = userSession.userProperties.get("username") as String
 		String ujob = userSession.userProperties.get("job") as String
-		try {
-			synchronized (sshUsers) {
-				sshUsers?.each { crec->
+		sshNames.each { String cuser, Session crec ->
+			if (crec && crec.isOpen()) {
+				String cjob =  crec.userProperties.get("job") as String
+				if (ujob == cjob) {
 					if (crec && crec.isOpen()) {
-						String cjob =  crec.userProperties.get("job") as String
-						String cuser = crec.userProperties.get("username") as String
-						if (ujob == cjob) {
-							if (crec && crec.isOpen()) {
-								if (!cuser.endsWith(frontend)) {
-									jsshMessagingService.sendMsg(crec, "_DISCONNECT")
-								}else{
-									if (debug) {
-										log.info "Closing Websocket for ${cuser}"
-									}
-									if (crec && crec.isOpen()) {
-										crec.close()
-										sleep(100)
-									}
-								}
+						if (!cuser.endsWith(frontend)) {
+							jsshMessagingService.sendMsg(crec, "_DISCONNECT")
+						}else{
+							if (debug) {
+								log.info "Closing Websocket for ${cuser}"
 							}
+							destroySshUser(cuser)
+							/*
+							 if (crec && crec.isOpen()) {
+							 crec.close()
+							 sleep(2)
+							 }
+							 */
 						}
 					}
 				}
 			}
-		} catch (IOException e) {
-			log.error ("handleClose failed", e)
 		}
+
 	}
 
 	public void processResponse(Session userSession, String message) {
@@ -81,7 +78,8 @@ public class JsshClientProcessService extends JsshConfService  {
 		}else if (message.startsWith("_DISCONNECT")) {
 			SshClient amssh  =  userSession.userProperties.get('sshClient') as SshClient
 			j2sshService.closeConnection(amssh, username)
-			userSession.close()
+			//userSession.close()
+			destroySshUser(username)
 			sleep(100)
 		}else if  (message.startsWith('/bm')) {
 			def values = parseInput("/fm ",message)
@@ -143,7 +141,7 @@ public class JsshClientProcessService extends JsshConfService  {
 
 		if (rmesg.hostname) {
 			verifyGeneric(rmesg)
-
+			///sshUsers.putIfAbsent(username, userSession)
 			boolean frontend = rmesg.frontend.toBoolean()
 			boolean go2 = isConfigEnabled(enablePong1)
 			if (frontend) {

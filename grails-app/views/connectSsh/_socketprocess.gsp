@@ -1,6 +1,6 @@
 <g:render template="/connectSsh/sshLayout" model="${[loadBootStrap:loadBootStrap, loadJQuery:loadJQuery]}"/>
 
-<g:javascript>     
+<g:javascript>
 	if (!window.WebSocket) {
 		var msg = "Your browser does not have WebSocket support";
 		$("#mySshBox${divId}").html(msg);
@@ -100,8 +100,9 @@
 	}
 	
 	function processClose${divId}(message) {
-		webSocket${divId}.send("Client disconnected......");
-		$('#messagesTextarea${divId}').append("Server Disconnected... \n");
+		webSocket${divId}.send(JSON.stringify({ 'frontend':"false",'DISCO':"true"}));
+		webSocket${divId}.onclose = function() { }
+       	webSocket${divId}.close();
 	}
 	
 	function processError${divId}(message) {
@@ -109,8 +110,8 @@
 	}
 	
 	window.onbeforeunload = function() {
-    	webSocket${divId}.send("DISCO:-");
-        webSocket${divId}.onclose = function() { }
-        webSocket${divId}.close();
+       	webSocket${divId}.send(JSON.stringify({ 'frontend':"false",'DISCO':"true"}));
+		webSocket${divId}.onclose = function() { }
+       	webSocket${divId}.close();
     }
 </g:javascript>

@@ -1,10 +1,13 @@
-
+<html>
+<head>
 <g:if test="${enduser?.verifyAppVersion().equals('assets')}">
 	<g:render template="/assets" />
 </g:if>
 <g:else>
 	<g:render template="/resources" />
 </g:else>
+</head>
+<body>
 <div class="logconsolebar">
 	<div class="btn btn-primary">
 		<b> ${hostname }: running command
@@ -23,52 +26,45 @@
 	${input ?: 'Please be patient - logging will start shortly' }	
 </pre>
 
-<script type="text/javascript">
+<g:javascript>
 	var t;
 	var r;
-
-	function escapeHtml(unsafe) {
+	var baseapp="${meta(name:'app.name')}";
+ 	
+	function getApp() {
+		return baseapp;
+	}
+     function escapeHtml(unsafe) {
 		    return unsafe
 		         .replace(/&/g, "&amp;")
 		         .replace(/</g, "&lt;")
 		         .replace(/>/g, "&gt;")
 		         .replace(/"/g, "&quot;")
 		         .replace(/'/g, "&#039;");
-	 }
+     }
 
-		
-    function getOnline() {
-    	 $.get('${createLink(controller:"connectSsh", action: "inspection")}',function(data){
-    			$('#inspect').append(escapeHtml(data));
-    			 resetOutput();
- 		});
-    }
-    function resetOutput() { 
-    	$.get('${createLink(controller:"connectSsh", action: "resetOutput")}
-	',
-				function(data) {
-				});
-	}
-	function refPage() {
+    function refPage() {
 		var elem = document.getElementById('inspect');
 		elem.scrollTop = elem.scrollHeight;
-	}
-	function pollPage() {
+    }
+    function pollPage() {
 		getOnline();
 
 		t = setTimeout('pollPage()', 5000);
 		r = setTimeout('refPage()', 1000);
-	}
-	function stopPage() {
+    }
+    function stopPage() {
 		clearTimeout(t);
 		clearTimeout(r);
-	}
-	pollPage();
-	function TriggerFilter(e) {
+    }
+    pollPage();
+    function TriggerFilter(e) {
 		if (e.checked == true) {
 			stopPage();
 		} else {
 			pollPage();
 		}
-	};
-</script>
+   };
+</g:javascript>
+</body>
+</html>

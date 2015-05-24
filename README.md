@@ -6,9 +6,20 @@ Grails jssh Plugin based on j2ssh library, provides ssh connection with features
 Websocket ssh interaction can be incorporated to an existing grails app running ver 2>+. Supports both resource (pre 2.4) /assets (2.4+) based grails sites. Plugin will work with tomcat 7.0.54 + (8 as well) running java 1.7 +
 
 
-Dependency :
+###### Dependency (Grails 2.X):
 
-	compile ":jssh:1.9" 
+	compile ":jssh:1.10"
+	
+[codebase for grails 2.X](https://github.com/vahidhedayati/jssh/tree/grails2)
+
+
+###### Dependency (Grails 3.X) :
+```groovy
+	compile "org.grails.plugins:jssh:3.0.1"
+```
+
+	 
+	 
 
 This plugin is a web based basic putty i.e. sshkey or username/password. It provides a variety of taglib calls that you can call from within your application to then interact with SSH connection(s) to Unix/Linux/OSx machines. 
 
@@ -48,6 +59,14 @@ Video of jssh 0.9, whilst waiting on creations of stuff there was some discussio
 
 [1.3 Command blacklist / command rewrites](https://github.com/vahidhedayati/jssh/wiki/Websocket-client-server-command-utils)
 
+1.11 j2ssh some updates to the inner workings, issues getting it to work on latest ubuntu, are you having issues getting j2ssh to work with your open-ssh server ? if so read this
+
+[J2ssh issues with latest open-ssh-server](http://stackoverflow.com/questions/26424621/algorithm-negotiation-fail-ssh-in-jenkins)
+
+J2ssh was not working on the latest ubuntu for me, refer to the above link to find changes in debian ssh roll out.
+
+### [To fix j2ssh and latest openssh-server issue read this](https://github.com/vahidhedayati/jssh/wiki/j2ssh-and-openssh-server-issues)
+		 
 
 ### [Sessions](https://github.com/vahidhedayati/jssh/wiki/conn-sessions)
 

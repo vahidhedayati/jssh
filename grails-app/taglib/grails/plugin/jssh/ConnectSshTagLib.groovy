@@ -1,5 +1,7 @@
 package grails.plugin.jssh
 
+import grails.plugin.jssh.j2ssh.JsshConfService
+
 import javax.websocket.Session
 
 class ConnectSshTagLib extends JsshConfService {

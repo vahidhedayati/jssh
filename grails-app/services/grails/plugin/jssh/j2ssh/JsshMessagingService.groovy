@@ -1,4 +1,4 @@
-package grails.plugin.jssh
+package grails.plugin.jssh.j2ssh
 
 import grails.converters.JSON
 
@@ -8,7 +8,7 @@ import javax.websocket.Session
 class JsshMessagingService extends JsshConfService  {
 
 	static transactional  =  false
-	
+
 	def sendFrontEndPM2(Session userSession, String user,String message) {
 		String urecord = userSession.userProperties.get("username") as String
 		if (userSession && userSession.isOpen()) {
@@ -58,20 +58,14 @@ class JsshMessagingService extends JsshConfService  {
 
 	boolean findUser(String username) {
 		boolean found = false
-		try {
-			synchronized (sshUsers) {
-				sshUsers?.each { crec->
-					if (crec && crec.isOpen()) {
-						String cuser = crec.userProperties.get("username").toString()
-						if (cuser.equals(username)) {
-							found = true
-						}
-					}
+		sshNames.each { String cuser, Session crec ->
+			if (crec && crec.isOpen()) {
+				if (cuser.equals(username)) {
+					found = true
 				}
 			}
-		} catch (IOException e) {
-			log.error ("onMessage failed", e)
 		}
+
 		return found
 	}
 
@@ -81,12 +75,13 @@ class JsshMessagingService extends JsshConfService  {
 		}
 	}
 
-	def sendMsg(Session userSession,String msg) {
+	def sendMsg(Session userSession,String msg)throws IOException {
 		try {
 			if (userSession && userSession.isOpen()) {
 				userSession.basicRemote.sendText(msg)
 			}
-		} catch (IOException e) {
+		}catch (IOException e) {
+			//throw new IOException("Could not message");
 		}
 	}
 
@@ -95,7 +90,7 @@ class JsshMessagingService extends JsshConfService  {
 		sendMsg(userSession, myMsgj)
 	}
 
-	def forwardMessage(String username, String message) {
+	def forwardMessage(String username, String message){
 		Session user = usersSession(username)
 		if (user && user.isOpen()) {
 			user.basicRemote.sendText(message)
@@ -113,100 +108,68 @@ class JsshMessagingService extends JsshConfService  {
 	def privateMessage(Session userSession,String user,String msg, String mtype) {
 		String urecord = userSession.userProperties.get("username") as String
 		Boolean found = false
-		try {
-			synchronized (sshUsers) {
-				sshUsers?.each { crec->
-					if (crec && crec.isOpen()) {
-						def cuser = crec.userProperties.get("username").toString()
-						if (cuser.endsWith(frontend)) {
-							if (mtype == "/fm") {
-							}else{
-								messageUser(crec,["message": "${msg}"])
-							}
-						}else{
-							if (mtype == "/fm") {
-							}else{
-								crec.basicRemote.sendText("${mtype} ${urecord},"+msg as String)
-							}
-						}
+		sshNames.each { String cuser, Session crec ->
+			if (crec && crec.isOpen()) {
+				if (cuser.endsWith(frontend)) {
+					if (mtype == "/fm") {
+					}else{
+						messageUser(crec,["message": "${msg}"])
+					}
+				}else{
+					if (mtype == "/fm") {
+					}else{
+						crec.basicRemote.sendText("${mtype} ${urecord},"+msg as String)
 					}
 				}
 			}
-		} catch (IOException e) {
-			log.error ("onMessage failed", e)
 		}
+
 	}
 
 	def sendBackPM(String user,String message, String mtype=null) {
 		user = parseFrontEnd(user)
-		try {
-			synchronized (sshUsers) {
-				sshUsers?.each { crec->
-					if (crec && crec.isOpen()) {
-						String cuser = crec.userProperties.get("username") as String
-						String cjob =  crec.userProperties.get("job") as String
-						boolean found = false
-						if (user == cuser) {
-
-
-							if (mtype=="system") {
-								crec.basicRemote.sendText("/system ${user},${message}")
-							}else{
-								crec.basicRemote.sendText("${message}")
-							}
-						}
+		sshNames.each { String cuser, Session crec ->
+			if (crec && crec.isOpen()) {
+				String cjob =  crec.userProperties.get("job") as String
+				//boolean found = false
+				if (user == cuser) {
+					if (mtype=="system") {
+						crec.basicRemote.sendText("/system ${user},${message}")
+					}else{
+						crec.basicRemote.sendText("${message}")
 					}
 				}
 			}
-
-		} catch (IOException e) {
-			log.error ("onMessage failed", e)
 		}
 	}
 
 	def sendJobPM(Session userSession, String job,String message) {
-		try {
-			synchronized (sshUsers) {
-				sshUsers?.each { crec->
-					if (crec && crec.isOpen()) {
-
-						String cuser = crec.userProperties.get("username") as String
-						String cjob =  crec.userProperties.get("job") as String
-
-						boolean found = false
-
-						if ((job == cjob) && (cuser && cuser.endsWith(frontend))){
-							String fend = parseFrontEnd(cuser)
-							if (fend) {
-								Session buser = usersSession(fend)
-								String host = buser.userProperties.get("host") as String
-								buser.basicRemote.sendText("/bm ${cuser}@${host},${message}")
-							}
-						}
+		sshNames.each { String cuser, Session crec ->
+			if (crec && crec.isOpen()) {
+				String cjob =  crec.userProperties.get("job") as String
+				//boolean found = false
+				if ((job == cjob) && (cuser && cuser.endsWith(frontend))){
+					String fend = parseFrontEnd(cuser)
+					if (fend) {
+						Session buser = usersSession(fend)
+						String host = buser.userProperties.get("host") as String
+						buser.basicRemote.sendText("/bm ${cuser}@${host},${message}")
 					}
 				}
 			}
-		} catch (IOException e) {
-			log.error ("onMessage failed", e)
 		}
+
 	}
 
 
 	Session usersSession(String username) {
 		Session userSession
-		try {
-			synchronized (sshUsers) {
-				sshUsers?.each { crec->
-					if (crec && crec.isOpen()) {
-						def cuser = crec.userProperties.get("username").toString()
-						if (cuser.equals(username)) {
-							userSession=crec
-						}
-					}
+		sshNames.each { String cuser, Session crec ->
+			if (crec && crec.isOpen()) {
+				if (cuser.equals(username)) {
+					userSession=crec
 				}
 			}
-		} catch (IOException e) {
-			log.error ("onMessage failed", e)
 		}
 		return userSession
 	}

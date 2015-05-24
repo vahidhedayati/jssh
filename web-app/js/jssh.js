@@ -15,7 +15,15 @@ function wrapIt(value) {
 	return "'"+value+"'"
 }
 
-
+function getOnline() {
+	$.get("/"+getApp()+"/connectSsh/inspection",function(data){
+		$("#inspect").append(escapeHtml(data));
+		resetOutput();
+	});
+}
+function resetOutput() { 
+	$.get("/"+getApp()+"/connectSsh/resetOutput", function(data) { });
+}
 
 function addHost(user,newhost,groupId) {
 	$.get("/"+getApp()+"/connectSsh/addHostName?username="+getUser()+"&hostName="+newhost+"&groupId="+groupId,function(data){

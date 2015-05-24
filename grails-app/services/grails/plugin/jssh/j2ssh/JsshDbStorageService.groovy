@@ -1,14 +1,21 @@
-package grails.plugin.jssh
+package grails.plugin.jssh.j2ssh
 
+import grails.plugin.jssh.JsshPermissions
+import grails.plugin.jssh.JsshUser
+import grails.plugin.jssh.SshCommandBlackList
+import grails.plugin.jssh.SshCommandRewrite
+import grails.plugin.jssh.SshServerGroups
+import grails.plugin.jssh.SshServers
+import grails.plugin.jssh.SshUser
 import grails.plugin.jssh.logging.CommandLogger
 import grails.plugin.jssh.logging.CommandLogs
 import grails.plugin.jssh.logging.ConnectionLogger
 import grails.plugin.jssh.logging.ConnectionLogs
 import grails.transaction.Transactional
 
+import javax.websocket.Session
+
 import org.springframework.dao.DataIntegrityViolationException
-
-
 
 class JsshDbStorageService extends JsshConfService {
 
@@ -346,13 +353,10 @@ class JsshDbStorageService extends JsshConfService {
 	public void activeUsers() {
 		if (config.logusers == "on") {
 			StringBuilder sb= new StringBuilder("Size: "+sshUsers.size()+"\n")
-			synchronized (sshUsers) {
-				sshUsers?.each { crec->
-					if (crec && crec.isOpen()) {
-						def cuser = crec.userProperties.get("username").toString()
-						def cjob = crec.userProperties.get("job").toString()
-						sb.append("${cuser}:${cjob}\n")
-					}
+			sshNames.each { String cuser, Session crec ->
+				if (crec && crec.isOpen()) {
+					def cjob = crec.userProperties.get("job").toString()
+					sb.append("${cuser}:${cjob}\n")
 				}
 			}
 			log.error sb.toString()

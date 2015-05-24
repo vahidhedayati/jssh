@@ -2,6 +2,11 @@ package grails.plugin.jssh
 
 
 import grails.converters.JSON
+import grails.plugin.jssh.j2ssh.J2sshService
+import grails.plugin.jssh.j2ssh.JsshClientProcessService
+import grails.plugin.jssh.j2ssh.JsshConfService
+import grails.plugin.jssh.j2ssh.JsshMessagingService
+import grails.plugin.jssh.j2ssh.JsshService
 import grails.util.Environment
 
 import javax.servlet.ServletContext
@@ -23,10 +28,6 @@ import org.codehaus.groovy.grails.web.json.JSONObject
 import org.codehaus.groovy.grails.web.servlet.GrailsApplicationAttributes as GA
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-
-import com.sshtools.j2ssh.SshClient
-import com.sshtools.j2ssh.configuration.SshConnectionProperties
-import com.sshtools.j2ssh.session.SessionChannelClient
 
 /*
  * Vahid Hedayati
@@ -50,21 +51,18 @@ class J2sshEndpoint extends JsshConfService implements ServletContextListener {
 
 	private final Logger log = LoggerFactory.getLogger(getClass().name)
 
-	private ConfigObject config
+	private ConfigObject config1
 
 	private JsshService jsshService
 	private J2sshService j2sshService
 	private JsshMessagingService jsshMessagingService
 	private JsshClientProcessService jsshClientProcessService
 
-	private SshClient ssh = new SshClient()
-	private SessionChannelClient session
-	private SshConnectionProperties properties = null
-
 	private String host, user, userpass, usercommand
 	private int port = 22
 	private boolean enablePong
 	private int pingRate
+
 
 	@Override
 	public void contextInitialized(ServletContextEvent event) {
@@ -77,9 +75,9 @@ class J2sshEndpoint extends JsshConfService implements ServletContextListener {
 
 			def ctx = servletContext.getAttribute(GA.APPLICATION_CONTEXT)
 			def grailsApplication = ctx.grailsApplication
-			config = grailsApplication.config.jssh
+			config1 = grailsApplication.config.jssh
 
-			int defaultMaxSessionIdleTimeout = config.timeout ?: 0
+			int defaultMaxSessionIdleTimeout = config1.timeout ?: 0
 			serverContainer.defaultMaxSessionIdleTimeout = defaultMaxSessionIdleTimeout
 		}
 		catch (IOException e) {
@@ -93,10 +91,10 @@ class J2sshEndpoint extends JsshConfService implements ServletContextListener {
 
 	@OnOpen
 	public void handleOpen(Session userSession,EndpointConfig c,@PathParam("job") String job) {
-		sshUsers.add(userSession)
+
 		def ctx= SCH.servletContext.getAttribute(GA.APPLICATION_CONTEXT)
 		def grailsApplication = ctx.grailsApplication
-		config = grailsApplication.config.jssh
+		config1 = grailsApplication.config.jssh
 		jsshService = ctx.jsshService
 		j2sshService = ctx.j2sshService
 		jsshMessagingService = ctx.jsshMessagingService
@@ -108,9 +106,7 @@ class J2sshEndpoint extends JsshConfService implements ServletContextListener {
 	public void handleMessage(String message, Session userSession) {
 		String username = userSession.userProperties.get("username") as String
 		String job  =  userSession.userProperties.get("job") as String
-		if (config.debug == "on") {
-			log.info "@onMessage: $username: $job > $message\n\n"
-		}
+		log.debug "@onMessage: $username: $job > $message\n\n"
 
 		// Standard Private Messages
 		if (message.startsWith('/pm')) {
@@ -155,9 +151,9 @@ class J2sshEndpoint extends JsshConfService implements ServletContextListener {
 				bfrontend =  data.frontend.toBoolean() ?: false
 				if (!username) {
 					String jsshUser = data.jsshUser
-
 					if (jsshUser) {
 						userSession.userProperties.put("username", jsshUser)
+						sshUsers.putIfAbsent(jsshUser, 	userSession)
 					}
 				}
 			}
@@ -175,10 +171,20 @@ class J2sshEndpoint extends JsshConfService implements ServletContextListener {
 					}
 				}else{
 					if  (data.DISCO == "true") {
-						userSession.close()
+						jsshService.processRequest(userSession,'DISCO:-')		
+						if (!destroySshUser(username)) {
+							log.debug "failed to destroy: $username"
+						}else{
+							sleep(1000)
+							if (userSession && userSession.isOpen()) {
+								userSession.close()
+							}
+						}
+						
 					}else{
 						String jsshUser = data.jsshUser ?: jsshRandService.randomise('jsshUser')
 						userSession.userProperties.put("username", jsshUser)
+						sshUsers.putIfAbsent(jsshUser, userSession)
 						verifyGeneric(data)
 						userSession.userProperties.put("pingRate", pingRate)
 						// Initial call lets connect
@@ -225,24 +231,35 @@ class J2sshEndpoint extends JsshConfService implements ServletContextListener {
 		}
 	}
 
+
 	@OnClose
-	public void handeClose() {
-		if (session && session.isOpen()) {
-			session.close()
-		}
-		if (ssh && ssh.isConnected()) {
-			ssh.disconnect()
+	public void handeClose(Session userSession) {
+		String username = userSession.userProperties.get("username") as String
+		if (username) {
+			if (username.endsWith(frontend2)) {
+				userSession.userProperties.put("status", "disconnect")
+				jsshClientProcessService.handleClose(userSession)
+			}else{
+				jsshService.processRequest(userSession,'DISCO:-')
+
+			}
+			if (!destroySshUser(username)) {
+				log.debug "failed to destroy: $username"
+			}else{
+				sleep(1000)
+				if (userSession && userSession.isOpen()) {
+					userSession.close()
+				}
+			}
 		}
 	}
 
 	@OnError
 	public void handleError(Throwable t) {
 		t.printStackTrace()
-		if (session && session.isOpen()) {
-			session.close()
-		}
-		if (ssh && ssh.isConnected()) {
-			ssh.disconnect()
-		}
+	}
+
+	private String getFrontend2() {
+		return config1?.frontenduser ?: '_frontend'
 	}
 }

@@ -12,7 +12,7 @@
 			<label for="execute" class="col-sm-1 control-label">Broadcast Execute:</label>
 			<div class="col-sm-10">
 				<div id="contact-area">
-					<textarea cols="20" rows="1" id="textMessage${divId}"
+					<textarea cols="20" rows="1" id="bcastMessage${divId}"
 						name="message"></textarea>
 					<button class="btn btn-primary sender"
 						onclick="broadcastMessage${divId}();">Send</button>
@@ -59,6 +59,18 @@
 		}
 	}
 	
+	$('#bcastMessage${divId}').keypress(function(e){
+  		if (e.keyCode == 13 && !e.shiftKey) {
+     		e.preventDefault();
+		}
+		if(e.which == 13){
+       		var tmb=bcastMessage${divId}.value.replace(/^\s*[\r\n]/gm, "");
+       		if (tmb!="") {
+       			broadcastMessage${divId}();
+        	}
+       }
+     });
+
 	
 	function closeConnection${divId}() {
 		webSocket${divId}.send(JSON.stringify({ 'frontend':"true",'DISCO':"true", 'system': 'disconnect'}));
@@ -80,8 +92,8 @@
 	}
 	
     function broadcastMessage${divId}() {
-		webSocket${divId}.send('/bcast ${jobName},'+textMessage${divId}.value);
-		textMessage${divId}.value="";
+		webSocket${divId}.send('/bcast ${jobName},'+bcastMessage${divId}.value);
+		bcastMessage${divId}.value="";
 	}
 	
 	

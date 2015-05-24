@@ -1,7 +1,8 @@
-package grails.plugin.jssh
+package grails.plugin.jssh.j2ssh
 
 
 import grails.converters.JSON
+import grails.plugin.jssh.JsshClientEndpoint
 
 import javax.websocket.ContainerProvider
 import javax.websocket.Session
@@ -9,7 +10,7 @@ import javax.websocket.Session
 public class JsshClientListenerService extends JsshConfService {
 
 	static transactional  =  false
-	
+
 	def jsshMessagingService
 	def jsshDbStorageService
 
@@ -46,7 +47,7 @@ public class JsshClientListenerService extends JsshConfService {
 		if (map.hosts) {
 			oSession.userProperties.put("hosts", map.hosts)
 		}
-	
+
 		return  oSession
 	}
 

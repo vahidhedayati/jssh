@@ -1,6 +1,9 @@
 package grails.plugin.jssh
 
 
+import grails.plugin.jssh.j2ssh.JsshClientProcessService
+import grails.plugin.jssh.j2ssh.JsshConfService
+
 import javax.websocket.ClientEndpoint
 import javax.websocket.CloseReason
 import javax.websocket.EndpointConfig
@@ -29,10 +32,10 @@ public class JsshClientEndpoint  extends JsshConfService {
 		this.userSession = userSession
 		this.job = job
 		def ctx= SCH.servletContext.getAttribute(GA.APPLICATION_CONTEXT)
-		
+
 		jsshClientProcessService = ctx.jsshClientProcessService
 		//userSession.userProperties.put("job", job)
-		
+
 	}
 
 	@OnClose
@@ -55,9 +58,9 @@ public class JsshClientEndpoint  extends JsshConfService {
 		jsshClientProcessService.handleClose(userSession)
 		t.printStackTrace()
 	}
-	
-	
-	
+
+
+
 	public void sendMessage(final String message) {
 		userSession.basicRemote.sendText(message)
 	}

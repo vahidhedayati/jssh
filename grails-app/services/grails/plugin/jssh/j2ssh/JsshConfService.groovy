@@ -1,16 +1,41 @@
-package grails.plugin.jssh
+package grails.plugin.jssh.j2ssh
+
+import grails.plugin.jssh.interfaces.JsshBase
+
+import java.util.concurrent.ConcurrentMap
 
 import javax.websocket.Session
 
 
 
-class JsshConfService {
+class JsshConfService implements JsshBase {
 
 	static transactional  =  false
 
 	def grailsApplication
 
-	static final Set<Session> sshUsers = ([] as Set).asSynchronized()
+	public ConcurrentMap<String, Session> getSshNames() {
+		return sshUsers
+	}
+
+	public Collection<String> getJsshUsers() {
+		return Collections.unmodifiableSet(sshUsers.keySet())
+	}
+
+	public Session getSshUser(String username) {
+		Session userSession = sshUsers.get(username)
+		return userSession
+	}
+
+	public boolean sshUserExists(String username) {
+		return jsshUsers.contains(username)
+	}
+
+	public boolean destroySshUser(String username) {
+		if (sshUserExists(username)) {
+			return sshUsers.remove(username) != null
+		}
+	}
 
 	public String CONNECTOR = "CONN:-"
 	public String DISCONNECTOR = "DISCO:-"
@@ -22,23 +47,23 @@ class JsshConfService {
 	}
 
 	public String getFrontend() {
-		return config.frontenduser ?: '_frontend'
+		return config?.frontenduser ?: '_frontend'
 	}
 
 	public Boolean getDebug () {
 		boolean on = false
-		if (config.debug == "on") { 
+		if (config?.debug == "on") {
 			on = true
 		}
 		return on
 	}
-	
+
 	public String getAppName(){
 		String addAppName = config.add.appName ?: 'yes'
-		if (addAppName) {
+		if (addAppName=='yes') {
 			grailsApplication.metadata['app.name']
 		}else{
-			return
+			return ''
 		}
 	}
 
@@ -61,7 +86,7 @@ class JsshConfService {
 		values.put("msg", msg);
 		return values
 	}
-	
+
 	public String parseBash(String input) {
 
 		Map bashMap = [
@@ -86,17 +111,17 @@ class JsshConfService {
 		return input
 	}
 
-	def getConfig() {
-		grailsApplication?.config?.jssh
+	public ConfigObject getConfig() {
+		return grailsApplication.config.jssh ?: ''
 	}
-	
+
 	public String addFrontEnd(String username) {
 		if (!username.endsWith(frontend)) {
 			username=username+frontend
 		}
 		return username
 	}
-	
+
 	public String parseFrontEnd(String username) {
 		if (username && username.endsWith(frontend)) {
 			username=username.substring(0, username.indexOf(frontend))

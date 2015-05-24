@@ -1,11 +1,10 @@
 package grails.plugin.jssh
 
 import grails.converters.JSON
+import grails.plugin.jssh.j2ssh.JsshConfService
 import grails.plugin.jssh.logging.CommandLogger
 import grails.plugin.jssh.logging.CommandLogs
 import grails.plugin.jssh.logging.ConnectionLogs
-
-import org.springframework.dao.DataIntegrityViolationException
 
 class ConnectSshController extends JsshConfService {
 

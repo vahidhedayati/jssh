@@ -1,21 +1,17 @@
-package grails.plugin.jssh
+package grails.plugin.jssh.j2ssh
 
+import grails.plugin.jssh.SshCommandBlackList
+import grails.plugin.jssh.SshCommandRewrite
+import grails.plugin.jssh.SshUser
 import grails.transaction.Transactional
 
 import javax.websocket.Session
 
 import com.sshtools.j2ssh.SshClient
-import com.sshtools.j2ssh.authentication.AuthenticationProtocolState
-import com.sshtools.j2ssh.authentication.PasswordAuthenticationClient
-import com.sshtools.j2ssh.authentication.PublicKeyAuthenticationClient
-import com.sshtools.j2ssh.configuration.SshConnectionProperties
 import com.sshtools.j2ssh.connection.ChannelOutputStream
 import com.sshtools.j2ssh.connection.ChannelState
 import com.sshtools.j2ssh.session.SessionChannelClient
 import com.sshtools.j2ssh.session.SessionOutputReader
-import com.sshtools.j2ssh.transport.IgnoreHostKeyVerification
-import com.sshtools.j2ssh.transport.publickey.SshPrivateKey
-import com.sshtools.j2ssh.transport.publickey.SshPrivateKeyFile
 
 
 class J2sshService extends JsshConfService {
@@ -23,7 +19,7 @@ class J2sshService extends JsshConfService {
 	private boolean isAuthenticated = false
 
 	def jsshMessagingService
-
+	def j2sshConnectService
 	public void pingPong(Session userSession, Integer pingRate, String username) {
 		if (userSession && userSession.isOpen()) {
 			String user = userSession.userProperties.get("username") as String
@@ -40,91 +36,39 @@ class J2sshService extends JsshConfService {
 	private Boolean sshConnect(Boolean enablePong, Integer pingRate, String user, String userpass, String host, String usercommand, int port,
 			String sshKey, String sshKeyPass, Session userSession)  {
 		String suser = userSession.userProperties.get("username") as String
-		String sshuser = config.USER ?: ''
-		String sshpass = config.PASS ?: ''
-		//String sshkey = config.KEY ?: ''
-		//String sshkeypass = config.KEYPASS ?: ''
-		String sshport = config.PORT ?: ''
+		Map jconn= j2sshConnectService.j2sshconnector(host,user,userpass,port)
+		SshClient ssh = jconn.ssh
+		isAuthenticated = jconn.isAuthenticated
+		boolean password = jconn.password
+		String username = jconn.username
+		userSession.userProperties.put('sshClient', ssh)
+		// Evaluate the result
+		if (isAuthenticated) {
+			userSession.userProperties.put('host', host)
+			userSession.userProperties.put('connectedUsername', username)
 
-		String username = user ?: sshuser
-		String password = userpass ?: sshpass
-		int sshPort = port ?: sshport as Integer
-		String keyfilePass=''
-		int result=0
-
-		SshConnectionProperties properties = new SshConnectionProperties()
-		boolean go = true
-		SshClient ssh
-		try {
-			properties.setHost(host)
-			properties.setPort(sshPort)
-			ssh = new SshClient()
-			ssh.connect(properties, new IgnoreHostKeyVerification())
-		} catch (Exception e) {
-			go = false
-			//jsshMessagingService.sendFrontEndPM(userSession, user,"ssh connection to ${host} refused")
+			try {
+				def asyncProcess = new Thread({
+					processConnection(ssh, userSession, usercommand)
+				} as Runnable )
+				asyncProcess.start()
+			} catch (Exception e) {
+				e.printStackTrace()
+			}
+			if (enablePong) {
+				pingPong(userSession, pingRate, username)
+			}
+		}else{
+			def authType = "using key file  "
+			if (password) { authType = "using password" }
+			String failMessage = "SSH: Failed authentication user: ${username} on ${host} ${authType}"
+			jsshMessagingService.sendFrontEndPM( userSession, user, failMessage)
 		}
-		if (go && ssh) {
-
-			// User has a key authenticate using SSH Key
-			if (!password) {
-				PublicKeyAuthenticationClient pk = new PublicKeyAuthenticationClient()
-				pk.setUsername(username)
-
-				SshPrivateKeyFile file = SshPrivateKeyFile.parse(new File(sshKey ?: ''))
-				if (file.isPassphraseProtected()) {
-					keyfilePass = sshKeyPass ?: ''
-				}
-				SshPrivateKey key = file.toPrivateKey(keyfilePass);
-				pk.setKey(key)
-				// Try the authentication
-				result = ssh.authenticate(pk)
-				if (result == AuthenticationProtocolState.COMPLETE) {
-					isAuthenticated = true
-				}
-			}
-			// A password has been provided - attempt to ssh using password
-			else{
-				PasswordAuthenticationClient pwd = new PasswordAuthenticationClient()
-				pwd.setUsername(username)
-				pwd.setPassword(password)
-				result = ssh.authenticate(pwd)
-				if(result == 4)  {
-					isAuthenticated = true
-				}
-			}
-
-			userSession.userProperties.put('sshClient', ssh)
-
-			// Evaluate the result
-			if (isAuthenticated) {
-				userSession.userProperties.put('host', host)
-				userSession.userProperties.put('connectedUsername', username)
-
-				try {
-					def asyncProcess = new Thread({
-						processConnection(ssh, userSession, usercommand)
-					} as Runnable )
-					asyncProcess.start()
-				} catch (Exception e) {
-					e.printStackTrace()
-				}
-				if (enablePong) {
-					pingPong(userSession, pingRate, username)
-				}
-			}else{
-				def authType = "using key file  "
-				if (password) { authType = "using password" }
-				String failMessage = "SSH: Failed authentication user: ${username} on ${host} ${authType}"
-				jsshMessagingService.sendFrontEndPM( userSession, user, failMessage)
-			}
-		}
-
 		return isAuthenticated
 	}
 
 	private void closeConnection(SshClient mssh, String user) {
-		disconnect( null, mssh, user )
+		disconnect(null, mssh, user)
 	}
 
 	private void processConnection(SshClient ssh, Session userSession, String usercommand) {
@@ -145,12 +89,12 @@ class J2sshService extends JsshConfService {
 			}
 
 			boolean verifyNotBlocked = verifyBlackList(connectedUser, usercommand)
-			
-			
+
+
 			if (verifyNotBlocked)  {
 
 				usercommand = verifyRewrite(connectedUser, usercommand)
-				
+
 				if (!usercommand.endsWith('\n')) {
 					usercommand = usercommand+'\n'
 				}
@@ -195,34 +139,34 @@ class J2sshService extends JsshConfService {
 			jsshMessagingService.sendFrontEndPM2(userSession, user, "no connection, ${usercommand} not executed")
 		}
 	}
-	
-	@Transactional 
+
+	@Transactional
 	private Boolean verifyBlackList(String connectedUser, String userCommand) {
 		boolean goahead = true
-			SshUser suser = SshUser.findByUsername(connectedUser)
-			if (suser) {
-				def blackList = SshCommandBlackList.findAllBySshuser(suser)
-				blackList.each { bword ->
-					if (userCommand.contains(bword.command)) {
-						goahead = false
-					}
+		SshUser suser = SshUser.findByUsername(connectedUser)
+		if (suser) {
+			def blackList = SshCommandBlackList.findAllBySshuser(suser)
+			blackList.each { bword ->
+				if (userCommand.contains(bword.command)) {
+					goahead = false
 				}
 			}
+		}
 		return goahead
 	}
-	
+
 	@Transactional
 	private String verifyRewrite(String connectedUser, String userCommand) {
-			SshUser suser = SshUser.findByUsername(connectedUser)
-			if (suser) {
-				def rewrite = SshCommandRewrite.findAllBySshuser(suser)
-				rewrite.each { bword ->
-					if (userCommand.contains(bword.command)) {
-						userCommand = userCommand.replace("${bword.command}", "${bword.replacement}")
-					}
-					
+		SshUser suser = SshUser.findByUsername(connectedUser)
+		if (suser) {
+			def rewrite = SshCommandRewrite.findAllBySshuser(suser)
+			rewrite.each { bword ->
+				if (userCommand.contains(bword.command)) {
+					userCommand = userCommand.replace("${bword.command}", "${bword.replacement}")
 				}
+
 			}
+		}
 		return userCommand
 	}
 

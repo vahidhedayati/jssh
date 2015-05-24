@@ -14,7 +14,7 @@ grails.project.dependency.resolution = {
 
 	dependencies {
 		compile 'sshtools:j2ssh-core:0.2.9'
-		compile ('javax.websocket:javax.websocket-api:1.0') { export = false }
+		compile 'javax.websocket:javax.websocket-api:1.0', { export = false }
 	}
 
 	plugins {
@@ -28,5 +28,6 @@ grails.project.dependency.resolution = {
 		build ':release:3.0.1', ':rest-client-builder:2.0.3', {
 			export = false
 		}
+
 	}
 }

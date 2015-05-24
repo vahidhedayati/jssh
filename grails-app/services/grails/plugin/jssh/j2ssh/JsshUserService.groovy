@@ -1,4 +1,6 @@
-package grails.plugin.jssh
+package grails.plugin.jssh.j2ssh
+
+import grails.plugin.jssh.JsshUser
 
 class JsshUserService {
 

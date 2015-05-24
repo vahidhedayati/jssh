@@ -18,16 +18,16 @@ class ConnectSsh {
 	Integer port=22
 	String userpass=""
 	String usercommand = ""
-	
+
 	StringBuilder output = new StringBuilder()
 	private SshClient ssh = new SshClient()
 	SessionChannelClient session
 	SshConnectionProperties properties = null
 	private boolean isAuthenticated = false
-	
+
 	public String ssh(JsshConfig ac)  {
 		try {
-		processit(ac)
+			processit(ac)
 		} catch (InterruptedException ex) {
 			output.append("Connection to host refused")
 		}catch (IOException ex) {
@@ -41,7 +41,7 @@ class ConnectSsh {
 		Object sshpass = ac.getConfig("PASS")
 		Object sshkey = ac.getConfig("KEY")
 		Object sshkeypass = ac.getConfig("KEYPASS")
-		Object sshport = ac.getConfig("PORT")	
+		Object sshport = ac.getConfig("PORT")
 
 		String username = user ?: sshuser.toString()
 		String password = userpass ?: sshpass.toString()
@@ -51,8 +51,8 @@ class ConnectSsh {
 		if (isAuthenticated) {
 			session.close()
 			ssh.disconnect()
-		}	
-		
+		}
+
 		properties = new SshConnectionProperties();
 		properties.setHost(host)
 		properties.setPort(sshPort)
@@ -61,7 +61,7 @@ class ConnectSsh {
 		if (!password) {
 			PublicKeyAuthenticationClient pk = new PublicKeyAuthenticationClient()
 			pk.setUsername(username)
-			
+
 			SshPrivateKeyFile file = SshPrivateKeyFile.parse(new File(sshkey.toString()))
 			if (file.isPassphraseProtected()) {
 				keyfilePass = sshkeypass.toString()
@@ -109,8 +109,8 @@ class ConnectSsh {
 			if (password) { authType="using password" }
 			output.append("Authentication has failed for user: ${username} on ${host} ${authType}")
 		}
-	} 
-	
+	}
+
 
 	// TODO: part of next release - allow expect type of executions
 	def qAndA(String command, String question, String reply, ChannelOutputStream out, SessionOutputReader sor) {
@@ -123,15 +123,15 @@ class ConnectSsh {
 		String[] str = aux.split("\n")
 		answer = str[str.length-1]
 		if(answer.contains(question))  {
-		 out.write("${reply} \n".getBytes())
+			out.write("${reply} \n".getBytes())
 		}
 	}
-	
+
 	def closeConnection() {
 		if (isAuthenticated) {
 			session.close()
 			ssh.disconnect()
 		}
-		
+
 	}
 }
