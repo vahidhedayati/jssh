@@ -15,7 +15,7 @@ Websocket ssh interaction can be incorporated to an existing grails app running 
 
 ###### Dependency (Grails 3.X) :
 ```groovy
-	compile "org.grails.plugins:jssh:3.0.1"
+	compile "org.grails.plugins:jssh:3.0.2"
 ```
 
 	 
