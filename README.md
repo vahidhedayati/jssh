@@ -1,6 +1,11 @@
 jssh
 ====
 
+### Side note - similar / related projects
+- [RemoteSSH](https://github.com/vahidhedayati/RemoteSSH)
+
+- [jssh  (this)](https://github.com/vahidhedayati/jssh)
+
 Grails jssh Plugin based on j2ssh library, provides ssh connection with features/facilities to execute remote shell commands. Provides connection via websockets as well as ajax/polling.  
 
 Websocket ssh interaction can be incorporated to an existing grails app running ver 2>+. Supports both resource (pre 2.4) /assets (2.4+) based grails sites. Plugin will work with tomcat 7.0.54 + (8 as well) running java 1.7 +
